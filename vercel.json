@@ -3,7 +3,8 @@
   "public": true,
   "outputDirectory": "public",
   "rewrites": [
-    { "source": "/", "destination": "/index.html" }
+    { "source": "/", "destination": "/index.html" },
+    { "source": "/(.*)", "destination": "/public/$1" }
   ],
   "headers": [
     {
