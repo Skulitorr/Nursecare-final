@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="is">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reports - NurseCare</title>
+    <link rel="stylesheet" href="/assets/styles/styles.css">
+    <link rel="stylesheet" href="/assets/styles/reports.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="layout">
+        <nav class="sidebar">
+            <!-- ...existing navigation from template... -->
+        </nav>
+
+        <main class="main-content">
+            <header class="top-bar">
+                <div class="page-title">
+                    <h1>Reports</h1>
+                </div>
+                <div class="top-bar-actions">
+                    <button class="generate-report-btn" data-generate-report data-requires-permission="view_reports">
+                        <i class="fas fa-plus"></i>
+                        Generate Report
+                    </button>
+                </div>
+            </header>
+
+            <div class="content">
+                <!-- Report Filters -->
+                <div class="filters" data-report-filters>
+                    <form class="filter-form">
+                        <div class="filter-group">
+                            <input type="text" name="search" placeholder="Search reports...">
+                            <button type="submit">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                        <div class="filter-group">
+                            <select name="type">
+                                <option value="">All Types</option>
+                                <option value="patient">Patient Statistics</option>
+                                <option value="staff">Staff Schedule</option>
+                                <option value="inventory">Inventory Status</option>
+                                <option value="management" data-requires-permission="view_all_reports">Management Summary</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <select name="timeframe">
+                                <option value="day">Last 24 Hours</option>
+                                <option value="week">Last Week</option>
+                                <option value="month">Last Month</option>
+                                <option value="quarter">Last Quarter</option>
+                                <option value="year">Last Year</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Report List -->
+                <div class="report-list" data-report-list>
+                    <!-- Report items will be populated by JavaScript -->
+                </div>
+
+                <!-- Report Generation Modal -->
+                <div class="modal" id="report-modal" hidden>
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h2>Generate Report</h2>
+                            <button class="close-modal">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            <form id="report-form">
+                                <div class="form-group">
+                                    <label for="report-type">Report Type</label>
+                                    <select id="report-type" name="type" required>
+                                        <option value="patient">Patient Statistics</option>
+                                        <option value="staff">Staff Schedule</option>
+                                        <option value="inventory">Inventory Status</option>
+                                        <option value="management" data-requires-permission="view_all_reports">Management Summary</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="report-timeframe">Time Frame</label>
+                                    <select id="report-timeframe" name="timeframe" required>
+                                        <option value="day">Last 24 Hours</option>
+                                        <option value="week">Last Week</option>
+                                        <option value="month">Last Month</option>
+                                        <option value="quarter">Last Quarter</option>
+                                        <option value="year">Last Year</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="report-format">Format</label>
+                                    <select id="report-format" name="format" required>
+                                        <option value="pdf">PDF</option>
+                                        <option value="excel">Excel</option>
+                                        <option value="csv">CSV</option>
+                                    </select>
+                                </div>
+                                <div class="form-actions">
+                                    <button type="button" class="cancel-btn">Cancel</button>
+                                    <button type="submit" class="generate-btn">Generate</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="/scripts/roles.js" type="module"></script>
+    <script src="/scripts/common.js" type="module"></script>
+    <script src="/scripts/reports.js" type="module"></script>
+</body>
+</html>

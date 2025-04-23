@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="is">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - NurseCare</title>
+    <link rel="stylesheet" href="/styles/styles.css">
+    <link rel="stylesheet" href="/styles/dashboard.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="layout">
+        <!-- Include sidebar navigation -->
+        <nav class="sidebar">
+            <!-- ...existing navigation from template... -->
+        </nav>
+
+        <main class="main-content">
+            <header class="top-bar">
+                <div class="page-title">
+                    <h1>Dashboard</h1>
+                </div>
+                <div class="top-bar-actions">
+                    <!-- ...existing top bar actions... -->
+                </div>
+            </header>
+
+            <div class="content">
+                <div class="dashboard-container">
+                    <!-- Dashboard Stats -->
+                    <div class="stats-grid">
+                        <div class="stat-card" data-stat="patients" data-requires-permission="view_patients">
+                            <i class="fas fa-user-injured"></i>
+                            <div class="stat-content">
+                                <span class="stat-value">0</span>
+                                <span class="stat-label">Patients</span>
+                            </div>
+                        </div>
+                        <div class="stat-card" data-stat="appointments" data-requires-permission="view_schedule">
+                            <i class="fas fa-calendar"></i>
+                            <div class="stat-content">
+                                <span class="stat-value">0</span>
+                                <span class="stat-label">Appointments</span>
+                            </div>
+                        </div>
+                        <div class="stat-card" data-stat="staff" data-requires-permission="view_all_reports">
+                            <i class="fas fa-users"></i>
+                            <div class="stat-content">
+                                <span class="stat-value">0</span>
+                                <span class="stat-label">Staff Members</span>
+                            </div>
+                        </div>
+                        <div class="stat-card" data-stat="inventory" data-requires-permission="view_inventory">
+                            <i class="fas fa-box"></i>
+                            <div class="stat-content">
+                                <span class="stat-value">0</span>
+                                <span class="stat-label">Inventory Items</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Actions -->
+                    <div class="quick-actions">
+                        <h2>Quick Actions</h2>
+                        <div class="actions-grid">
+                            <button data-action="add-patient" data-requires-permission="manage_patients">
+                                <i class="fas fa-user-plus"></i>
+                                Add Patient
+                            </button>
+                            <button data-action="schedule-appointment" data-requires-permission="manage_schedule">
+                                <i class="fas fa-calendar-plus"></i>
+                                Schedule Appointment
+                            </button>
+                            <button data-action="inventory-check" data-requires-permission="manage_inventory">
+                                <i class="fas fa-clipboard-check"></i>
+                                Check Inventory
+                            </button>
+                            <button data-action="generate-report" data-requires-permission="view_reports">
+                                <i class="fas fa-chart-line"></i>
+                                Generate Report
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Recent Activity -->
+                    <div class="recent-activity" data-requires-any-permission="view_patients,view_schedule">
+                        <h2>Recent Activity</h2>
+                        <div class="activity-list">
+                            <!-- Activity items will be populated by JavaScript -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="/scripts/roles.js" type="module"></script>
+    <script src="/scripts/common.js" type="module"></script>
+    <script src="/scripts/dashboard.js" type="module"></script>
+</body>
+</html>

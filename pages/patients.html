@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="is">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Patients - NurseCare</title>
+    <link rel="stylesheet" href="/assets/styles/styles.css">
+    <link rel="stylesheet" href="/assets/styles/patients.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="layout">
+        <!-- Include sidebar navigation -->
+        <nav class="sidebar">
+            <!-- ...existing navigation from template... -->
+        </nav>
+
+        <main class="main-content">
+            <header class="top-bar">
+                <div class="page-title">
+                    <h1>Patients</h1>
+                </div>
+                <div class="top-bar-actions">
+                    <button class="add-patient-btn" data-requires-permission="manage_patients">
+                        <i class="fas fa-plus"></i>
+                        Add Patient
+                    </button>
+                    <!-- ...existing top bar actions... -->
+                </div>
+            </header>
+
+            <div class="content">
+                <!-- Patient Filters -->
+                <div class="filters" data-patient-filters>
+                    <form class="filter-form">
+                        <div class="filter-group">
+                            <input type="text" name="search" placeholder="Search patients...">
+                            <button type="submit">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                        <div class="filter-group">
+                            <select name="status">
+                                <option value="">All Statuses</option>
+                                <option value="active">Active</option>
+                                <option value="discharged">Discharged</option>
+                                <option value="scheduled">Scheduled</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <select name="ward">
+                                <option value="">All Wards</option>
+                                <option value="general">General</option>
+                                <option value="emergency">Emergency</option>
+                                <option value="icu">ICU</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Patient List -->
+                <div class="patient-list" data-patient-list>
+                    <!-- Patient items will be populated by JavaScript -->
+                </div>
+
+                <!-- Patient Details Modal -->
+                <div class="modal" id="patient-modal" hidden>
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h2>Patient Details</h2>
+                            <button class="close-modal">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            <form id="patient-form">
+                                <div class="form-group">
+                                    <label for="patient-name">Name</label>
+                                    <input type="text" id="patient-name" name="name" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="patient-status">Status</label>
+                                    <select id="patient-status" name="status" required>
+                                        <option value="active">Active</option>
+                                        <option value="discharged">Discharged</option>
+                                        <option value="scheduled">Scheduled</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="patient-room">Room</label>
+                                    <input type="text" id="patient-room" name="room">
+                                </div>
+                                <div class="form-actions">
+                                    <button type="button" class="cancel-btn">Cancel</button>
+                                    <button type="submit" class="save-btn" data-requires-permission="manage_patients">Save</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="/scripts/roles.js" type="module"></script>
+    <script src="/scripts/common.js" type="module"></script>
+    <script src="/scripts/patients.js" type="module"></script>
+</body>
+</html>
