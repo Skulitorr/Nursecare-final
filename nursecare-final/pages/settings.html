@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="is">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings - NurseCare</title>
+    <link rel="stylesheet" href="/assets/styles/styles.css">
+    <link rel="stylesheet" href="/assets/styles/settings.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="layout">
+        <nav class="sidebar">
+            <!-- ...existing navigation from template... -->
+        </nav>
+
+        <main class="main-content">
+            <header class="top-bar">
+                <div class="page-title">
+                    <h1>Settings</h1>
+                </div>
+            </header>
+
+            <div class="content settings-container">
+                <!-- Settings Menu -->
+                <div class="settings-menu">
+                    <ul>
+                        <li class="active"><a href="#general">General Settings</a></li>
+                        <li><a href="#notifications">Notifications</a></li>
+                        <li><a href="#roles" data-requires-permission="manage_roles">Role Management</a></li>
+                        <li><a href="#backup" data-requires-permission="manage_settings">Backup & Restore</a></li>
+                    </ul>
+                </div>
+
+                <!-- Settings Content -->
+                <div class="settings-content">
+                    <!-- General Settings -->
+                    <section id="general" class="settings-section">
+                        <h2>General Settings</h2>
+                        <form id="general-settings" data-settings-form>
+                            <div class="form-group">
+                                <label for="site-name">Site Name</label>
+                                <input type="text" id="site-name" name="siteName" value="NurseCare" data-requires-permission="manage_settings">
+                            </div>
+                            <div class="form-group">
+                                <label for="language">Language</label>
+                                <select id="language" name="language">
+                                    <option value="is">Íslenska</option>
+                                    <option value="en">English</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="timezone">Time Zone</label>
+                                <select id="timezone" name="timeZone">
+                                    <option value="Atlantic/Reykjavik">Atlantic/Reykjavik</option>
+                                    <option value="UTC">UTC</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="theme">Theme</label>
+                                <select id="theme" name="theme">
+                                    <option value="light">Light</option>
+                                    <option value="dark">Dark</option>
+                                    <option value="system">System Default</option>
+                                </select>
+                            </div>
+                            <div class="form-actions">
+                                <button type="submit" data-requires-permission="manage_settings">Save General Settings</button>
+                            </div>
+                        </form>
+                    </section>
+
+                    <!-- Notification Settings -->
+                    <section id="notifications" class="settings-section" hidden>
+                        <h2>Notification Settings</h2>
+                        <form id="notification-settings" data-settings-form>
+                            <div class="form-group">
+                                <label for="email-notifications">Email Notifications</label>
+                                <div class="toggle-switch">
+                                    <input type="checkbox" id="email-notifications" name="emailNotifications" checked>
+                                    <label for="email-notifications"></label>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="push-notifications">Push Notifications</label>
+                                <div class="toggle-switch">
+                                    <input type="checkbox" id="push-notifications" name="pushNotifications" checked>
+                                    <label for="push-notifications"></label>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="notification-sound">Notification Sound</label>
+                                <div class="toggle-switch">
+                                    <input type="checkbox" id="notification-sound" name="notificationSound" checked>
+                                    <label for="notification-sound"></label>
+                                </div>
+                            </div>
+                            <div class="form-actions">
+                                <button type="submit">Save Notification Settings</button>
+                            </div>
+                        </form>
+                    </section>
+
+                    <!-- Role Management -->
+                    <section id="roles" class="settings-section" hidden data-requires-permission="manage_roles">
+                        <h2>Role Management</h2>
+                        <form id="role-settings" data-settings-form>
+                            <div class="role-list">
+                                <!-- Roles will be populated by JavaScript -->
+                            </div>
+                            <div class="form-actions">
+                                <button type="button" data-action="add-role" class="secondary-button">Add New Role</button>
+                                <button type="submit">Save Role Settings</button>
+                            </div>
+                        </form>
+                    </section>
+
+                    <!-- Backup & Restore -->
+                    <section id="backup" class="settings-section" hidden data-requires-permission="manage_settings">
+                        <h2>Backup & Restore</h2>
+                        <form id="backup-settings" data-settings-form>
+                            <div class="form-group">
+                                <label>Last Backup</label>
+                                <p id="last-backup-date">Never</p>
+                            </div>
+                            <div class="form-actions">
+                                <button type="button" data-action="create-backup" class="primary-button">Create Backup</button>
+                                <button type="button" data-action="restore-backup" class="secondary-button">Restore from Backup</button>
+                            </div>
+                        </form>
+                    </section>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="/scripts/roles.js" type="module"></script>
+    <script src="/scripts/common.js" type="module"></script>
+    <script src="/scripts/settings.js" type="module"></script>
+</body>
+</html>

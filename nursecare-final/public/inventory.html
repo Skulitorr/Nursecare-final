@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="is">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventory - NurseCare</title>
+    <link rel="stylesheet" href="/styles/styles.css">
+    <link rel="stylesheet" href="/styles/inventory.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="layout">
+        <nav class="sidebar">
+            <!-- ...existing navigation from template... -->
+        </nav>
+
+        <main class="main-content">
+            <header class="top-bar">
+                <div class="page-title">
+                    <h1>Inventory Management</h1>
+                </div>
+                <div class="top-bar-actions">
+                    <button class="add-item-btn" data-requires-permission="manage_inventory">
+                        <i class="fas fa-plus"></i>
+                        Add Item
+                    </button>
+                </div>
+            </header>
+
+            <div class="content">
+                <!-- Inventory Stats -->
+                <div class="inventory-stats">
+                    <div class="stat-card" data-requires-permission="view_inventory">
+                        <i class="fas fa-box"></i>
+                        <div class="stat-content">
+                            <span class="stat-value" id="total-items">0</span>
+                            <span class="stat-label">Total Items</span>
+                        </div>
+                    </div>
+                    <div class="stat-card" data-requires-permission="view_inventory">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <div class="stat-content">
+                            <span class="stat-value" id="low-stock">0</span>
+                            <span class="stat-label">Low Stock</span>
+                        </div>
+                    </div>
+                    <div class="stat-card" data-requires-permission="view_inventory">
+                        <i class="fas fa-clock"></i>
+                        <div class="stat-content">
+                            <span class="stat-value" id="pending-orders">0</span>
+                            <span class="stat-label">Pending Orders</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Inventory Filters -->
+                <div class="filters" data-inventory-filters>
+                    <form class="filter-form">
+                        <div class="filter-group">
+                            <input type="text" name="search" placeholder="Search inventory...">
+                            <button type="submit">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                        <div class="filter-group">
+                            <select name="category">
+                                <option value="">All Categories</option>
+                                <option value="medical">Medical Supplies</option>
+                                <option value="medication">Medications</option>
+                                <option value="equipment">Equipment</option>
+                                <option value="general">General Supplies</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <select name="status">
+                                <option value="">All Status</option>
+                                <option value="in-stock">In Stock</option>
+                                <option value="low-stock">Low Stock</option>
+                                <option value="out-of-stock">Out of Stock</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Inventory Table -->
+                <div class="inventory-table-container">
+                    <table class="inventory-table">
+                        <thead>
+                            <tr>
+                                <th>Item Name</th>
+                                <th>Category</th>
+                                <th>Stock Level</th>
+                                <th>Min. Quantity</th>
+                                <th>Location</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="inventory-items">
+                            <!-- Items will be populated by JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Item Modal -->
+                <div class="modal" id="item-modal" hidden>
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h2>Item Details</h2>
+                            <button class="close-modal">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            <form id="item-form">
+                                <div class="form-group">
+                                    <label for="item-name">Item Name</label>
+                                    <input type="text" id="item-name" name="name" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="item-category">Category</label>
+                                    <select id="item-category" name="category" required>
+                                        <option value="medical">Medical Supplies</option>
+                                        <option value="medication">Medications</option>
+                                        <option value="equipment">Equipment</option>
+                                        <option value="general">General Supplies</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="item-quantity">Quantity</label>
+                                    <input type="number" id="item-quantity" name="quantity" min="0" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="item-min-quantity">Minimum Quantity</label>
+                                    <input type="number" id="item-min-quantity" name="minQuantity" min="0" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="item-location">Storage Location</label>
+                                    <input type="text" id="item-location" name="location">
+                                </div>
+                                <div class="form-actions">
+                                    <button type="button" class="delete-btn" data-requires-permission="manage_inventory">Delete</button>
+                                    <button type="button" class="cancel-btn">Cancel</button>
+                                    <button type="submit" class="save-btn" data-requires-permission="manage_inventory">Save</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div class="inventory-container">
+        <!-- ...existing inventory content... -->
+    </div>
+
+    <script src="/scripts/roles.js" type="module"></script>
+    <script src="/scripts/common.js" type="module"></script>
+    <script src="/scripts/inventory.js" type="module"></script>
+</body>
+</html>

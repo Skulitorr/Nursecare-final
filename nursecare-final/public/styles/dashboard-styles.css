@@ -1,0 +1,512 @@
+/* Enhanced styles for NurseCare AI Dashboard */
+
+/* Base styles we need to add */
+:root {
+    /* Enhanced Colors */
+    --primary-hover: #2b62cc;
+    --success-hover: #1aad8c;
+    --warning-hover: #e68600;
+    --danger-hover: #d41c30;
+    
+    /* Animations */
+    --fade-in: fade-in 0.3s ease;
+    --slide-up: slide-up 0.3s ease;
+    --slide-down: slide-down 0.3s ease;
+}
+
+/* Improved Button States */
+.btn {
+    transition: all 0.2s ease;
+}
+
+.btn-primary:hover {
+    background-color: var(--primary-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.btn-outline:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+/* Card enhancements */
+.card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-lg);
+}
+
+/* Highlight animation for cards */
+.highlight-card {
+    animation: card-highlight 2s ease;
+}
+
+@keyframes card-highlight {
+    0%, 100% {
+        box-shadow: var(--shadow);
+    }
+    50% {
+        box-shadow: 0 0 15px rgba(58, 134, 255, 0.7);
+    }
+}
+
+/* Enhanced AI Chat Widget */
+.ai-widget-container {
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease;
+}
+
+.ai-widget-toggle {
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), background-color 0.3s ease;
+}
+
+.ai-widget-toggle:hover {
+    transform: scale(1.1) rotate(5deg);
+}
+
+.ai-widget-container.open {
+    transform: scale(1) translateY(0);
+}
+
+/* Typing animation enhancements */
+.typing-indicator {
+    padding: 10px;
+    display: inline-flex;
+    align-items: center;
+}
+
+.typing-indicator span {
+    height: 8px;
+    width: 8px;
+    margin: 0 2px;
+    background-color: rgba(155, 155, 155, 0.7);
+    border-radius: 50%;
+    display: inline-block;
+    animation: typing-animation 1.5s infinite ease-in-out;
+}
+
+.typing-indicator span:nth-child(1) { animation-delay: 0s; }
+.typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+.typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes typing-animation {
+    0%, 60%, 100% {
+        transform: translateY(0);
+    }
+    30% {
+        transform: translateY(-6px);
+    }
+}
+
+/* Toast notifications enhancements */
+.toast-container {
+    position: fixed;
+    top: 1rem;
+    right: 1rem;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.toast {
+    display: flex;
+    align-items: center;
+    min-width: 300px;
+    max-width: 450px;
+    background-color: white;
+    border-radius: 8px;
+    padding: 1rem;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+    animation: slide-in 0.3s ease;
+    border-left: 4px solid var(--primary-color);
+}
+
+.toast.success {
+    border-left-color: var(--success-color);
+}
+
+.toast.error {
+    border-left-color: var(--danger-color);
+}
+
+.toast.warning {
+    border-left-color: var(--warning-color);
+}
+
+.toast i {
+    font-size: 1.5rem;
+    margin-right: 1rem;
+}
+
+.toast.success i {
+    color: var(--success-color);
+}
+
+.toast.error i {
+    color: var(--danger-color);
+}
+
+.toast.warning i {
+    color: var(--warning-color);
+}
+
+.toast-content {
+    flex: 1;
+}
+
+.toast-title {
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+}
+
+.toast-message {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+}
+
+.toast-close {
+    background: none;
+    border: none;
+    color: var(--gray-500);
+    font-size: 1.25rem;
+    cursor: pointer;
+    align-self: flex-start;
+    transition: color 0.2s ease;
+}
+
+.toast-close:hover {
+    color: var(--text-dark);
+}
+
+.toast-hide {
+    animation: slide-out 0.3s ease forwards;
+}
+
+@keyframes slide-in {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slide-out {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}
+
+/* Rotating animation for refresh buttons */
+.card-action.rotating i {
+    animation: rotate 1s linear infinite;
+}
+
+@keyframes rotate {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* Alert highlight animation */
+.alert-item {
+    transition: all 0.3s ease;
+}
+
+.alert-highlight {
+    animation: alert-highlight 2s ease;
+}
+
+@keyframes alert-highlight {
+    0%, 100% {
+        background-color: var(--bg-secondary);
+    }
+    50% {
+        background-color: rgba(255, 150, 50, 0.2);
+    }
+}
+
+/* Improved modal styling */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.modal.show {
+    opacity: 1;
+}
+
+.modal-content {
+    background-color: white;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 600px;
+    max-height: 90vh;
+    overflow-y: auto;
+    transform: translateY(20px);
+    transition: transform 0.3s ease;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+}
+
+.modal.show .modal-content {
+    transform: translateY(0);
+}
+
+.modal-header {
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.modal-header h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin: 0;
+}
+
+.modal-body {
+    padding: 1.5rem;
+}
+
+.modal-footer {
+    padding: 1rem 1.5rem;
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.75rem;
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    color: var(--gray-600);
+    font-size: 1.25rem;
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.close-btn:hover {
+    color: var(--gray-900);
+}
+
+/* Tooltip styling */
+.tooltip {
+    position: absolute;
+    background-color: var(--dark-color);
+    color: white;
+    padding: 0.5rem 0.75rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    z-index: 9998;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    pointer-events: none;
+}
+
+.tooltip::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    margin-left: -5px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: var(--dark-color) transparent transparent transparent;
+}
+
+.tooltip.show {
+    opacity: 0.9;
+    transform: translateY(0);
+}
+
+/* Report modal styling */
+.report-section {
+    margin-bottom: 1.5rem;
+}
+
+.report-section h4 {
+    font-size: 1.1rem;
+    margin-bottom: 0.75rem;
+    color: var(--primary-color);
+    border-bottom: 1px solid var(--gray-200);
+    padding-bottom: 0.5rem;
+}
+
+.report-section ul {
+    padding-left: 1.5rem;
+}
+
+.report-section li {
+    margin-bottom: 0.5rem;
+}
+
+/* Message styling for chat */
+.message {
+    display: flex;
+    max-width: 85%;
+    margin-bottom: 1rem;
+    animation: fade-in 0.3s ease;
+}
+
+.user-message {
+    align-self: flex-end;
+    flex-direction: row-reverse;
+}
+
+.assistant-message {
+    align-self: flex-start;
+}
+
+.message-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background-color: var(--primary-lighter);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 16px;
+    flex-shrink: 0;
+}
+
+.user-message .message-avatar {
+    background-color: var(--primary-color);
+}
+
+.assistant-message .message-avatar {
+    background-color: var(--secondary-color);
+}
+
+.message-content {
+    max-width: calc(100% - 50px);
+}
+
+.message-text {
+    padding: 0.75rem 1rem;
+    background-color: var(--primary-bg);
+    border-radius: 18px;
+    border-bottom-left-radius: 4px;
+    font-size: 0.9375rem;
+    line-height: 1.4;
+    margin-bottom: 0.25rem;
+    overflow-wrap: break-word;
+    color: var(--text-dark);
+}
+
+.user-message .message-text {
+    background-color: var(--primary-color);
+    color: white;
+    border-radius: 18px;
+    border-bottom-right-radius: 4px;
+}
+
+.message-time {
+    font-size: 0.75rem;
+    color: var(--gray-500);
+    text-align: right;
+}
+
+/* Animation keyframes */
+@keyframes fade-in {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slide-up {
+    from {
+        transform: translateY(20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slide-down {
+    from {
+        transform: translateY(-20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* Dark mode specific enhancements */
+.dark-mode .toast {
+    background-color: var(--bg-card);
+    color: var(--text-light);
+}
+
+.dark-mode .modal-content {
+    background-color: var(--bg-card);
+    color: var(--text-light);
+}
+
+.dark-mode .report-section h4 {
+    border-bottom-color: var(--gray-600);
+}
+
+.dark-mode .message-text {
+    background-color: rgba(59, 130, 246, 0.2);
+}
+
+.dark-mode .assistant-message .message-avatar {
+    background-color: #4c6ef5;
+}
+
+.dark-mode .user-message .message-avatar {
+    background-color: #3b82f6;
+}
+
+/* Mobile responsive improvements */
+@media (max-width: 768px) {
+    .toast {
+        max-width: 90%;
+    }
+    
+    .modal-content {
+        width: 95%;
+    }
+    
+    .ai-widget-container {
+        width: 100%;
+        max-width: 100%;
+        border-radius: 16px 16px 0 0;
+        bottom: 0;
+        right: 0;
+        top: auto;
+        height: 50vh;
+    }
