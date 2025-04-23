@@ -1,0 +1,25 @@
+/* 
+ * VaktAI Dashboard Styles - Enhanced version 
+ */
+
+:root {
+    /* Main color scheme */
+    --primary-color: #003E5D;
+    --primary-light: #005580;
+    --primary-lighter: #D5E6F2;
+    --text-light: #FFFFFF;
+    --text-dark: #333333;
+    --text-muted: #64748b;
+    --bg-light: #FFFFFF;
+    --bg-body: #F9FAFB;
+    --alert-red: #FF4D4D;
+    --alert-red-light: rgba(255, 77, 77, 0.1);
+    --alert-yellow: #FFD700;
+    --alert-yellow-light: rgba(255, 215, 0, 0.1);
+    --alert-green: #009E60;
+    --alert-green-light: rgba(0, 158, 96, 0.1);
+    --alert-blue: #3B82F6;
+    --alert-blue-light: rgba(59, 130, 246, 0.1);
+}
+
+/* Base styles from assets/styles.css */
