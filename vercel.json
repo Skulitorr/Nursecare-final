@@ -1,39 +1,6 @@
 {
   "cleanUrls": true,
-  "public": true,
-  "outputDirectory": "public",
   "rewrites": [
-    { "source": "/((?!.*\\..*|_next).*)", "destination": "/index.html" },
-    { "source": "/login", "destination": "/login.html" },
-    { "source": "/dashboard", "destination": "/dashboard.html" },
-    { "source": "/inventory", "destination": "/inventory.html" },
-    { "source": "/patients", "destination": "/patients.html" },
-    { "source": "/staff", "destination": "/staff.html" },
-    { "source": "/schedule", "destination": "/schedule.html" },
-    { "source": "/settings", "destination": "/settings.html" },
-    { "source": "/reports", "destination": "/reports.html" }
-  ],
-  "headers": [
-    {
-      "source": "/(.*)",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=0, must-revalidate"
-        },
-        {
-          "key": "X-Content-Type-Options",
-          "value": "nosniff"
-        },
-        {
-          "key": "X-Frame-Options",
-          "value": "DENY"
-        },
-        {
-          "key": "X-XSS-Protection",
-          "value": "1; mode=block"
-        }
-      ]
-    }
+    { "source": "/", "destination": "/index.html" }
   ]
 }
