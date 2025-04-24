@@ -17,33 +17,39 @@
     
     <!-- Authentication check -->
     <script>
-        // Robust authentication check
         function validateAuth() {
-            const authToken = localStorage.getItem('authToken');
-            const userRole = localStorage.getItem('userRole');
+            const authToken = localStorage.getItem("authToken");
+            const userRole = localStorage.getItem("userRole");
+            const currentPath = window.location.pathname;
             
             if (!authToken || !userRole) {
-                window.location.href = '/login.html';
+                if (!currentPath.includes("login")) {
+                    window.location.href = "/public/login.html";
+                }
                 return false;
             }
             
             try {
-                // Validate token format and expiration
                 const tokenData = JSON.parse(atob(authToken));
-                if (!tokenData.exp || !tokenData.role || tokenData.exp <= Date.now() || tokenData.role !== userRole) {
+                if (!tokenData.exp || !tokenData.role || 
+                    tokenData.exp <= Date.now() || 
+                    tokenData.role !== userRole) {
                     localStorage.clear();
-                    window.location.href = '/login.html';
+                    if (!currentPath.includes("login")) {
+                        window.location.href = "/public/login.html";
+                    }
                     return false;
                 }
                 return true;
             } catch (e) {
                 localStorage.clear();
-                window.location.href = '/login.html';
+                if (!currentPath.includes("login")) {
+                    window.location.href = "/public/login.html";
+                }
                 return false;
             }
         }
 
-        // Run validation immediately
         validateAuth();
     </script>
     
@@ -577,7 +583,7 @@
             align-items: center;
             gap: 12px;
             padding: 12px 20px;
-            color: var(--gray-700);
+            color: var (--gray-700);
             transition: var(--transition);
             border-radius: 8px;
             margin: 0 10px;
@@ -969,7 +975,7 @@
             border: none;
             color: white;
             padding: 0.625rem 1.25rem;
-            border-radius: var(--button-radius);
+            border-radius: var (--button-radius);
             transition: var(--transition);
         }
 
@@ -1770,7 +1776,7 @@
             display: flex;
             align-items: center;
             gap: 5px;
-            color: var(--gray-500);
+            color: var (--gray-500);
             font-size: 0.75rem;
             margin-left: auto;
         }
@@ -2433,13 +2439,6 @@
                     </div>
                 </section>
             </div>
-        </main>
-        
-        <!-- AI Widget -->
-        <div class="ai-widget">
-            <div class="ai-widget-container" id="ai-widget-container">
-                <div class="ai-widget-header">
-                    <div class="ai-widget-title">
                         <i class="fas fa-robot" aria-hidden="true"></i>
                         <span>NurseCare AI Aðstoðarmaður</span>
                     </div>

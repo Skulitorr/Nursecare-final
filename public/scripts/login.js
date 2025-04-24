@@ -1,36 +1,26 @@
-import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
-import { USER_ROLES } from './roles.js';
+// Mock user data for demo purposes
+const mockUsers = {
+    'admin': { role: 'ADMIN', password: 'admin123' },
+    'nurse': { role: 'NURSE', password: 'nurse123' },
+    'staff': { role: 'STAFF', password: 'staff123' },
+    'inventory': { role: 'INVENTORY', password: 'inv123' }
+};
 
-document.addEventListener('DOMContentLoaded', function() {
-    // Initialize Supabase client
-    const SUPABASE_URL = 'https://djyenuibpesszqqonhqt.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRqeWVudWlicGVzc3pxcW9uaHF0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDUyMzA2MDgsImV4cCI6MjA2MDgwNjYwOH0.0rSV7e_EBqhEvBM4xA7UdHQCjd3lUTs2pwRXodx3Hzc';
-    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-    // Get DOM elements
+document.addEventListener('DOMContentLoaded', () => {
     const loginForm = document.getElementById('login-form');
     const usernameInput = document.getElementById('username');
     const passwordInput = document.getElementById('password');
-    const loginError = document.getElementById('login-error');
-    const loginContainer = document.querySelector('.login-container');
+    const loginBtn = document.getElementById('login-btn');
+    const errorMessage = document.getElementById('login-error');
 
-    // Only redirect if we have both token and role
-    const authToken = localStorage.getItem('authToken');
-    const userRole = localStorage.getItem('userRole');
-    if (authToken && userRole) {
-        window.location.href = '/dashboard.html';
-        return;
-    }
-
-    // Clear any stale auth data
+    // Clear any stale auth data on login page load
     localStorage.clear();
 
-    // Focus on username input
-    usernameInput.focus();
+    // Focus username input
+    usernameInput?.focus();
 
-    // Handle form submission
-    loginForm.addEventListener('submit', function(event) {
-        event.preventDefault();
+    loginForm?.addEventListener('submit', async (e) => {
+        e.preventDefault();
         
         const username = usernameInput.value.trim();
         const password = passwordInput.value;
@@ -40,60 +30,50 @@ document.addEventListener('DOMContentLoaded', function() {
             showError('Please enter both username and password');
             return;
         }
+
+        // Disable button during validation
+        loginBtn.disabled = true;
+        loginBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Logging in...';
         
-        // Mock authentication - in real app this would be an API call
-        const mockUsers = {
-            'admin': { role: USER_ROLES.ADMIN, password: 'admin123' },
-            'nurse': { role: USER_ROLES.NURSE, password: 'nurse123' },
-            'staff': { role: USER_ROLES.STAFF, password: 'staff123' },
-            'inventory': { role: USER_ROLES.INVENTORY, password: 'inv123' }
-        };
-        
-        const user = mockUsers[username];
-        if (user && user.password === password) {
-            // Set auth data
-            const token = btoa(JSON.stringify({
+        try {
+            const user = mockUsers[username];
+            if (!user || user.password !== password) {
+                throw new Error('Invalid username or password');
+            }
+
+            // Create session token with expiration
+            const tokenData = {
                 username,
                 role: user.role,
                 exp: Date.now() + (24 * 60 * 60 * 1000) // 24 hours
-            }));
+            };
             
+            // Only set auth data after successful validation
+            const token = btoa(JSON.stringify(tokenData));
             localStorage.setItem('authToken', token);
             localStorage.setItem('userRole', user.role);
             localStorage.setItem('username', username);
             
             // Redirect to dashboard
-            window.location.href = '/dashboard.html';
-        } else {
-            showError('Invalid username or password');
+            window.location.href = '/public/dashboard.html';
+        } catch (error) {
+            showError(error.message);
             passwordInput.value = ''; // Clear password on error
+        } finally {
+            // Reset button state
+            loginBtn.disabled = false;
+            loginBtn.textContent = 'Login';
         }
     });
 
     function showError(message) {
-        if (loginError) {
-            loginError.textContent = message;
-            loginError.style.display = 'block';
+        if (errorMessage) {
+            errorMessage.textContent = message;
+            errorMessage.style.display = 'block';
             
             // Add shake animation
-            loginContainer.classList.add('shake');
-            setTimeout(() => {
-                loginContainer.classList.remove('shake');
-            }, 600);
+            loginForm.classList.add('shake');
+            setTimeout(() => loginForm.classList.remove('shake'), 600);
         }
     }
-
-    // Add shake animation CSS
-    const style = document.createElement('style');
-    style.textContent = `
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
-            20%, 40%, 60%, 80% { transform: translateX(5px); }
-        }
-        .shake {
-            animation: shake 0.6s cubic-bezier(.36,.07,.19,.97) both;
-        }
-    `;
-    document.head.appendChild(style);
 });

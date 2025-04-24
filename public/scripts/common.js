@@ -1,89 +1,147 @@
-// Common utility functions for authentication and navigation
+import { validateSession, SESSION_KEYS } from './auth.js';
 import { hasPermission } from './roles.js';
 
 /**
- * Check authorization for current page
+ * Initialize page requirements
  */
-function checkAuthorization() {
-    // Get current page
-    const currentPage = window.location.pathname.split('/').pop() || 'index.html';
-    
-    // Skip auth check for public pages
-    if (['login.html', 'unauthorized.html', 'index.html'].includes(currentPage)) {
-        return true;
-    }
-    
-    // Get auth data
-    const authToken = localStorage.getItem('authToken');
-    const userRole = localStorage.getItem('userRole');
-    
-    // Redirect to login if no auth data
-    if (!authToken || !userRole) {
-        window.location.href = '/login.html';
+export function initializePage() {
+    // Validate auth first
+    if (!validateSession()) {
         return false;
     }
+
+    // Get current page name from path
+    const pageName = getCurrentPageName();
+    const userRole = localStorage.getItem(SESSION_KEYS.ROLE);
     
     try {
-        // Validate token
-        const tokenData = JSON.parse(atob(authToken));
-        if (!tokenData.exp || tokenData.exp <= Date.now() || tokenData.role !== userRole) {
-            localStorage.clear();
-            window.location.href = '/login.html';
+        // Check page-specific permissions
+        if (!hasPagePermission(pageName, userRole)) {
+            window.location.href = '/public/unauthorized.html';
             return false;
         }
         
-        // Check page permissions based on user role
-        const pageName = currentPage.replace('.html', '');
-        if (!hasPermission(pageName, userRole)) {
-            window.location.href = '/unauthorized.html';
-            return false;
-        }
-        
+        setupUI();
         return true;
     } catch (e) {
-        console.error('Auth validation failed:', e);
-        localStorage.clear();
-        window.location.href = '/login.html';
+        console.error('Page initialization failed:', e);
         return false;
     }
 }
 
-function handlePermissionBasedUI() {
-    const userRole = localStorage.getItem('userRole');
-    if (!userRole) return;
-
-    // Handle elements that require specific permissions
-    document.querySelectorAll('[data-requires-permission]').forEach(element => {
-        const requiredPermission = element.getAttribute('data-requires-permission');
-        if (!hasPermission(requiredPermission, userRole)) {
-            element.remove();
-        }
-    });
-
-    // Handle elements that require any of the specified permissions
-    document.querySelectorAll('[data-requires-any-permission]').forEach(element => {
-        const permissions = element.getAttribute('data-requires-any-permission').split(',');
-        const hasAnyPermission = permissions.some(permission => 
-            hasPermission(permission.trim(), userRole)
-        );
-        if (!hasAnyPermission) {
-            element.remove();
-        }
-    });
-
-    // Handle elements that should be disabled based on permissions
-    document.querySelectorAll('[data-permission-disabled]').forEach(element => {
-        const requiredPermission = element.getAttribute('data-permission-disabled');
-        if (!hasPermission(requiredPermission, userRole)) {
-            element.disabled = true;
-        }
-    });
+/**
+ * Get current page name from path
+ */
+function getCurrentPageName() {
+    const path = window.location.pathname;
+    const pageName = path.split('/').pop().replace('.html', '');
+    return pageName || 'dashboard';
 }
 
-// Initialize on page load
-document.addEventListener('DOMContentLoaded', () => {
-    checkAuthorization();
-    handlePermissionBasedUI();
-});
+/**
+ * Check if user has permission for the current page
+ */
+function hasPagePermission(pageName, userRole) {
+    const pagePermissions = {
+        'dashboard': ['ADMIN', 'NURSE', 'STAFF', 'INVENTORY'],
+        'patients': ['ADMIN', 'NURSE', 'STAFF'],
+        'inventory': ['ADMIN', 'INVENTORY'],
+        'staff': ['ADMIN'],
+        'reports': ['ADMIN', 'NURSE'],
+        'settings': ['ADMIN']
+    };
 
-export { checkAuthorization };
+    const allowedRoles = pagePermissions[pageName] || ['ADMIN'];
+    return allowedRoles.includes(userRole.toUpperCase());
+}
+
+/**
+ * Setup common UI elements
+ */
+function setupUI() {
+    setupSidebar();
+    setupHeader();
+    setupThemeToggle();
+    setupLogoutHandler();
+}
+
+/**
+ * Setup sidebar navigation
+ */
+function setupSidebar() {
+    const sidebar = document.querySelector('.sidebar');
+    const toggleBtn = document.getElementById('toggle-sidebar');
+    
+    if (toggleBtn && sidebar) {
+        toggleBtn.addEventListener('click', () => {
+            sidebar.classList.toggle('expanded');
+        });
+    }
+}
+
+/**
+ * Setup header components
+ */
+function setupHeader() {
+    const username = localStorage.getItem(SESSION_KEYS.USERNAME);
+    const userRole = localStorage.getItem(SESSION_KEYS.ROLE);
+    
+    // Update user info if elements exist
+    const userNameElement = document.querySelector('.user-name');
+    const userRoleElement = document.querySelector('.user-role');
+    
+    if (userNameElement) {
+        userNameElement.textContent = username || 'User';
+    }
+    if (userRoleElement) {
+        userRoleElement.textContent = userRole || 'Guest';
+    }
+}
+
+/**
+ * Setup theme toggle
+ */
+function setupThemeToggle() {
+    const themeToggle = document.getElementById('theme-toggle');
+    if (themeToggle) {
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'dark') {
+            document.body.classList.add('dark-mode');
+            updateThemeIcon(themeToggle, true);
+        }
+
+        themeToggle.addEventListener('click', () => {
+            document.body.classList.toggle('dark-mode');
+            const isDark = document.body.classList.contains('dark-mode');
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+            updateThemeIcon(themeToggle, isDark);
+        });
+    }
+}
+
+/**
+ * Update theme toggle icon
+ */
+function updateThemeIcon(button, isDark) {
+    const icon = button.querySelector('i');
+    if (icon) {
+        icon.className = isDark ? 'fas fa-sun' : 'fas fa-moon';
+    }
+}
+
+/**
+ * Setup logout handler
+ */
+function setupLogoutHandler() {
+    const logoutBtn = document.getElementById('logoutBtn');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            localStorage.clear();
+            window.location.href = '/public/login.html';
+        });
+    }
+}
+
+// Initialize page on load
+document.addEventListener('DOMContentLoaded', initializePage);

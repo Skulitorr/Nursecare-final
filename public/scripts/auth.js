@@ -2,12 +2,11 @@
 import { hasPermission } from './roles.js';
 import { showToast } from './utils.js';
 
-// Session storage keys
+// Constants
 const SESSION_KEYS = {
-    USER: 'currentUser',
     TOKEN: 'authToken',
     ROLE: 'userRole',
-    EXPIRES_AT: 'tokenExpiresAt'
+    USERNAME: 'username'
 };
 
 let currentUser = null;
@@ -37,26 +36,44 @@ export function initAuth() {
 }
 
 /**
- * Clear current session
+ * Clear all session data
  */
-export function clearSession() {
-    currentUser = null;
+function clearSession() {
     localStorage.clear();
 }
 
 /**
- * Check if user is logged in with valid session
+ * Validate token and role
  */
-export function isLoggedIn() {
-    const token = localStorage.getItem(SESSION_KEYS.TOKEN);
-    const role = localStorage.getItem(SESSION_KEYS.ROLE);
-    
-    if (!token || !role) return false;
-    
+function validateSession() {
+    const authToken = localStorage.getItem(SESSION_KEYS.TOKEN);
+    const userRole = localStorage.getItem(SESSION_KEYS.ROLE);
+    const currentPath = window.location.pathname;
+
+    if (!authToken || !userRole) {
+        if (!currentPath.includes('login')) {
+            redirectToLogin();
+        }
+        return false;
+    }
+
     try {
-        const tokenData = JSON.parse(atob(token));
-        return tokenData.exp > Date.now() && tokenData.role === role;
-    } catch {
+        const tokenData = JSON.parse(atob(authToken));
+        if (!tokenData.exp || !tokenData.role || 
+            tokenData.exp <= Date.now() || 
+            tokenData.role !== userRole) {
+            clearSession();
+            if (!currentPath.includes('login')) {
+                redirectToLogin();
+            }
+            return false;
+        }
+        return true;
+    } catch (e) {
+        clearSession();
+        if (!currentPath.includes('login')) {
+            redirectToLogin();
+        }
         return false;
     }
 }
@@ -106,7 +123,31 @@ export async function login(username, password) {
 /**
  * Handle user logout
  */
-export function logout() {
+function logout() {
     clearSession();
-    window.location.href = '/login.html';
+    redirectToLogin();
 }
+
+/**
+ * Redirect to login
+ */
+function redirectToLogin() {
+    window.location.href = '/public/login.html';
+}
+
+/**
+ * Check if user has required role
+ */
+function hasRole(requiredRole) {
+    const userRole = localStorage.getItem(SESSION_KEYS.ROLE);
+    return userRole === requiredRole;
+}
+
+// Export functions
+export {
+    validateSession,
+    clearSession,
+    logout,
+    hasRole,
+    SESSION_KEYS
+};

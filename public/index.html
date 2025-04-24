@@ -16,7 +16,7 @@
                     <span>NurseCare</span>
                 </div>
                 <div class="nav-links">
-                    <a href="/login.html" class="login-link">Log In</a>
+                    <a href="/login" class="login-link">Log In</a>
                 </div>
             </nav>
         </header>
@@ -25,15 +25,16 @@
             <section class="hero">
                 <h1>Welcome to NurseCare</h1>
                 <p>A comprehensive healthcare management system for modern medical facilities</p>
-                <a href="/login.html" class="cta-button">Get Started</a>
+                <div class="cta-buttons">
+                    <a href="/login" class="btn-primary">Get Started</a>
+                    <a href="#features" class="btn-outline">Learn More</a>
+                </div>
             </section>
         </main>
     </div>
 
-    <script type="module" src="/scripts/roles.js"></script>
-    <script type="module" src="/scripts/common.js"></script>
-    <script type="module">
-        // Safely validate auth token and role before redirecting
+    <script>
+        // Only redirect if user has valid role and token
         const authToken = localStorage.getItem('authToken');
         const userRole = localStorage.getItem('userRole');
         
@@ -41,14 +42,13 @@
             try {
                 // Validate token format and expiration
                 const tokenData = JSON.parse(atob(authToken));
-                if (tokenData.exp && tokenData.exp > Date.now() && tokenData.role === userRole) {
-                    window.location.href = '/dashboard.html';
-                } else {
-                    // Clear invalid auth data
-                    localStorage.clear();
+                if (tokenData.exp && tokenData.role && 
+                    tokenData.exp > Date.now() && 
+                    tokenData.role === userRole) {
+                    window.location.href = '/dashboard';
                 }
             } catch (e) {
-                // Clear corrupted auth data
+                // Invalid token format, clear storage
                 localStorage.clear();
             }
         }

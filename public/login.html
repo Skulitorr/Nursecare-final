@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html lang="is">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - NurseCare</title>
-    <link rel="stylesheet" href="/styles/styles.css">
-    <link rel="stylesheet" href="/styles/login.css">
+    <link rel="stylesheet" href="/public/styles/styles.css">
+    <link rel="stylesheet" href="/public/styles/login.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         .login-container {
@@ -99,41 +99,36 @@
 </head>
 <body>
     <div class="login-container">
-        <h1 class="login-title">NurseCare Login</h1>
-        <form id="login-form" novalidate>
-            <div class="form-group">
-                <label for="username">Username</label>
-                <input type="text" 
-                       id="username" 
-                       name="username" 
-                       autocomplete="username"
-                       required
-                       placeholder="Enter your username"
-                       spellcheck="false"
-                       autocapitalize="none">
+        <div class="login-box">
+            <div class="login-header">
+                <img src="/public/assets/icons/logo.svg" alt="NurseCare Logo" class="logo">
+                <h1>NurseCare</h1>
             </div>
-            <div class="form-group">
-                <label for="password">Password</label>
-                <input type="password" 
-                       id="password" 
-                       name="password" 
-                       autocomplete="current-password"
-                       required
-                       placeholder="Enter your password">
-            </div>
-            <button type="submit" id="login-button" class="login-button">
-                <span class="button-text">Log In</span>
-                <span class="spinner">
-                    <i class="fas fa-spinner fa-spin"></i>
-                </span>
-            </button>
-            <div id="login-error" class="error-message" role="alert"></div>
-        </form>
+            <form id="login-form" class="login-form">
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" 
+                           id="username" 
+                           name="username"
+                           autocomplete="username" 
+                           required
+                           placeholder="Enter your username">
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" 
+                           id="password" 
+                           name="password"
+                           autocomplete="current-password"
+                           required
+                           placeholder="Enter your password">
+                </div>
+                <button type="submit" id="login-btn">Login</button>
+                <div id="login-error" class="error-message" role="alert"></div>
+            </form>
+        </div>
     </div>
 
-    <script src="/scripts/roles.js" type="module"></script>
-    <script src="/scripts/auth.js" type="module"></script>
-    <script src="/scripts/common.js" type="module"></script>
-    <script src="/scripts/login.js" type="module"></script>
+    <script src="/public/scripts/login.js"></script>
 </body>
 </html>

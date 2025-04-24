@@ -1,118 +1,94 @@
-// Role definitions and permission management
-export const ROLE_LEVELS = {
-    GUEST: 0,
-    STAFF: 1,
-    NURSE: 2,
-    HEAD_NURSE: 3,
-    ADMIN: 4
-};
-
-// Define available roles
-export const ROLES = {
-    GUEST: {
-        id: 'guest',
-        name: 'Guest',
-        level: ROLE_LEVELS.GUEST,
-        pages: ['index', 'login'],
-        permissions: []
-    },
-    STAFF: {
-        id: 'staff',
-        name: 'Staff',
-        level: ROLE_LEVELS.STAFF,
-        pages: ['index', 'dashboard', 'schedule', 'patients', 'chatbot'],
-        permissions: ['view_patients', 'view_schedule']
-    },
-    NURSE: {
-        id: 'nurse',
-        name: 'Nurse',
-        level: ROLE_LEVELS.NURSE,
-        pages: ['index', 'dashboard', 'schedule', 'patients', 'inventory', 'medications', 'chatbot'],
-        permissions: ['manage_patients', 'manage_medications', 'view_reports', 'view_inventory']
-    },
-    HEAD_NURSE: {
-        id: 'head_nurse',
-        name: 'Head Nurse',
-        level: ROLE_LEVELS.HEAD_NURSE,
-        pages: ['index', 'dashboard', 'schedule', 'staff', 'patients', 'inventory', 'medications', 'chatbot', 'reports'],
-        permissions: ['manage_patients', 'manage_medications', 'manage_schedule', 'view_staff', 'manage_inventory', 'generate_reports']
-    },
-    ADMIN: {
-        id: 'admin',
-        name: 'Administrator',
-        level: ROLE_LEVELS.ADMIN,
+/**
+ * Role definitions and their allowed pages/features
+ */
+export const roles = {
+    admin: {
         pages: ['index', 'dashboard', 'schedule', 'staff', 'patients', 'inventory', 'medications', 'chatbot', 'reports', 'settings'],
-        permissions: ['manage_patients', 'manage_medications', 'manage_schedule', 'manage_staff', 'manage_inventory', 'manage_reports', 'manage_settings']
+        permissions: ['create_user', 'edit_user', 'delete_user', 'manage_roles', 'manage_settings', 'view_all_reports'],
+        displayName: 'Kerfisstjóri'
+    },
+    nurse: {
+        pages: ['index', 'dashboard', 'schedule', 'patients', 'inventory', 'medications', 'chatbot'],
+        permissions: ['manage_patients', 'manage_medications', 'view_reports'],
+        displayName: 'Hjúkrunarfræðingur'
+    },
+    staff: {
+        pages: ['index', 'dashboard', 'schedule', 'patients', 'chatbot'],
+        permissions: ['view_patients', 'view_schedule'],
+        displayName: 'Starfsmaður'
+    },
+    inventory: {
+        pages: ['index', 'dashboard', 'inventory', 'medications', 'chatbot'],
+        permissions: ['manage_inventory', 'manage_medications', 'view_reports'],
+        displayName: 'Birgðastjóri'
     }
 };
 
 /**
- * Check if a user has permission for a page or action
+ * Check if user has access to specified page
  */
-export function hasPermission(permission, userRole) {
-    const role = ROLES[userRole?.toUpperCase()];
+export function isAuthorized(page, role = localStorage.getItem('userRole')) {
     if (!role) return false;
-    
-    // Allow access to basic pages without specific permissions
-    if (['index', 'login', 'unauthorized'].includes(permission)) {
-        return true;
-    }
-    
-    // Check if page access is allowed
-    if (role.pages.includes(permission)) {
-        return true;
-    }
-    
-    // Check specific permission
-    return role.permissions.includes(permission);
+    const allowedPages = roles[role]?.pages || [];
+    const cleanPage = page.replace('.html', '');
+    return allowedPages.includes(cleanPage);
 }
 
 /**
- * Get allowed pages for a role
+ * Check if user has specific permission
  */
-export function getAllowedPages(role) {
-    return ROLES[role?.toUpperCase()]?.pages || [];
+export function hasPermission(permission, role = localStorage.getItem('userRole')) {
+    if (!role) return false;
+    const permissions = roles[role]?.permissions || [];
+    return permissions.includes(permission);
 }
 
 /**
- * Get role permissions
+ * Get role display name
+ */
+export function getRoleDisplayName(role) {
+    return roles[role]?.displayName || role;
+}
+
+/**
+ * Get all permissions for a role
  */
 export function getRolePermissions(role) {
-    return ROLES[role?.toUpperCase()]?.permissions || [];
+    return roles[role]?.permissions || [];
 }
 
 /**
- * Check if user has sufficient role level
+ * Get all allowed pages for a role
  */
-export function hasRole(requiredRole, userRole) {
-    const requiredLevel = ROLE_LEVELS[requiredRole?.toUpperCase()];
-    const userLevel = ROLE_LEVELS[userRole?.toUpperCase()];
-    
-    if (requiredLevel === undefined || userLevel === undefined) {
-        return false;
-    }
-    
-    return userLevel >= requiredLevel;
+export function getRolePages(role) {
+    return roles[role]?.pages || [];
 }
 
-/**
- * Validate user's access to current page
- */
-export function validatePageAccess(page = window.location.pathname) {
-    const currentPage = page.split('/').pop().replace('.html', '');
-    const userRole = localStorage.getItem('userRole');
-    
-    // Allow access to public pages
-    if (['login', 'unauthorized', 'index'].includes(currentPage)) {
-        return true;
-    }
-    
-    return hasPermission(currentPage, userRole);
+export function getCurrentPage() {
+    const path = window.location.pathname;
+    const pageName = path.split('/').pop() || 'index.html';
+    return pageName;
 }
 
-// Make functions available globally for legacy support
-window.hasPermission = hasPermission;
-window.getAllowedPages = getAllowedPages;
-window.getRolePermissions = getRolePermissions;
-window.hasRole = hasRole;
-window.validatePageAccess = validatePageAccess;
+export function getUserRole() {
+    return localStorage.getItem('userRole');
+}
+
+export function isPageAllowedForRole(page, role) {
+    if (!role) return false;
+    const allowedPages = roles[role]?.pages || [];
+    const cleanPage = page.replace('.html', '');
+    return allowedPages.includes(cleanPage);
+}
+
+export default {
+    roles,
+    isAuthorized,
+    hasPermission,
+    getRoleDisplayName,
+    getRolePermissions,
+    getRolePages,
+    getCurrentPage,
+    getUserRole,
+    isPageAllowedForRole
+};

@@ -1,36 +1,45 @@
 <!DOCTYPE html>
-<html lang="is">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Unauthorized Access - NurseCare</title>
-    <link rel="stylesheet" href="/styles/styles.css">
+    <link rel="stylesheet" href="/public/styles/styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         .unauthorized-container {
-            max-width: 600px;
-            margin: 100px auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
             padding: 2rem;
             text-align: center;
-            background: var(--bg-secondary);
-            border-radius: var(--border-radius);
-            box-shadow: var(--shadow-md);
+            background-color: #f5f8fb;
         }
 
         .error-icon {
             font-size: 4rem;
-            color: var(--error-color);
-            margin-bottom: 1rem;
+            color: var(--danger);
+            margin-bottom: 2rem;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
         }
 
         .error-title {
             font-size: 2rem;
-            color: var(--text-primary);
+            color: var(--gray-900);
             margin-bottom: 1rem;
         }
 
         .error-message {
-            color: var(--text-secondary);
+            color: var(--gray-600);
+            max-width: 500px;
             margin-bottom: 2rem;
         }
 
@@ -39,16 +48,29 @@
             align-items: center;
             gap: 0.5rem;
             padding: 0.75rem 1.5rem;
-            background: var(--primary-color);
+            background: var(--primary);
             color: white;
             border: none;
-            border-radius: var(--border-radius);
+            border-radius: var(--button-radius);
             cursor: pointer;
-            transition: background-color 0.2s;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            font-weight: 500;
         }
 
         .back-button:hover {
             background: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+
+        .logout-link {
+            margin-top: 1rem;
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        .logout-link:hover {
+            text-decoration: underline;
         }
     </style>
 </head>
@@ -57,19 +79,38 @@
         <i class="fas fa-exclamation-circle error-icon"></i>
         <h1 class="error-title">Unauthorized Access</h1>
         <p class="error-message">You don't have permission to access this page. Please contact your administrator if you believe this is an error.</p>
-        <button class="back-button" onclick="window.history.back()">
+        <button class="back-button" onclick="goBack()">
             <i class="fas fa-arrow-left"></i>
             Go Back
         </button>
+        <a href="/public/login.html" class="logout-link" id="logoutBtn">Log Out</a>
     </div>
 
-    <script src="/scripts/roles.js" type="module"></script>
-    <script src="/scripts/common.js" type="module"></script>
-    <script>
-        // Check if user is logged in, if not redirect to login
-        if (!localStorage.getItem('authToken')) {
-            window.location.href = '/login.html';
-        }
+    <script type="module">
+        import { clearSession } from '/public/scripts/auth.js';
+
+        // Handle going back
+        window.goBack = () => {
+            window.history.back();
+        };
+
+        // Handle logout
+        document.getElementById('logoutBtn')?.addEventListener('click', (e) => {
+            e.preventDefault();
+            clearSession();
+            window.location.href = '/public/login.html';
+        });
+
+        // Prevent unauthorized page from being loaded in an unauthorized state
+        document.addEventListener('DOMContentLoaded', () => {
+            const authToken = localStorage.getItem('authToken');
+            const userRole = localStorage.getItem('userRole');
+            
+            if (!authToken || !userRole) {
+                clearSession();
+                window.location.href = '/public/login.html';
+            }
+        });
     </script>
 </body>
 </html>
