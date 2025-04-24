@@ -1,18 +1,1207 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="is">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Patients - NurseCare AI</title>
-    <link rel="stylesheet" href="../styles/global.css">
-    <link rel="stylesheet" href="../assets/patients.css">
+    <meta name="description" content="NurseCare AI Dashboard - Patient Management System">
+    <title>Sjúklingar | NurseCare AI</title>
+    
+    <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Google Fonts - Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Chart.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    
+    <!-- Base styles -->
+    <link rel="stylesheet" href="assets/styles.css">
+    
+    <!-- Patient Page CSS -->
+    <link rel="stylesheet" href="assets/patients.css">
+
+    <!-- Application styles -->
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="stylesheet" href="styles/components.css">
+    <link rel="stylesheet" href="assets/ai-widget.css">
 </head>
 <body>
-    <!-- Your existing patients HTML content here -->
-    <script type="module">
-        import { initializePage } from '../scripts/page-init.js';
-        document.addEventListener('DOMContentLoaded', initializePage);
-    </script>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">
+                <img src="assets/logo.png" alt="NurseCare AI Logo" onerror="this.src='https://placehold.co/40x40?text=NC'">
+                <h1>NurseCare AI</h1>
+            </div>
+            <div class="header-actions">
+                <button id="theme-toggle" class="theme-toggle" aria-label="Toggle dark mode">
+                    <i class="fas fa-moon"></i>
+                    <span>Dark Mode</span>
+                </button>
+                <div class="notifications">
+                    <button id="notifications-btn" class="notifications-btn" aria-label="Notifications">
+                        <i class="fas fa-bell"></i>
+                        <span class="badge">3</span>
+                    </button>
+                    <div id="notifications-menu" class="dropdown-menu" aria-hidden="true">
+                        <div class="dropdown-header">
+                            <h3>Tilkynningar</h3>
+                            <button class="clear-all">Hreinsa allt</button>
+                        </div>
+                        <div class="dropdown-body">
+                            <div class="notification-item unread">
+                                <div class="notification-icon">
+                                    <i class="fas fa-user-injured"></i>
+                                </div>
+                                <div class="notification-content">
+                                    <p>Jón Jónsson er með hækkaðan hita</p>
+                                    <span class="notification-time">2 klst síðan</span>
+                                </div>
+                            </div>
+                            <div class="notification-item unread">
+                                <div class="notification-icon">
+                                    <i class="fas fa-pills"></i>
+                                </div>
+                                <div class="notification-content">
+                                    <p>Lyfjaskammtur fyrir Önnu Guðmundsdóttur er tilbúinn</p>
+                                    <span class="notification-time">5 klst síðan</span>
+                                </div>
+                            </div>
+                            <div class="notification-item">
+                                <div class="notification-icon">
+                                    <i class="fas fa-notes-medical"></i>
+                                </div>
+                                <div class="notification-content">
+                                    <p>Nýtt læknismót bætt við fyrir Sigríði Jónsdóttur</p>
+                                    <span class="notification-time">Í gær</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="profile">
+                    <button id="profile-btn" class="profile-btn" aria-label="User profile">
+                        <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=anna" alt="Profile Avatar for Anna">
+                    </button>
+                    <div id="profile-menu" class="dropdown-menu" aria-hidden="true">
+                        <div class="dropdown-header">
+                            <h3>Anna Sigurðardóttir</h3>
+                            <span>Vaktstjóri</span>
+                        </div>
+                        <div class="dropdown-body">
+                            <a href="#" class="dropdown-item">
+                                <i class="fas fa-user"></i>
+                                <span>Mínar síður</span>
+                            </a>
+                            <a href="#" class="dropdown-item">
+                                <i class="fas fa-cog"></i>
+                                <span>Stillingar</span>
+                            </a>
+                            <a href="#" class="dropdown-item">
+                                <i class="fas fa-sign-out-alt"></i>
+                                <span>Útskrá</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+        
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <button id="toggle-sidebar" class="toggle-btn" aria-label="Toggle sidebar">
+                <i class="fas fa-bars"></i>
+            </button>
+            <nav class="sidebar-nav" aria-label="Main navigation">
+                <ul>
+                    <li class="nav-item">
+                        <a href="index.html">
+                            <i class="fas fa-tachometer-alt"></i>
+                            <span>Mælaborð</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="schedule.html">
+                            <i class="fas fa-calendar-alt"></i>
+                            <span>Vaktaplan</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="staff.html">
+                            <i class="fas fa-user-nurse"></i>
+                            <span>Starfsfólk</span>
+                        </a>
+                    </li>
+                    <li class="nav-item active">
+                        <a href="patients.html" aria-current="page">
+                            <i class="fas fa-user-injured"></i>
+                            <span>Sjúklingar</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="inventory.html">
+                            <i class="fas fa-box"></i>
+                            <span>Birgðir</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="medications.html">
+                            <i class="fas fa-pills"></i>
+                            <span>Lyf</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="chatbot.html">
+                            <i class="fas fa-comments"></i>
+                            <span>Spjallforrit</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </aside>
+        
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="patients-container">
+                <section class="page-header">
+                    <div class="page-title-wrapper">
+                        <h2 class="page-title"><i class="fas fa-user-injured"></i> Sjúklingar</h2>
+                        <div class="page-info">
+                            <span id="current-date" class="current-date">
+                                <i class="fas fa-calendar-alt"></i>
+                                Miðvikudagur, 16. apríl 2025
+                            </span>
+                            <span class="last-updated">
+                                <i class="fas fa-sync-alt"></i>
+                                Síðast uppfært: 16. apríl, 08:45
+                            </span>
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- Welcome & Overview Section -->
+                <section class="welcome-section">
+                    <div class="dashboard-header">
+                        <div class="greeting-container">
+                            <div class="greeting-message">
+                                Góðan daginn, Anna – hér geturðu fylgst með stöðu sjúklinga á vaktinni þinni.
+                            </div>
+                            <div class="greeting-details">
+                                Þú ert á vakt hjá Deild 3 – Alzheimer. Það eru 12 sjúklingar á deildinni í dag.
+                            </div>
+                            <div class="header-actions">
+                                <button class="btn btn-white" id="view-all-patients-btn">
+                                    <i class="fas fa-list"></i>
+                                    Skoða alla sjúklinga
+                                </button>
+                                <button class="btn btn-primary" id="add-patient-btn">
+                                    <i class="fas fa-user-plus"></i>
+                                    Bæta við sjúklingi
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- Stats Overview -->
+                <section class="stats-overview">
+                    <div class="dashboard-stats">
+                        <article class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-user-injured"></i>
+                            </div>
+                            <div class="stat-details">
+                                <div class="stat-value">12</div>
+                                <div class="stat-label">Sjúklingar</div>
+                            </div>
+                        </article>
+                        <article class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-pills"></i>
+                            </div>
+                            <div class="stat-details">
+                                <div class="stat-value">85%</div>
+                                <div class="stat-label">Lyfjagjöf í dag</div>
+                            </div>
+                        </article>
+                        <article class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-exclamation-triangle"></i>
+                            </div>
+                            <div class="stat-details">
+                                <div class="stat-value">2</div>
+                                <div class="stat-label">Viðvaranir</div>
+                            </div>
+                        </article>
+                        <article class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-user-md"></i>
+                            </div>
+                            <div class="stat-details">
+                                <div class="stat-value">3</div>
+                                <div class="stat-label">Læknisheimsóknir</div>
+                            </div>
+                        </article>
+                    </div>
+                </section>
+                
+                <!-- Patient Search & Filters -->
+                <section class="search-filter-section">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="search-filter-container">
+                                <div class="search-box">
+                                    <i class="fas fa-search"></i>
+                                    <input type="text" id="patient-search" placeholder="Leita að sjúklingi..." aria-label="Leita að sjúklingi">
+                                </div>
+                                <div class="filter-container">
+                                    <select id="department-filter" class="filter-select" aria-label="Sía eftir deild">
+                                        <option value="">Allar deildir</option>
+                                        <option value="Deild 1">Deild 1</option>
+                                        <option value="Deild 2">Deild 2</option>
+                                        <option value="Deild 3" selected>Deild 3 - Alzheimer</option>
+                                        <option value="Deild 4">Deild 4</option>
+                                    </select>
+                                    <select id="status-filter" class="filter-select" aria-label="Sía eftir ástandi">
+                                        <option value="">Öll staða</option>
+                                        <option value="Stöðugt">Stöðugt</option>
+                                        <option value="Þarfnast athygli">Þarfnast athygli</option>
+                                        <option value="Alvarlegt">Alvarlegt</option>
+                                    </select>
+                                    <select id="medication-filter" class="filter-select" aria-label="Sía eftir lyfjum">
+                                        <option value="">Öll lyf</option>
+                                        <option value="Háþrýstingslyf">Háþrýstingslyf</option>
+                                        <option value="Verkjalyf">Verkjalyf</option>
+                                        <option value="Sykursýkislyf">Sykursýkislyf</option>
+                                        <option value="Svefnlyf">Svefnlyf</option>
+                                    </select>
+                                    <button id="reset-filters" class="btn-outline-sm">
+                                        <i class="fas fa-undo"></i> Endurstilla
+                                    </button>
+                                    <div class="view-toggle">
+                                        <button class="view-btn active" data-view="card" aria-label="Sýna spjöld">
+                                            <i class="fas fa-th-large"></i>
+                                        </button>
+                                        <button class="view-btn" data-view="table" aria-label="Sýna töflu">
+                                            <i class="fas fa-table"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- Critical Alerts Section -->
+                <section class="critical-alerts-section" id="critical-alerts">
+                    <h3 class="section-title"><i class="fas fa-exclamation-circle"></i> Viðvaranir</h3>
+                    <div class="alerts-container">
+                        <div class="alert-card critical">
+                            <div class="alert-icon">
+                                <i class="fas fa-heartbeat"></i>
+                            </div>
+                            <div class="alert-content">
+                                <div class="alert-header">
+                                    <h4>Jón Jónsson - Herbergi 107</h4>
+                                    <span class="alert-time">15:30 - Í dag</span>
+                                </div>
+                                <p class="alert-message">Hækkaður blóðþrýstingur - 170/95. Sleppti morgundós af Lisinopril.</p>
+                                <div class="vitals-row">
+                                    <div class="vital-badge warning">
+                                        <i class="fas fa-heart"></i>
+                                        <span>170/95 mmHg</span>
+                                    </div>
+                                    <div class="vital-badge">
+                                        <i class="fas fa-heartbeat"></i>
+                                        <span>92 slög/mín</span>
+                                    </div>
+                                    <div class="vital-badge">
+                                        <i class="fas fa-thermometer-half"></i>
+                                        <span>37.2°C</span>
+                                    </div>
+                                </div>
+                                <div class="alert-actions">
+                                    <button class="btn btn-sm primary-btn view-patient-btn" data-patient-id="1">
+                                        <i class="fas fa-eye"></i> Skoða sjúkling
+                                    </button>
+                                    <button class="btn btn-sm btn-outline mark-resolved-btn">
+                                        <i class="fas fa-check"></i> Merkja sem leyst
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="alert-card warning">
+                            <div class="alert-icon">
+                                <i class="fas fa-temperature-high"></i>
+                            </div>
+                            <div class="alert-content">
+                                <div class="alert-header">
+                                    <h4>María Guðmundsdóttir - Herbergi 112</h4>
+                                    <span class="alert-time">14:15 - Í dag</span>
+                                </div>
+                                <p class="alert-message">Hiti hækkaður í 38.5°C. Möguleg sýking í þvagfærum. Tilvísun til læknis gerð.</p>
+                                <div class="vitals-row">
+                                    <div class="vital-badge">
+                                        <i class="fas fa-heart"></i>
+                                        <span>125/80 mmHg</span>
+                                    </div>
+                                    <div class="vital-badge">
+                                        <i class="fas fa-heartbeat"></i>
+                                        <span>88 slög/mín</span>
+                                    </div>
+                                    <div class="vital-badge warning">
+                                        <i class="fas fa-thermometer-half"></i>
+                                        <span>38.5°C</span>
+                                    </div>
+                                </div>
+                                <div class="alert-actions">
+                                    <button class="btn btn-sm primary-btn view-patient-btn" data-patient-id="2">
+                                        <i class="fas fa-eye"></i> Skoða sjúkling
+                                    </button>
+                                    <button class="btn btn-sm btn-outline mark-resolved-btn">
+                                        <i class="fas fa-check"></i> Merkja sem leyst
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- Patients List Section -->
+                <section class="patients-section">
+                    <h3 class="section-title"><i class="fas fa-users"></i> Sjúklingar í umsjón</h3>
+                    
+                    <!-- Card View -->
+                    <div id="card-view" class="patients-card-view">
+                        <div class="patients-grid" id="patients-grid">
+                            <!-- Patient cards will be dynamically added here -->
+                        </div>
+                    </div>
+                    
+                    <!-- Table View -->
+                    <div id="table-view" class="patients-table-view" style="display: none;">
+                        <div class="table-container">
+                            <table class="data-table" id="patients-table">
+                                <thead>
+                                    <tr>
+                                        <th>
+                                            <input type="checkbox" id="select-all" aria-label="Velja alla sjúklinga">
+                                        </th>
+                                        <th>Nafn</th>
+                                        <th>Herbergi</th>
+                                        <th>Aldur</th>
+                                        <th>Staða</th>
+                                        <th>Lyf í dag</th>
+                                        <th>Síðasta mæling</th>
+                                        <th>Umsjónarmaður</th>
+                                        <th>Aðgerðir</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="patients-table-body">
+                                    <!-- Patient rows will be dynamically added here -->
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <!-- Pagination -->
+                        <div class="pagination-container">
+                            <div class="pagination-info">
+                                Sýni <span id="showing-start">1</span> - <span id="showing-end">10</span> af <span id="total-entries">12</span> sjúklingum
+                            </div>
+                            <div class="pagination-controls">
+                                <button id="prev-page" class="pagination-btn" disabled>
+                                    <i class="fas fa-chevron-left"></i> Fyrri
+                                </button>
+                                <div class="page-numbers">
+                                    <span class="current-page">1</span> af <span id="total-pages">2</span>
+                                </div>
+                                <button id="next-page" class="pagination-btn">
+                                    Næsta <i class="fas fa-chevron-right"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+        
+        <!-- Add Patient Modal -->
+        <div id="add-patient-modal" class="modal" aria-hidden="true">
+            <div class="modal-overlay"></div>
+            <div class="modal-container">
+                <div class="modal-header">
+                    <h3><i class="fas fa-user-plus"></i> Bæta við sjúklingi</h3>
+                    <button class="close-modal" aria-label="Loka glugga">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="add-patient-form">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="patient-name">Nafn <span class="required">*</span></label>
+                                <input type="text" id="patient-name" class="form-control" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="patient-ssn">Kennitala <span class="required">*</span></label>
+                                <input type="text" id="patient-ssn" class="form-control" placeholder="xxxxxx-xxxx" required>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="patient-dob">Fæðingardagur <span class="required">*</span></label>
+                                <input type="date" id="patient-dob" class="form-control" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="patient-gender">Kyn <span class="required">*</span></label>
+                                <select id="patient-gender" class="form-control" required>
+                                    <option value="">Veldu kyn</option>
+                                    <option value="male">Karl</option>
+                                    <option value="female">Kona</option>
+                                    <option value="other">Annað</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="patient-room">Herbergi <span class="required">*</span></label>
+                                <input type="text" id="patient-room" class="form-control" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="patient-department">Deild <span class="required">*</span></label>
+                                <select id="patient-department" class="form-control" required>
+                                    <option value="">Veldu deild</option>
+                                    <option value="Deild 1">Deild 1</option>
+                                    <option value="Deild 2">Deild 2</option>
+                                    <option value="Deild 3">Deild 3 - Alzheimer</option>
+                                    <option value="Deild 4">Deild 4</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="patient-condition">Heilsufarságstand <span class="required">*</span></label>
+                                <select id="patient-condition" class="form-control" required>
+                                    <option value="">Veldu ástand</option>
+                                    <option value="Stöðugt">Stöðugt</option>
+                                    <option value="Þarfnast athygli">Þarfnast athygli</option>
+                                    <option value="Alvarlegt">Alvarlegt</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="patient-care-level">Umönnunarstig <span class="required">*</span></label>
+                                <select id="patient-care-level" class="form-control" required>
+                                    <option value="">Veldu umönnunarstig</option>
+                                    <option value="Lítil">Lítil umönnun</option>
+                                    <option value="Miðlungs">Miðlungs umönnun</option>
+                                    <option value="Mikil">Mikil umönnun</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="patient-diagnosis">Sjúkdómsgreining</label>
+                            <textarea id="patient-diagnosis" class="form-control" rows="2"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="patient-medications">Lyf</label>
+                            <textarea id="patient-medications" class="form-control" rows="2"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="patient-notes">Athugasemdir</label>
+                            <textarea id="patient-notes" class="form-control" rows="2"></textarea>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="patient-emergency-contact">Neyðartengiliður</label>
+                                <input type="text" id="patient-emergency-contact" class="form-control">
+                            </div>
+                            <div class="form-group">
+                                <label for="patient-emergency-phone">Sími neyðartengiliðs</label>
+                                <input type="tel" id="patient-emergency-phone" class="form-control">
+                            </div>
+                        </div>
+                        <div class="form-actions">
+                            <button type="button" class="btn-outline cancel-btn">Hætta við</button>
+                            <button type="submit" class="btn-primary submit-btn">Bæta við sjúklingi</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <!-- View Patient Modal -->
+        <div id="view-patient-modal" class="modal" aria-hidden="true">
+            <div class="modal-overlay"></div>
+            <div class="modal-container large-modal">
+                <div class="modal-header">
+                    <h3 id="view-modal-title"><i class="fas fa-user-injured"></i> Sjúklingaupplýsingar</h3>
+                    <button class="close-modal" aria-label="Loka glugga">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="patient-view-tabs">
+                        <button class="tab-btn active" data-tab="overview">Yfirlit</button>
+                        <button class="tab-btn" data-tab="vitals">Lífsmörk</button>
+                        <button class="tab-btn" data-tab="medications">Lyf</button>
+                        <button class="tab-btn" data-tab="notes">Athugasemdir</button>
+                        <button class="tab-btn" data-tab="care-plan">Umönnunaráætlun</button>
+                    </div>
+                    
+                    <!-- Tab content containers -->
+                    <div id="tab-overview" class="tab-content active">
+                        <div class="patient-profile">
+                            <div class="profile-header">
+                                <div class="profile-image">
+                                    <img id="patient-profile-image" src="https://api.dicebear.com/7.x/avataaars/svg?seed=patient1" alt="Patient Profile">
+                                </div>
+                                <div class="profile-info">
+                                    <h2 id="patient-profile-name">Jón Jónsson</h2>
+                                    <div class="profile-meta">
+                                        <div class="meta-item">
+                                            <i class="fas fa-calendar-alt"></i>
+                                            <span id="patient-profile-age">72 ára</span>
+                                        </div>
+                                        <div class="meta-item">
+                                            <i class="fas fa-door-open"></i>
+                                            <span id="patient-profile-room">Herbergi 107</span>
+                                        </div>
+                                        <div class="meta-item">
+                                            <i class="fas fa-hospital-user"></i>
+                                            <span id="patient-profile-department">Deild 3 - Alzheimer</span>
+                                        </div>
+                                    </div>
+                                    <div id="patient-profile-status" class="status-badge warning">Þarfnast athygli</div>
+                                </div>
+                            </div>
+                            
+                            <div class="vitals-overview">
+                                <h4>Nýjustu lífsmörk</h4>
+                                <div class="vitals-grid">
+                                    <div class="vital-card">
+                                        <div class="vital-icon">
+                                            <i class="fas fa-heart"></i>
+                                        </div>
+                                        <div class="vital-info">
+                                            <div class="vital-name">Blóðþrýstingur</div>
+                                            <div id="patient-bp" class="vital-value warning">170/95 mmHg</div>
+                                        </div>
+                                    </div>
+                                    <div class="vital-card">
+                                        <div class="vital-icon">
+                                            <i class="fas fa-heartbeat"></i>
+                                        </div>
+                                        <div class="vital-info">
+                                            <div class="vital-name">Púls</div>
+                                            <div id="patient-pulse" class="vital-value">92 slög/mín</div>
+                                        </div>
+                                    </div>
+                                    <div class="vital-card">
+                                        <div class="vital-icon">
+                                            <i class="fas fa-thermometer-half"></i>
+                                        </div>
+                                        <div class="vital-info">
+                                            <div class="vital-name">Hiti</div>
+                                            <div id="patient-temp" class="vital-value">37.2°C</div>
+                                        </div>
+                                    </div>
+                                    <div class="vital-card">
+                                        <div class="vital-icon">
+                                            <i class="fas fa-lungs"></i>
+                                        </div>
+                                        <div class="vital-info">
+                                            <div class="vital-name">Súrefnismettun</div>
+                                            <div id="patient-o2" class="vital-value">96%</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="patient-details-grid">
+                                <div class="patient-detail-card">
+                                    <h4><i class="fas fa-stethoscope"></i> Sjúkdómsgreiningar</h4>
+                                    <ul id="patient-diagnoses">
+                                        <li>Alzheimer's sjúkdómur</li>
+                                        <li>Háþrýstingur</li>
+                                        <li>Sykursýki af tegund 2</li>
+                                    </ul>
+                                </div>
+                                <div class="patient-detail-card">
+                                    <h4><i class="fas fa-pills"></i> Núverandi lyf</h4>
+                                    <ul id="patient-medications-list">
+                                        <li>Lisinopril 10mg - 1 tafla daglega</li>
+                                        <li>Metformin 500mg - 1 tafla tvisvar á dag</li>
+                                        <li>Donepezil 5mg - 1 tafla kvölds</li>
+                                    </ul>
+                                </div>
+                                <div class="patient-detail-card">
+                                    <h4><i class="fas fa-allergies"></i> Ofnæmi & varnaðarorð</h4>
+                                    <ul id="patient-allergies">
+                                        <li>Penicillín ofnæmi</li>
+                                        <li>Sulfa ofnæmi</li>
+                                    </ul>
+                                </div>
+                                <div class="patient-detail-card">
+                                    <h4><i class="fas fa-address-book"></i> Tengiliðir</h4>
+                                    <div id="patient-contacts">
+                                        <p><strong>Neyðartengiliður:</strong><br>
+                                        Sigríður Jónsdóttir (dóttir)<br>
+                                        Sími: 555-1234</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="ai-insight-section">
+                                <div class="insight-header">
+                                    <i class="fas fa-robot"></i>
+                                    <h4>AI ráðleggingar</h4>
+                                </div>
+                                <div class="insight-content">
+                                    <p>Sjúklingur hefur misst af morgundós af háþrýstingslyfjum. Mælt er með að fylgjast með blóðþrýstingi á 2 klst. fresti. Viðvera fjölskyldumeðlima hjálpar til við að draga úr kvíða sem getur haft áhrif á blóðþrýsting.</p>
+                                    <p>Nýlegar rannsóknir benda til þess að Donepezil geti haft jákvæð áhrif á vitræna starfsemi hjá sjúklingum með Alzheimer. Mælt er með reglulegri endurmat á vitrænu ástandi.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="tab-vitals" class="tab-content">
+                        <div class="vitals-chart-container">
+                            <div class="chart-controls">
+                                <div class="timeframe-selector">
+                                    <button class="timeframe-btn active" data-timeframe="day">Dagur</button>
+                                    <button class="timeframe-btn" data-timeframe="week">Vika</button>
+                                    <button class="timeframe-btn" data-timeframe="month">Mánuður</button>
+                                </div>
+                                <div class="vital-selector">
+                                    <button class="vital-btn active" data-vital="all">Öll lífsmörk</button>
+                                    <button class="vital-btn" data-vital="bp">Blóðþrýstingur</button>
+                                    <button class="vital-btn" data-vital="pulse">Púls</button>
+                                    <button class="vital-btn" data-vital="temp">Hiti</button>
+                                    <button class="vital-btn" data-vital="o2">Súrefnismettun</button>
+                                </div>
+                            </div>
+                            
+                            <div class="chart-container">
+                                <canvas id="vitals-chart" aria-label="Lífsmörk sjúklings" role="img"></canvas>
+                            </div>
+                            
+                            <div class="vitals-table-container">
+                                <h4>Lífsmörk - Saga</h4>
+                                <table class="data-table vitals-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Tími</th>
+                                            <th>Blóðþrýstingur</th>
+                                            <th>Púls</th>
+                                            <th>Hiti</th>
+                                            <th>Súrefnismettun</th>
+                                            <th>Skráð af</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="vitals-history">
+                                        <tr>
+                                            <td>15:30 - 16. apríl</td>
+                                            <td class="warning">170/95 mmHg</td>
+                                            <td>92 slög/mín</td>
+                                            <td>37.2°C</td>
+                                            <td>96%</td>
+                                            <td>Anna S.</td>
+                                        </tr>
+                                        <tr>
+                                            <td>09:15 - 16. apríl</td>
+                                            <td class="warning">165/90 mmHg</td>
+                                            <td>88 slög/mín</td>
+                                            <td>37.0°C</td>
+                                            <td>97%</td>
+                                            <td>Gunnar Þ.</td>
+                                        </tr>
+                                        <tr>
+                                            <td>19:45 - 15. apríl</td>
+                                            <td>150/85 mmHg</td>
+                                            <td>85 slög/mín</td>
+                                            <td>36.8°C</td>
+                                            <td>98%</td>
+                                            <td>Jóhanna K.</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                                
+                                <div class="add-vitals">
+                                    <button class="btn-primary" id="add-vitals-btn">
+                                        <i class="fas fa-plus"></i> Skrá ný lífsmörk
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="tab-medications" class="tab-content">
+                        <div class="medications-container">
+                            <div class="medications-header">
+                                <h4>Lyfjagjöf</h4>
+                                <button class="btn-primary" id="add-medication-btn">
+                                    <i class="fas fa-plus"></i> Bæta við lyfi
+                                </button>
+                            </div>
+                            
+                            <div class="medication-calendar">
+                                <h4>Lyfjaáætlun í dag</h4>
+                                <div class="medication-schedule">
+                                    <!-- Morning -->
+                                    <div class="med-time-slot">
+                                        <div class="time-label">
+                                            <i class="fas fa-sun"></i>
+                                            <span>Morgun (8:00)</span>
+                                        </div>
+                                        <div class="med-slot-items">
+                                            <div class="med-item missed">
+                                                <div class="med-name">Lisinopril 10mg</div>
+                                                <div class="med-status">
+                                                    <span class="status-icon"><i class="fas fa-times-circle"></i></span>
+                                                    <span class="status-text">Misst af</span>
+                                                </div>
+                                            </div>
+                                            <div class="med-item done">
+                                                <div class="med-name">Metformin 500mg</div>
+                                                <div class="med-status">
+                                                    <span class="status-icon"><i class="fas fa-check-circle"></i></span>
+                                                    <span class="status-text">Gefið 8:15</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Noon -->
+                                    <div class="med-time-slot">
+                                        <div class="time-label">
+                                            <i class="fas fa-cloud-sun"></i>
+                                            <span>Hádegi (12:00)</span>
+                                        </div>
+                                        <div class="med-slot-items">
+                                            <div class="med-item done">
+                                                <div class="med-name">Metformin 500mg</div>
+                                                <div class="med-status">
+                                                    <span class="status-icon"><i class="fas fa-check-circle"></i></span>
+                                                    <span class="status-text">Gefið 12:10</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Evening -->
+                                    <div class="med-time-slot">
+                                        <div class="time-label">
+                                            <i class="fas fa-moon"></i>
+                                            <span>Kvöld (20:00)</span>
+                                        </div>
+                                        <div class="med-slot-items">
+                                            <div class="med-item pending">
+                                                <div class="med-name">Donepezil 5mg</div>
+                                                <div class="med-status">
+                                                    <span class="status-icon"><i class="fas fa-clock"></i></span>
+                                                    <span class="status-text">Á áætlun</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="medication-list-container">
+                                <h4>Virkir lyfjagjafalistar</h4>
+                                <table class="data-table med-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Lyf</th>
+                                            <th>Skammtur</th>
+                                            <th>Tíðni</th>
+                                            <th>Fyrirmæli</th>
+                                            <th>Upphafsdagur</th>
+                                            <th>Lokadagur</th>
+                                            <th>Staða</th>
+                                            <th>Aðgerðir</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>Lisinopril</td>
+                                            <td>10mg</td>
+                                            <td>Dagleg</td>
+                                            <td>1 tafla að morgni</td>
+                                            <td>01.02.2024</td>
+                                            <td>-</td>
+                                            <td><span class="status-badge warning">Misst af</span></td>
+                                            <td>
+                                                <div class="action-buttons">
+                                                    <button class="action-btn edit-btn" title="Breyta"><i class="fas fa-edit"></i></button>
+                                                    <button class="action-btn delete-btn" title="Eyða"><i class="fas fa-trash"></i></button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>Metformin</td>
+                                            <td>500mg</td>
+                                            <td>Tvisvar á dag</td>
+                                            <td>1 tafla að morgni og kvöldi</td>
+                                            <td>01.02.2024</td>
+                                            <td>-</td>
+                                            <td><span class="status-badge success">Virkt</span></td>
+                                            <td>
+                                                <div class="action-buttons">
+                                                    <button class="action-btn edit-btn" title="Breyta"><i class="fas fa-edit"></i></button>
+                                                    <button class="action-btn delete-btn" title="Eyða"><i class="fas fa-trash"></i></button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>Donepezil</td>
+                                            <td>5mg</td>
+                                            <td>Dagleg</td>
+                                            <td>1 tafla að kvöldi</td>
+                                            <td>15.03.2024</td>
+                                            <td>-</td>
+                                            <td><span class="status-badge success">Virkt</span></td>
+                                            <td>
+                                                <div class="action-buttons">
+                                                    <button class="action-btn edit-btn" title="Breyta"><i class="fas fa-edit"></i></button>
+                                                    <button class="action-btn delete-btn" title="Eyða"><i class="fas fa-trash"></i></button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="tab-notes" class="tab-content">
+                        <div class="notes-container">
+                            <div class="notes-header">
+                                <h4>Athugasemdir og skráningar</h4>
+                                <button class="btn-primary" id="add-note-btn">
+                                    <i class="fas fa-plus"></i> Bæta við athugasemd
+                                </button>
+                            </div>
+                            
+                            <div class="notes-list" id="patient-notes-list">
+                                <div class="note-card">
+                                    <div class="note-header">
+                                        <div class="note-info">
+                                            <span class="note-date">16. apríl 2025 - 15:45</span>
+                                            <span class="note-author">Anna Sigurðardóttir, Hjúkrunarfræðingur</span>
+                                        </div>
+                                        <div class="note-type warning">Læknisfræðileg athugasemd</div>
+                                    </div>
+                                    <div class="note-content">
+                                        <p>Sjúklingur hefur misst af morgundós af Lisinopril. Blóðþrýstingur mældist 170/95 mmHg. Sjúklingur segist hafa fundið fyrir höfuðverk frá kl. 14:00. Gaf 500mg af parasetamól við 15:30. Fylgist með blóðþrýstingi á 2 klst. fresti.</p>
+                                    </div>
+                                    <div class="note-actions">
+                                        <button class="btn-outline-sm">
+                                            <i class="fas fa-edit"></i> Breyta
+                                        </button>
+                                        <button class="btn-outline-sm">
+                                            <i class="fas fa-share"></i> Deila
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <div class="note-card">
+                                    <div class="note-header">
+                                        <div class="note-info">
+                                            <span class="note-date">15. apríl 2025 - 10:20</span>
+                                            <span class="note-author">Gunnar Þórsson, Læknir</span>
+                                        </div>
+                                        <div class="note-type">Læknisheimsókn</div>
+                                    </div>
+                                    <div class="note-content">
+                                        <p>Reglubundin skoðun. Blóðþrýstingur enn hár þrátt fyrir meðferð með Lisinopril 10mg daglega. Sykurgildi í blóði innan eðlilegra marka. Vitrænir þættir: vaxandi gleymsla, en sjúklingur þekkir enn fjölskyldumeðlimi.</p>
+                                        <p>Áætlun: Halda áfram með núverandi lyfjagjöf. Hugsanlega þörf á að endurmeta skammta Lisinopril ef blóðþrýstingur helst hár. Mælt með daglegri skráningu blóðþrýstings næstu tvær vikur.</p>
+                                    </div>
+                                    <div class="note-actions">
+                                        <button class="btn-outline-sm">
+                                            <i class="fas fa-edit"></i> Breyta
+                                        </button>
+                                        <button class="btn-outline-sm">
+                                            <i class="fas fa-share"></i> Deila
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <form id="new-note-form" class="new-note-form" style="display: none;">
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="note-type">Tegund athugasemdar <span class="required">*</span></label>
+                                        <select id="note-type" class="form-control" required>
+                                            <option value="general">Almenn athugasemd</option>
+                                            <option value="medical">Læknisfræðileg athugasemd</option>
+                                            <option value="nursing">Hjúkrunarathugasemd</option>
+                                            <option value="behavior">Hegðunarathugasemd</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="note-content">Athugasemd <span class="required">*</span></label>
+                                    <textarea id="note-content" class="form-control" rows="4" required></textarea>
+                                </div>
+                                <div class="form-actions">
+                                    <button type="button" id="cancel-note-btn" class="btn-outline">Hætta við</button>
+                                    <button type="button" id="save-note-btn" class="btn-primary">Vista athugasemd</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    
+                    <div id="tab-care-plan" class="tab-content">
+                        <div class="care-plan-container">
+                            <div class="care-plan-header">
+                                <div class="care-plan-info">
+                                    <h4>Umönnunaráætlun</h4>
+                                    <div class="care-plan-meta">
+                                        <span><i class="fas fa-calendar-check"></i> Síðast uppfært: 10. apríl 2025</span>
+                                        <span><i class="fas fa-calendar-alt"></i> Næsta endurskoðun: 10. maí 2025</span>
+                                    </div>
+                                </div>
+                                <button class="btn-primary" id="update-care-plan-btn">
+                                    <i class="fas fa-edit"></i> Uppfæra áætlun
+                                </button>
+                            </div>
+                            
+                            <div class="care-goals">
+                                <h4>Markmið umönnunar</h4>
+                                <div class="goals-grid">
+                                    <div class="goal-card">
+                                        <div class="goal-header">
+                                            <h5><i class="fas fa-heart"></i> Hjarta- og æðakerfi</h5>
+                                            <div class="goal-status warning">Í vinnslu</div>
+                                        </div>
+                                        <div class="goal-details">
+                                            <p><strong>Markmið:</strong> Viðhalda blóðþrýsting undir 140/85 mmHg.</p>
+                                            <p><strong>Aðgerðir:</strong></p>
+                                            <ul>
+                                                <li>Dagleg lyfjagjöf Lisinopril 10mg að morgni.</li>
+                                                <li>Mæla blóðþrýsting daglega.</li>
+                                                <li>Skrá og tilkynna hækkanir yfir 150/90 mmHg.</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="goal-card">
+                                        <div class="goal-header">
+                                            <h5><i class="fas fa-brain"></i> Vitræn geta</h5>
+                                            <div class="goal-status success">Á áætlun</div>
+                                        </div>
+                                        <div class="goal-details">
+                                            <p><strong>Markmið:</strong> Hægja á versnun vitrænnar skerðingar og viðhalda sjálfstæði eins lengi og hægt er.</p>
+                                            <p><strong>Aðgerðir:</strong></p>
+                                            <ul>
+                                                <li>Dagleg lyfjagjöf Donepezil 5mg á kvöldin.</li>
+                                                <li>Bjóða upp á daglegar vitrænar æfingar og félagslega örvun.</li>
+                                                <li>Aðstoða við að viðhalda áttun með myndrænum vísbendingum.</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="goal-card">
+                                        <div class="goal-header">
+                                            <h5><i class="fas fa-utensils"></i> Næring og vökvajafnvægi</h5>
+                                            <div class="goal-status success">Á áætlun</div>
+                                        </div>
+                                        <div class="goal-details">
+                                            <p><strong>Markmið:</strong> Viðhalda heilbrigðu mataræði og fullnægjandi vökvaneyslu til að stjórna sykursýki.</p>
+                                            <p><strong>Aðgerðir:</strong></p>
+                                            <ul>
+                                                <li>Veita lágkolvetna máltíðir samkvæmt næringaráætlun.</li>
+                                                <li>Skrá inntöku matar og vökva daglega.</li>
+                                                <li>Tryggja að a.m.k. 1,5L af vökva sé neytt daglega.</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="goal-card">
+                                        <div class="goal-header">
+                                            <h5><i class="fas fa-walking"></i> Líkamleg virkni</h5>
+                                            <div class="goal-status success">Á áætlun</div>
+                                        </div>
+                                        <div class="goal-details">
+                                            <p><strong>Markmið:</strong> Viðhalda líkamlegri virkni til að koma í veg fyrir stöðnun.</p>
+                                            <p><strong>Aðgerðir:</strong></p>
+                                            <ul>
+                                                <li>Dagleg 15 mín. gönguferð með aðstoð (tvisvar á dag ef hægt er).</li>
+                                                <li>Taka þátt í hópæfingum þrisvar í viku.</li>
+                                                <li>Aðstoða við daglegar athafnir til að hvetja til sjálfstæðis.</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="modal-actions">
+                        <button class="btn-outline cancel-btn">Loka</button>
+                        <button class="btn-primary" id="update-patient-btn">Uppfæra sjúkling</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Add Note Modal -->
+        <div id="add-note-modal" class="modal" aria-hidden="true">
+            <div class="modal-overlay"></div>
+            <div class="modal-container">
+                <div class="modal-header">
+                    <h3><i class="fas fa-notes-medical"></i> Bæta við athugasemd</h3>
+                    <button class="close-modal" aria-label="Loka glugga">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="add-note-form">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="note-type">Tegund athugasemdar <span class="required">*</span></label>
+                                <select id="note-type" class="form-control" required>
+                                    <option value="">Veldu tegund</option>
+                                    <option value="medical">Læknisfræðileg athugasemd</option>
+                                    <option value="nursing">Hjúkrunarathugasemd</option>
+                                    <option value="social">Félagsleg athugasemd</option>
+                                    <option value="physical">Líkamleg athugasemd</option>
+                                    <option value="incident">Atvikaskráning</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="note-content">Athugasemd <span class="required">*</span></label>
+                            <textarea id="note-content" class="form-control" rows="5" required></textarea>
+                        </div>
+                        <div class="form-actions">
+                            <button type="button" class="btn-outline cancel-btn">Hætta við</button>
+                            <button type="submit" class="btn-primary submit-btn">Bæta við athugasemd</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Add Vitals Modal -->
+        <div id="add-vitals-modal" class="modal" aria-hidden="true">
+            <div class="modal-overlay"></div>
+            <div class="modal-container">
+                <div class="modal-header">
+                    <h3><i class="fas fa-heartbeat"></i> Skrá ný lífsmörk</h3>
+                    <button class="close-modal" aria-label="Loka glugga">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="add-vitals-form">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="vital-systolic">Slagbils blóðþrýstingur (mmHg) <span class="required">*</span></label>
+                                <input type="number" id="vital-systolic" class="form-control" min="70" max="250" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="vital-diastolic">Hlébils blóðþrýstingur (mmHg) <span class="required">*</span></label>
+                                <input type="number" id="vital-diastolic" class="form-control" min="40" max="150" required>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="vital-pulse">Púls (slög/mín) <span class="required">*</span></label>
+                                <input type="number" id="vital-pulse" class="form-control" min="40" max="200" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="vital-temp">Líkamshiti (°C) <span class="required">*</span></label>
+                                <input type="number" id="vital-temp" class="form-control" min="35" max="42" step="0.1" required>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="vital-o2">Súrefnismettun (%) <span class="required">*</span></label>
+                                <input type="number" id="vital-o2" class="form-control" min="70" max="100" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="vital-resp">Öndunartíðni (önd/mín)</label>
+                                <input type="number" id="vital-resp" class="form-control" min="8" max="40">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="vital-notes">Athugasemdir</label>
+                            <textarea id="vital-notes" class="form-control" rows="2"></textarea>
+                        </div>
+                        <div class="form-actions">
+                            <button type="button" class="btn-outline cancel-btn">Hætta við</button>
+                            <button type="submit" class="btn-primary submit-btn">Skrá lífsmörk</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <!-- AI Widget -->
+        <div class="ai-widget">
+            <div class="ai-widget-container" id="ai-widget-container">
+                <div class="ai-widget-header">
+                    <div class="ai-widget-title">
+                        <i class="fas fa-robot"></i>
+                        <span>NurseCare AI Sjúklingaaðstoð</span>
+                    </div>
+                    <div class="ai-widget-actions">
+                        <button class="ai-widget-action" id="ai-minimize-btn" aria-label="Minimize">
+                            <i class="fas fa-minus"></i>
+                        </button>
+                        <button class="ai-widget-action" id="ai-clear-btn" aria-label="Clear chat">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="ai-widget-body" id="ai-widget-messages" aria-live="polite">
+                    <!-- Messages will be dynamically added here -->
+                </div>
+                <div class="ai-widget-suggestion-bar" id="suggestion-bar">
+                    <button class="suggestion-btn" data-query="Hverjir þurfa lyf á næsta klukkutíma?">
+                        <i class="fas fa-pills"></i> Næstu lyfjagjafir
+                    </button>
+                    <button class="suggestion-btn" data-query="Sýndu mér sjúklinga með viðvaranir í dag">
+                        <i class="fas fa-exclamation-circle"></i> Sjúklingar með viðvaranir
+                    </button>
+                    <button class="suggestion-btn" data-query="Hver síðustu lífsmörk Jóns Jónssonar?">
+                        <i class="fas fa-heartbeat"></i> Skoða lífsmörk
+                    </button>
+                </div>
+                <div class="ai-widget-footer">
+                    <textarea 
+                        class="ai-widget-input" 
+                        id="ai-widget-input" 
+                        placeholder="Spyrja um sjúklinga, lyf, vitals..." 
+                        rows="1"
+                        aria-label="Chat message"
+                    ></textarea>
+                    <button class="ai-widget-send" id="ai-widget-send" aria-label="Send message" disabled>
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+            </div>
+            <button class="ai-widget-button" id="ai-widget-toggle" aria-label="Toggle AI assistant">
+                <i class="fas fa-robot"></i>
+            </button>
+        </div>
+
+        <!-- Scroll to top button -->
+        <button class="scroll-top-btn" id="scroll-top-btn" aria-label="Scroll to top">
+            <i class="fas fa-arrow-up"></i>
+        </button>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toast-container" class="toast-container" aria-live="polite"></div>
+
+    <!-- Scripts -->
+    <script src="assets/scripts/patients.js"></script>
+    <script src="script.js"></script>
+    <script src="assets/scripts/ai-widget.js"></script>
 </body>
 </html>

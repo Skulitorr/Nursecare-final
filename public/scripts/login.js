@@ -1,11 +1,4 @@
-// Mock user data for demo purposes
-const mockUsers = {
-    'admin': { role: 'ADMIN', password: 'admin123' },
-    'nurse': { role: 'NURSE', password: 'nurse123' },
-    'staff': { role: 'STAFF', password: 'staff123' },
-    'inventory': { role: 'INVENTORY', password: 'inv123' }
-};
-
+// Login page functionality
 document.addEventListener('DOMContentLoaded', () => {
     const loginForm = document.getElementById('login-form');
     const usernameInput = document.getElementById('username');
@@ -13,57 +6,29 @@ document.addEventListener('DOMContentLoaded', () => {
     const loginBtn = document.getElementById('login-btn');
     const errorMessage = document.getElementById('login-error');
 
-    // Clear any stale auth data on login page load
+    // Clear any existing auth data
     localStorage.clear();
 
-    // Focus username input
+    // Focus username input on page load
     usernameInput?.focus();
 
-    loginForm?.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        
-        const username = usernameInput.value.trim();
-        const password = passwordInput.value;
-        
-        // Validate inputs
-        if (!username || !password) {
-            showError('Please enter both username and password');
-            return;
-        }
+    loginBtn?.addEventListener('click', () => {
+        const username = usernameInput?.value;
+        const password = passwordInput?.value;
 
-        // Disable button during validation
-        loginBtn.disabled = true;
-        loginBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Logging in...';
-        
-        try {
-            const user = mockUsers[username];
-            if (!user || user.password !== password) {
-                throw new Error('Invalid username or password');
-            }
-
-            // Create session token with expiration
-            const tokenData = {
-                username,
-                role: user.role,
-                exp: Date.now() + (24 * 60 * 60 * 1000) // 24 hours
-            };
-            
-            // Only set auth data after successful validation
-            const token = btoa(JSON.stringify(tokenData));
-            localStorage.setItem('authToken', token);
-            localStorage.setItem('userRole', user.role);
-            localStorage.setItem('username', username);
-            
-            // Redirect to dashboard
-            window.location.href = '/public/dashboard.html';
-        } catch (error) {
-            showError(error.message);
+        if (username === "admin" && password === "admin123") {
+            localStorage.setItem("userRole", "admin");
+            window.location.href = "/dashboard.html";
+        } else {
+            showError("Invalid credentials");
             passwordInput.value = ''; // Clear password on error
-        } finally {
-            // Reset button state
-            loginBtn.disabled = false;
-            loginBtn.textContent = 'Login';
         }
+    });
+
+    // Handle form submission
+    loginForm?.addEventListener('submit', (e) => {
+        e.preventDefault();
+        loginBtn?.click();
     });
 
     function showError(message) {

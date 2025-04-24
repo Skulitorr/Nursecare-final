@@ -1,4 +1,4 @@
-/* Reset and base styles */
+/* Login page styles */
 * {
     margin: 0;
     padding: 0;
@@ -17,75 +17,45 @@ body {
     background-image: linear-gradient(135deg, #f5f8fb 0%, #e9f2ff 100%);
 }
 
-/* Container styles */
 .login-container {
     width: 100%;
     max-width: 420px;
     padding: 20px;
 }
 
-/* Card styles */
-.login-card {
+.login-box {
     background-color: white;
     border-radius: 16px;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
     overflow: hidden;
     padding: 40px;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
-.login-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
-}
-
-/* Header styles */
 .login-header {
     text-align: center;
-    margin-bottom: 30px;
+    margin-bottom: 32px;
 }
 
-.logo {
+.login-header .logo {
     width: 80px;
     height: 80px;
     margin-bottom: 16px;
-    border-radius: 12px;
-    object-fit: contain;
-}
-
-.fallback-logo {
-    background-color: #3a86ff;
-    padding: 10px;
 }
 
 .login-header h1 {
     font-size: 24px;
-    font-weight: 700;
-    color: #3a86ff;
-    margin-bottom: 8px;
+    font-weight: 600;
+    color: #333;
 }
 
-.login-header p {
-    color: #6c757d;
-    font-size: 16px;
-}
-
-/* Form styles */
 .form-group {
-    margin-bottom: 24px;
-}
-
-.form-group label {
-    display: block;
-    margin-bottom: 8px;
-    font-weight: 500;
-    color: #495057;
+    margin-bottom: 20px;
 }
 
 .form-group input {
     width: 100%;
     padding: 14px 16px;
-    border: 1px solid #ced4da;
+    border: 1px solid #e2e8f0;
     border-radius: 10px;
     font-size: 16px;
     transition: all 0.3s ease;
@@ -97,7 +67,7 @@ body {
     box-shadow: 0 0 0 4px rgba(58, 134, 255, 0.15);
 }
 
-.form-group button {
+.login-button {
     width: 100%;
     padding: 14px 16px;
     background-color: #3a86ff;
@@ -108,86 +78,32 @@ body {
     font-weight: 600;
     cursor: pointer;
     transition: all 0.3s ease;
-    position: relative;
-    overflow: hidden;
 }
 
-.form-group button:hover {
+.login-button:hover {
     background-color: #2a75f3;
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(58, 134, 255, 0.3);
 }
 
-.form-group button:active {
+.login-button:active {
     transform: translateY(0);
     box-shadow: 0 2px 6px rgba(58, 134, 255, 0.2);
 }
 
-/* Error message */
 .error-message {
     color: #e71d36;
     font-size: 14px;
-    margin-bottom: 20px;
+    margin-top: 16px;
     text-align: center;
-    min-height: 21px; /* Prevent layout shift when error appears */
-    font-weight: 500;
+    display: none;
+    padding: 12px;
+    background-color: #fef2f2;
+    border: 1px solid #fee2e2;
+    border-radius: 8px;
 }
 
-/* Footer styles */
-.login-footer {
-    text-align: center;
-    margin-top: 24px;
-}
-
-.login-footer a {
-    color: #3a86ff;
-    text-decoration: none;
-    font-size: 14px;
-    transition: color 0.3s;
-    font-weight: 500;
-}
-
-.login-footer a:hover {
-    color: #2a75f3;
-    text-decoration: underline;
-}
-
-/* Loading state */
-button.loading {
-    color: transparent;
-}
-
-button.loading::after {
-    content: "";
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 24px;
-    height: 24px;
-    margin: -12px 0 0 -12px;
-    border: 3px solid rgba(255, 255, 255, 0.3);
-    border-radius: 50%;
-    border-top-color: white;
-    animation: spin 1s ease infinite;
-}
-
-@keyframes spin {
-    to { transform: rotate(360deg); }
-}
-
-/* Responsive styles */
-@media (max-width: 480px) {
-    .login-card {
-        padding: 30px 20px;
-    }
-    
-    .form-group input, 
-    .form-group button {
-        padding: 12px 14px;
-    }
-}
-
-/* Shake animation for error */
+/* Shake animation for errors */
 @keyframes shake {
     0%, 100% { transform: translateX(0); }
     10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
@@ -196,4 +112,16 @@ button.loading::after {
 
 .shake {
     animation: shake 0.6s ease;
+}
+
+/* Responsive styles */
+@media (max-width: 480px) {
+    .login-box {
+        padding: 30px 20px;
+    }
+    
+    .form-group input, 
+    .login-button {
+        padding: 12px 14px;
+    }
 }
