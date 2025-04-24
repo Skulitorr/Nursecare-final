@@ -2,7 +2,7 @@
   "cleanUrls": true,
   "trailingSlash": false,
   "rewrites": [
-    { "source": "/", "destination": "/public/index.html" },
+    { "source": "/", "destination": "/public/login.html" },
     { "source": "/login", "destination": "/public/login.html" },
     { "source": "/dashboard", "destination": "/public/dashboard.html" },
     { "source": "/patients", "destination": "/public/patients.html" },
@@ -11,7 +11,8 @@
     { "source": "/reports", "destination": "/public/reports.html" },
     { "source": "/settings", "destination": "/public/settings.html" },
     { "source": "/schedule", "destination": "/public/schedule.html" },
-    { "source": "/unauthorized", "destination": "/public/unauthorized.html" }
+    { "source": "/unauthorized", "destination": "/public/unauthorized.html" },
+    { "source": "/404", "destination": "/public/404.html" }
   ],
   "headers": [
     {
