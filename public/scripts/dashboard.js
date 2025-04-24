@@ -1,3 +1,6 @@
+import { validateAuth } from './auth.js';
+import { hasPermission } from './roles.js';
+
 /**
  * NurseCare AI Dashboard JavaScript
  * Enhanced version with fixes for charts, buttons, and AI chat
@@ -14,21 +17,283 @@ const dashboardState = {
 // Core dashboard functionality
 let healthChart, medicationChart, inventoryChart;
 
-// Initialize dashboard components
-document.addEventListener('DOMContentLoaded', () => {
-    console.log('Dashboard script loaded');
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', async () => {
+    // Verify authentication first
+    if (!validateAuth()) return;
     
-    // Initialize UI and features
+    // Initialize components
     initializeUI();
-    initializeActionButtons();
     initializeCharts();
-    initializeHealthChart();
-    initializeCountdown();
-    setupScrollToTop();
+    setupEventListeners();
+    startCountdownTimer();
     
-    // After a slight delay, hide the loading overlays
-    setTimeout(hideChartLoaders, 1500);
+    // Load initial data
+    await loadDashboardData();
 });
+
+// Initialize UI components
+function initializeUI() {
+    // Set current date
+    const dateElement = document.getElementById('current-date');
+    const currentDate = new Date();
+    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+    dateElement.innerHTML = `<i class="fas fa-calendar-alt"></i> ${currentDate.toLocaleDateString('is-IS', options)}`;
+    
+    // Set user greeting
+    const username = localStorage.getItem('username');
+    const greetingElement = document.getElementById('greeting-heading');
+    if (greetingElement && username) {
+        const hour = currentDate.getHours();
+        let greeting = 'Góðan dag';
+        if (hour < 12) greeting = 'Góðan morgun';
+        else if (hour < 18) greeting = 'Góðan dag';
+        else greeting = 'Gott kvöld';
+        
+        greetingElement.textContent = `${greeting}, ${username} – þú ert á morgunvaktinni í dag. 🌤️`;
+    }
+    
+    // Setup theme toggle
+    const themeToggle = document.getElementById('theme-toggle');
+    if (themeToggle) {
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        const savedTheme = localStorage.getItem('theme');
+        
+        if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+            document.body.classList.add('dark-mode');
+            themeToggle.innerHTML = '<i class="fas fa-sun"></i><span>Light Mode</span>';
+        }
+        
+        themeToggle.addEventListener('click', toggleTheme);
+    }
+    
+    // Setup scroll to top button
+    setupScrollToTop();
+}
+
+// Initialize charts
+function initializeCharts() {
+    initializeMedicationChart();
+    initializeInventoryChart();
+    initializeHealthChart();
+}
+
+// Setup scroll to top functionality
+function setupScrollToTop() {
+    const scrollBtn = document.getElementById('scroll-top-btn');
+    if (!scrollBtn) return;
+    
+    window.addEventListener('scroll', () => {
+        if (window.pageYOffset > 300) {
+            scrollBtn.classList.add('show');
+        } else {
+            scrollBtn.classList.remove('show');
+        }
+    });
+    
+    scrollBtn.addEventListener('click', () => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+}
+
+// Setup event listeners for all interactive elements
+function setupEventListeners() {
+    // Notifications dropdown
+    const notificationsBtn = document.getElementById('notifications-btn');
+    const notificationsMenu = document.getElementById('notifications-menu');
+    if (notificationsBtn && notificationsMenu) {
+        notificationsBtn.addEventListener('click', () => {
+            notificationsMenu.classList.toggle('show');
+        });
+    }
+    
+    // Profile dropdown
+    const profileBtn = document.getElementById('profile-btn');
+    const profileMenu = document.getElementById('profile-menu');
+    if (profileBtn && profileMenu) {
+        profileBtn.addEventListener('click', () => {
+            profileMenu.classList.toggle('show');
+        });
+    }
+    
+    // Sidebar toggle
+    const toggleBtn = document.getElementById('toggle-sidebar');
+    const sidebar = document.querySelector('.sidebar');
+    if (toggleBtn && sidebar) {
+        toggleBtn.addEventListener('click', () => {
+            sidebar.classList.toggle('expanded');
+        });
+    }
+    
+    // Logout button
+    const logoutBtn = document.getElementById('logoutBtn');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            logout();
+        });
+    }
+    
+    // AI Chat widget toggle
+    const aiToggle = document.getElementById('ai-widget-toggle');
+    const aiContainer = document.getElementById('ai-widget-container');
+    if (aiToggle && aiContainer) {
+        aiToggle.addEventListener('click', () => {
+            aiContainer.classList.toggle('open');
+        });
+    }
+    
+    // Clear notifications
+    const clearAllBtn = document.querySelector('.clear-all');
+    if (clearAllBtn) {
+        clearAllBtn.addEventListener('click', clearAllNotifications);
+    }
+    
+    // Handle all refresh buttons
+    document.querySelectorAll('[id$="-refresh-btn"]').forEach(btn => {
+        btn.addEventListener('click', () => refreshSection(btn.id));
+    });
+    
+    // Setup quick action buttons
+    setupQuickActions();
+}
+
+// Initialize countdown timer
+function startCountdownTimer() {
+    const timerElement = document.getElementById('countdown-timer');
+    if (!timerElement) return;
+    
+    function updateTimer() {
+        const now = new Date();
+        const nextShift = new Date();
+        nextShift.setHours(15, 0, 0); // Next shift at 15:00
+        
+        if (now >= nextShift) {
+            nextShift.setDate(nextShift.getDate() + 1);
+        }
+        
+        const diff = nextShift - now;
+        const hours = Math.floor(diff / (1000 * 60 * 60));
+        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+        
+        timerElement.textContent = 
+            `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    }
+    
+    updateTimer();
+    setInterval(updateTimer, 1000);
+}
+
+// Load dashboard data
+async function loadDashboardData() {
+    try {
+        // Show loading state
+        showLoading();
+        
+        // Load data in parallel
+        await Promise.all([
+            loadTasksData(),
+            loadStaffData(),
+            loadMedicationData(),
+            loadInventoryData(),
+            loadAlertsData()
+        ]);
+        
+        // Hide loading state
+        hideLoading();
+        
+        // Update last updated timestamp
+        updateLastUpdated();
+    } catch (error) {
+        console.error('Error loading dashboard data:', error);
+        showError('Villa kom upp við að sækja gögn');
+    }
+}
+
+// Theme toggle functionality
+function toggleTheme() {
+    const themeToggle = document.getElementById('theme-toggle');
+    const isDark = document.body.classList.toggle('dark-mode');
+    
+    if (isDark) {
+        localStorage.setItem('theme', 'dark');
+        themeToggle.innerHTML = '<i class="fas fa-sun"></i><span>Light Mode</span>';
+    } else {
+        localStorage.setItem('theme', 'light');
+        themeToggle.innerHTML = '<i class="fas fa-moon"></i><span>Dark Mode</span>';
+    }
+    
+    // Update charts for new theme
+    updateChartsTheme();
+}
+
+// Show loading overlay
+function showLoading() {
+    document.querySelectorAll('.card').forEach(card => {
+        if (!card.querySelector('.loading-overlay')) {
+            const overlay = document.createElement('div');
+            overlay.className = 'loading-overlay';
+            overlay.innerHTML = '<div class="loading"></div>';
+            card.appendChild(overlay);
+        }
+    });
+}
+
+// Hide loading overlay
+function hideLoading() {
+    document.querySelectorAll('.loading-overlay').forEach(overlay => {
+        overlay.remove();
+    });
+}
+
+// Update last updated timestamp
+function updateLastUpdated() {
+    const lastUpdated = document.querySelector('.last-updated');
+    if (lastUpdated) {
+        const now = new Date();
+        const options = { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' };
+        lastUpdated.innerHTML = `
+            <i class="fas fa-sync-alt"></i>
+            Síðast uppfært: ${now.toLocaleDateString('is-IS', options)}
+        `;
+    }
+}
+
+// Show error message
+function showError(message) {
+    const toastContainer = document.getElementById('toast-container');
+    if (!toastContainer) return;
+    
+    const toast = document.createElement('div');
+    toast.className = 'toast toast-error';
+    toast.innerHTML = `
+        <div class="toast-icon">
+            <i class="fas fa-exclamation-circle"></i>
+        </div>
+        <div class="toast-content">
+            <div class="toast-title">Villa</div>
+            <div class="toast-message">${message}</div>
+        </div>
+        <button class="toast-close">
+            <i class="fas fa-times"></i>
+        </button>
+    `;
+    
+    toastContainer.appendChild(toast);
+    
+    // Auto remove after 5 seconds
+    setTimeout(() => {
+        toast.classList.add('toast-hide');
+        setTimeout(() => toast.remove(), 300);
+    }, 5000);
+    
+    // Close button
+    toast.querySelector('.toast-close').addEventListener('click', () => {
+        toast.classList.add('toast-hide');
+        setTimeout(() => toast.remove(), 300);
+    });
+}
 
 // Initialize basic UI interactions
 function initializeUI() {

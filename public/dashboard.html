@@ -3,96 +3,2484 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - NurseCare</title>
-    <link rel="stylesheet" href="/styles/styles.css">
-    <link rel="stylesheet" href="/styles/dashboard.css">
+    <meta name="description" content="NurseCare AI Dashboard - Smart healthcare management system for nursing facilities">
+    <title>NurseCare AI</title>
+    
+    <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Google Fonts - Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Chart.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    
+    <!-- Authentication check -->
+    <script>
+        // Robust authentication check
+        function validateAuth() {
+            const authToken = localStorage.getItem('authToken');
+            const userRole = localStorage.getItem('userRole');
+            
+            if (!authToken || !userRole) {
+                window.location.href = '/login.html';
+                return false;
+            }
+            
+            try {
+                // Validate token format and expiration
+                const tokenData = JSON.parse(atob(authToken));
+                if (!tokenData.exp || !tokenData.role || tokenData.exp <= Date.now() || tokenData.role !== userRole) {
+                    localStorage.clear();
+                    window.location.href = '/login.html';
+                    return false;
+                }
+                return true;
+            } catch (e) {
+                localStorage.clear();
+                window.location.href = '/login.html';
+                return false;
+            }
+        }
+
+        // Run validation immediately
+        validateAuth();
+    </script>
+    
+    <!-- Application styles -->
+    <style>
+        :root {
+            /* Primary Color Palette */
+            --primary: #3a86ff;
+            --primary-light: #5c9eff;
+            --primary-dark: #2a75f3;
+            --primary-bg: rgba(58, 134, 255, 0.08);
+            
+            /* Secondary Colors */
+            --secondary: #4361ee;
+            --success: #2ec4b6;
+            --warning: #ff9f1c;
+            --danger: #e71d36;
+            --info: #4cc9f0;
+            
+            /* Neutrals */
+            --light: #f8f9fa;
+            --dark: #212529;
+            --gray-100: #f8f9fa;
+            --gray-200: #e9ecef;
+            --gray-300: #dee2e6;
+            --gray-400: #ced4da;
+            --gray-500: #adb5bd;
+            --gray-600: #6c757d;
+            --gray-700: #495057;
+            --gray-800: #343a40;
+            --gray-900: #212529;
+            
+            /* UI Elements */
+            --card-radius: 16px;
+            --button-radius: 10px;
+            --input-radius: 8px;
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.05);
+            --shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            --shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.12);
+            
+            /* Animations */
+            --transition: all 0.3s ease;
+            --transition-fast: all 0.15s ease;
+            
+            /* Spacing */
+            --spacing: 1rem;
+            --spacing-sm: 0.5rem;
+            --spacing-lg: 1.5rem;
+            --spacing-xl: 2rem;
+            
+            /* Typography */
+            --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            --font-size-sm: 0.875rem;
+            --font-size: 1rem;
+            --font-size-lg: 1.125rem;
+            --font-size-xl: 1.25rem;
+            --font-size-xxl: 1.5rem;
+            --font-size-display: 2rem;
+            
+            /* Layout */
+            --header-height: 70px;
+            --sidebar-width-collapsed: 80px;
+            --sidebar-width-expanded: 250px;
+        }
+
+        /* Dark Mode Variables */
+        .dark-mode {
+            --primary-bg: rgba(58, 134, 255, 0.15);
+            --light: #212529;
+            --dark: #f8f9fa;
+            --gray-100: #343a40;
+            --gray-200: #495057;
+            --gray-300: #6c757d;
+            --gray-600: #adb5bd;
+            --gray-700: #ced4da;
+            --gray-800: #dee2e6;
+            --gray-900: #f8f9fa;
+            
+            background-color: #1a1c23;
+            color: #e2e8f0;
+        }
+
+        .dark-mode .card,
+        .dark-mode .sidebar,
+        .dark-mode .header,
+        .dark-mode .dropdown-menu,
+        .dark-mode .ai-widget-container {
+            background-color: #2d303b;
+            border-color: #444;
+        }
+
+        .dark-mode .dropdown-item:hover {
+            background-color: #3a3f4b;
+        }
+        
+        .dark-mode .ai-widget-header {
+            background-color: var(--primary-dark);
+        }
+        
+        .dark-mode .ai-widget-footer {
+            background-color: #2d303b;
+            border-color: #444;
+        }
+        
+        .dark-mode .ai-widget-input {
+            background-color: #343a40;
+            color: #e2e8f0;
+            border-color: #444;
+        }
+        
+        .dark-mode .ai-widget-body {
+            background-color: #1a1c23;
+        }
+        
+        .dark-mode .message-text {
+            background-color: #343a40;
+            color: #e2e8f0;
+        }
+        
+        .dark-mode .user-message .message-text {
+            background-color: var(--primary);
+            color: #fff;
+        }
+
+        /* Base Elements */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-family);
+            color: var(--gray-900);
+            background-color: #f5f8fb;
+            line-height: 1.6;
+            min-height: 100vh;
+            overflow-x: hidden;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        a {
+            text-decoration: none;
+            color: var(--primary);
+            transition: var(--transition);
+        }
+
+        a:hover {
+            color: var(--primary-dark);
+        }
+
+        p {
+            margin-bottom: 1rem;
+        }
+
+        button {
+            cursor: pointer;
+        }
+
+        /* Focus states for accessibility */
+        a:focus, button:focus, input:focus, textarea:focus, [tabindex]:focus {
+            outline: 3px solid rgba(58, 134, 255, 0.4);
+            outline-offset: 2px;
+        }
+
+        /* App container */
+        .app-container {
+            display: flex;
+            min-height: 100vh;
+            position: relative;
+        }
+
+        /* Header styles */
+        .header {
+            position: fixed;
+            top: 0;
+            right: 0;
+            left: var(--sidebar-width-collapsed);
+            height: var(--header-height);
+            background-color: #fff;
+            border-bottom: 1px solid var(--gray-200);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 var(--spacing-lg);
+            z-index: 100;
+            transition: left 0.3s ease;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .sidebar.expanded ~ .header {
+            left: var(--sidebar-width-expanded);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .logo img {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            object-fit: cover;
+        }
+
+        .logo h1 {
+            font-size: var(--font-size-xl);
+            font-weight: 600;
+            color: var(--gray-800);
+            margin: 0;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing);
+        }
+
+        .theme-toggle {
+            background: none;
+            border: none;
+            color: var(--gray-700);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 0.75rem;
+            border-radius: var(--input-radius);
+            transition: var(--transition);
+        }
+
+        .theme-toggle:hover {
+            background-color: var(--gray-100);
+            transform: translateY(-2px);
+        }
+
+        .theme-toggle i {
+            font-size: var(--font-size-xl);
+        }
+
+        .theme-toggle span {
+            font-size: var(--font-size-sm);
+            font-weight: 500;
+        }
+
+        .notifications {
+            position: relative;
+        }
+
+        .notifications-btn {
+            background: none;
+            border: none;
+            color: var(--gray-700);
+            font-size: var(--font-size-xl);
+            cursor: pointer;
+            width: 40px;
+            height: 40px;
+            border-radius: var(--input-radius);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+        }
+
+        .notifications-btn:hover {
+            background-color: var(--gray-100);
+            transform: translateY(-2px);
+        }
+
+        .badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background-color: var(--danger);
+            color: white;
+            font-size: 0.75rem;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+        }
+
+        .profile {
+            position: relative;
+        }
+
+        .profile-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            overflow: hidden;
+            transition: var(--transition);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .profile-btn:hover {
+            transform: scale(1.05);
+            box-shadow: var(--shadow);
+        }
+
+        .profile-btn img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* Dropdown menus */
+        .dropdown-menu {
+            position: absolute;
+            top: calc(100% + 10px);
+            right: 0;
+            width: 300px;
+            background-color: white;
+            border-radius: var(--card-radius);
+            box-shadow: var(--shadow-lg);
+            z-index: 100;
+            overflow: hidden;
+            transform: translateY(10px);
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            border: 1px solid var(--gray-200);
+        }
+
+        .dropdown-menu.show {
+            transform: translateY(0);
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .dropdown-header {
+            padding: var(--spacing);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--gray-200);
+        }
+
+        .dropdown-header h3 {
+            font-size: var(--font-size);
+            font-weight: 600;
+            color: var(--gray-800);
+            margin: 0;
+        }
+
+        .clear-all {
+            background: none;
+            border: none;
+            color: var(--primary);
+            font-size: var(--font-size-sm);
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .clear-all:hover {
+            color: var(--primary-dark);
+            text-decoration: underline;
+        }
+
+        .dropdown-body {
+            max-height: 400px;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: var(--gray-400) transparent;
+        }
+
+        .dropdown-body::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        .dropdown-body::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .dropdown-body::-webkit-scrollbar-thumb {
+            background-color: var(--gray-400);
+            border-radius: 10px;
+        }
+
+        .notification-item {
+            display: flex;
+            padding: var(--spacing);
+            border-bottom: 1px solid var(--gray-200);
+            transition: var(--transition);
+            gap: var(--spacing);
+        }
+
+        .notification-item:last-child {
+            border-bottom: none;
+        }
+
+        .notification-item:hover {
+            background-color: var(--gray-100);
+            transform: translateX(5px);
+        }
+
+        .notification-item.unread {
+            background-color: var(--primary-bg);
+        }
+
+        .notification-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: rgba(58, 134, 255, 0.1);
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: var(--font-size-lg);
+            flex-shrink: 0;
+        }
+
+        .notification-content p {
+            margin: 0 0 0.25rem 0;
+            font-size: var(--font-size-sm);
+            color: var(--gray-800);
+        }
+
+        .notification-time {
+            font-size: 0.75rem;
+            color: var(--gray-600);
+        }
+
+        .dropdown-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem var(--spacing);
+            color: var(--gray-800);
+            transition: var(--transition);
+        }
+
+        .dropdown-item:hover {
+            background-color: var(--gray-100);
+            color: var(--primary);
+            transform: translateX(5px);
+        }
+
+        .dropdown-item i {
+            font-size: var(--font-size-lg);
+            color: var(--primary);
+        }
+
+        /* Sidebar styles */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            width: var(--sidebar-width-collapsed);
+            background-color: white;
+            border-right: 1px solid var(--gray-200);
+            z-index: 200;
+            transition: width 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .sidebar.expanded {
+            width: var(--sidebar-width-expanded);
+        }
+
+        .toggle-btn {
+            position: absolute;
+            top: 20px;
+            right: -12px;
+            width: 24px;
+            height: 24px;
+            background-color: var(--primary);
+            border: none;
+            border-radius: 50%;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            z-index: 10;
+            transition: var(--transition);
+        }
+
+        .toggle-btn:hover {
+            background-color: var(--primary-dark);
+            transform: scale(1.1);
+        }
+
+        .sidebar-nav {
+            flex: 1;
+            padding: 20px 0;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: var(--gray-400) transparent;
+        }
+
+        .sidebar-nav::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        .sidebar-nav::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .sidebar-nav::-webkit-scrollbar-thumb {
+            background-color: var(--gray-400);
+            border-radius: 10px;
+        }
+
+        .sidebar-nav ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .nav-item {
+            margin-bottom: 5px;
+        }
+
+        .nav-item a {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 20px;
+            color: var(--gray-700);
+            transition: var(--transition);
+            border-radius: 8px;
+            margin: 0 10px;
+            font-weight: 500;
+            position: relative;
+        }
+
+        .nav-item a i {
+            font-size: var(--font-size-xl);
+            min-width: 20px;
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+
+        .nav-item a span {
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            transition: var(--transition);
+            font-size: 0.9375rem;
+        }
+
+        .sidebar.expanded .nav-item a span {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .nav-item.active a {
+            color: var(--primary);
+            background-color: var(--primary-bg);
+            font-weight: 600;
+        }
+
+        .nav-item.active a i {
+            transform: scale(1.1);
+        }
+
+        .nav-item a:hover {
+            color: var(--primary);
+            background-color: var(--primary-bg);
+            transform: translateX(5px);
+        }
+
+        .nav-item a:hover i {
+            transform: translateY(-2px);
+        }
+
+        /* Main content */
+        .main-content {
+            flex: 1;
+            margin-left: var(--sidebar-width-collapsed);
+            margin-top: var(--header-height);
+            padding: var(--spacing-lg);
+            transition: margin-left 0.3s ease;
+        }
+
+        .sidebar.expanded ~ .main-content {
+            margin-left: var(--sidebar-width-expanded);
+        }
+
+        .page-header {
+            margin-bottom: var(--spacing-lg);
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .page-header h2 {
+            font-size: var(--font-size-xxl);
+            font-weight: 700;
+            color: var(--gray-900);
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .page-header h2 i {
+            color: var(--primary);
+            font-size: 1.75rem;
+        }
+
+        .page-info {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: var(--spacing);
+        }
+
+        .page-actions {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing);
+        }
+
+        .current-date {
+            color: var(--gray-600);
+            font-size: 0.9375rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .current-date i {
+            color: var(--primary);
+        }
+
+        .dashboard-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            margin-bottom: var(--spacing-lg);
+            background: linear-gradient(135deg, var(--primary-light), var(--primary));
+            border-radius: var(--card-radius);
+            padding: var(--spacing-lg);
+            color: white;
+            box-shadow: var(--shadow);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .dashboard-header:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .dashboard-header::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            background: linear-gradient(135deg, transparent, rgba(255, 255, 255, 0.1));
+            pointer-events: none;
+        }
+
+        .greeting-container {
+            flex: 1;
+        }
+
+        .greeting-message {
+            font-size: var(--font-size-xxl);
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            line-height: 1.3;
+        }
+
+        .greeting-details {
+            opacity: 0.9;
+            font-size: var(--font-size);
+            max-width: 600px;
+            margin-bottom: var(--spacing);
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: var(--spacing);
+        }
+
+        .dashboard-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: var(--spacing);
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .stat-card {
+            background-color: white;
+            border-radius: var(--card-radius);
+            padding: var(--spacing);
+            box-shadow: var(--shadow-sm);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border: 1px solid var(--gray-200);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow);
+        }
+
+        .stat-card i {
+            font-size: 2rem;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-card .stat-value {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--gray-900);
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-card .stat-label {
+            color: var(--gray-600);
+            font-size: var(--font-size-sm);
+        }
+
+        /* Dashboard content */
+        .dashboard-content {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-lg);
+        }
+
+        .dashboard-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: var(--spacing-lg);
+        }
+
+        @media (min-width: 1400px) {
+            .dashboard-cards {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+
+        @media (max-width: 1200px) {
+            .dashboard-cards {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        @media (max-width: 992px) {
+            .dashboard-cards {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 576px) {
+            .dashboard-cards {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .welcome-card {
+            grid-column: span 2;
+            background: linear-gradient(135deg, var(--primary-light), var(--primary));
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .welcome-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            background: linear-gradient(135deg, transparent, rgba(255, 255, 255, 0.1));
+            pointer-events: none;
+        }
+
+        .card {
+            background-color: white;
+            border-radius: var(--card-radius);
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            border: 1px solid var(--gray-200);
+            position: relative;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .card-header {
+            padding: var(--spacing);
+            border-bottom: 1px solid var(--gray-200);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-header h3 {
+            font-size: var(--font-size-lg);
+            font-weight: 600;
+            color: var(--gray-800);
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .card-header h3 i {
+            color: var(--primary);
+            font-size: var(--font-size-xl);
+        }
+
+        .card-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .card-action {
+            background: none;
+            border: none;
+            color: var(--gray-600);
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .card-action:hover {
+            background-color: var(--gray-100);
+            color: var(--gray-800);
+            transform: translateY(-2px);
+        }
+
+        .card-body {
+            padding: var(--spacing);
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .welcome-card .card-body {
+            padding: var(--spacing-lg);
+        }
+
+        .greeting-message {
+            font-size: var(--font-size-xxl);
+            font-weight: 700;
+            margin-bottom: 0.75rem;
+        }
+
+        .welcome-card .card-body p {
+            opacity: 0.9;
+            margin-bottom: var(--spacing-lg);
+            font-size: var(--font-size-lg);
+            max-width: 600px;
+        }
+
+        .welcome-card .card-footer {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: auto;
+            padding-top: var(--spacing-lg);
+        }
+
+        .welcome-card .btn {
+            padding: 0.625rem 1.25rem;
+            border-radius: var(--button-radius);
+            font-weight: 500;
+            font-size: 0.9375rem;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+        }
+
+        .btn-white {
+            background-color: white;
+            color: var(--primary);
+            border: none;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08);
+        }
+
+        .btn-white:hover {
+            background-color: rgba(255, 255, 255, 0.9);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+        }
+
+        .btn-text {
+            background: none;
+            border: none;
+            color: white;
+            padding: 0.625rem 1.25rem;
+            border-radius: var(--button-radius);
+            transition: var(--transition);
+        }
+
+        .btn-text:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+        }
+
+        /* Metrics */
+        .metric {
+            text-align: center;
+            padding: var(--spacing);
+        }
+
+        .metric-value {
+            font-size: var(--font-size-display);
+            font-weight: 700;
+            color: var(--gray-900);
+            margin-bottom: 0.5rem;
+            line-height: 1;
+        }
+
+        .metric-label {
+            color: var(--gray-600);
+            font-size: var(--font-size-sm);
+        }
+
+        .metric-row {
+            display: flex;
+            justify-content: space-around;
+        }
+
+        .metric-col {
+            text-align: center;
+        }
+
+        .metric-col .metric-value {
+            font-size: var(--font-size-xxl);
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .metric-col .metric-label {
+            font-size: 0.75rem;
+        }
+
+        /* Chart containers */
+        .chart-container {
+            flex: 1;
+            min-height: 200px;
+            position: relative;
+            margin-bottom: var(--spacing);
+        }
+
+        .chart-placeholder {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: var(--gray-500);
+        }
+
+        .chart-placeholder i {
+            font-size: 2.5rem;
+            margin-bottom: var(--spacing);
+            opacity: 0.5;
+        }
+
+        /* Alert styles */
+        .alert-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .alert-item {
+            display: flex;
+            align-items: flex-start;
+            padding: 0.75rem var(--spacing);
+            border-radius: 8px;
+            gap: 0.75rem;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .alert-item i {
+            font-size: var(--font-size-lg);
+            margin-top: 0.125rem;
+        }
+
+        .alert-item span {
+            font-size: 0.9375rem;
+            line-height: 1.5;
+        }
+
+        .alert-item.warning {
+            background-color: rgba(255, 159, 28, 0.1);
+            color: #c66a00;
+        }
+
+        .alert-item.critical {
+            background-color: rgba(231, 29, 54, 0.1);
+            color: #b50f25;
+        }
+
+        .alert-item.warning i {
+            color: var(--warning);
+        }
+
+        .alert-item.critical i {
+            color: var(--danger);
+        }
+
+        .alert-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+
+        /* Shift list */
+        .shift-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            margin-bottom: var(--spacing);
+        }
+
+        .shift-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.75rem var(--spacing);
+            background-color: var(--gray-100);
+            border-radius: 8px;
+            transition: var(--transition);
+            border-left: 3px solid transparent;
+        }
+
+        .shift-item:hover {
+            background-color: var(--gray-200);
+            border-left-color: var(--primary);
+            transform: translateX(5px);
+        }
+
+        .shift-time .day {
+            font-weight: 600;
+            display: block;
+            font-size: 0.9375rem;
+            margin-bottom: 0.25rem;
+            color: var(--gray-800);
+        }
+
+        .shift-time .time {
+            font-size: 0.8125rem;
+            color: var(--gray-600);
+        }
+
+        .shift-staff {
+            text-align: right;
+        }
+
+        .shift-staff .staff-count {
+            font-weight: 600;
+            display: block;
+            font-size: 0.9375rem;
+            margin-bottom: 0.25rem;
+            color: var(--gray-800);
+        }
+
+        .shift-staff .wing {
+            font-size: 0.8125rem;
+            color: var(--gray-600);
+        }
+
+        /* Stats and quick actions */
+        .dashboard-stats {
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .quick-actions {
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .quick-actions h3 {
+            font-size: var(--font-size-xl);
+            font-weight: 600;
+            color: var(--gray-800);
+            margin-bottom: var(--spacing);
+        }
+
+        .action-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: var(--spacing);
+        }
+
+        .action-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: var(--spacing-lg) var(--spacing);
+            background-color: white;
+            border: 1px solid var(--gray-200);
+            border-radius: var(--card-radius);
+            transition: var(--transition);
+            cursor: pointer;
+            gap: 0.75rem;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .action-btn:hover {
+            border-color: var(--primary);
+            transform: translateY(-5px);
+            box-shadow: var(--shadow);
+        }
+
+        .action-btn i {
+            font-size: var(--font-size-xxl);
+            color: var(--primary);
+            transition: transform 0.3s ease;
+        }
+
+        .action-btn:hover i {
+            transform: scale(1.1);
+        }
+
+        .action-btn span {
+            font-weight: 500;
+            font-size: 0.9375rem;
+            color: var(--gray-800);
+        }
+
+        /* Button links */
+        .btn-link {
+            color: var(--primary);
+            background: none;
+            border: none;
+            font-weight: 500;
+            font-size: 0.9375rem;
+            cursor: pointer;
+            padding: 0;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-link:hover {
+            color: var(--primary-dark);
+            text-decoration: underline;
+            transform: translateY(-2px);
+        }
+
+        /* Styled buttons */
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.625rem var(--spacing);
+            border-radius: var(--button-radius);
+            font-weight: 500;
+            font-size: 0.9375rem;
+            cursor: pointer;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            box-shadow: 0 4px 6px rgba(58, 134, 255, 0.25);
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 8px rgba(58, 134, 255, 0.3);
+        }
+
+        .btn-outline {
+            background-color: white;
+            color: var(--primary);
+            border: 1px solid var(--primary);
+            padding: 0.625rem var(--spacing);
+            border-radius: var(--button-radius);
+            font-weight: 500;
+            font-size: 0.9375rem;
+            cursor: pointer;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .btn-outline:hover {
+            background-color: var(--primary-bg);
+            transform: translateY(-2px);
+            box-shadow: 0 3px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Toast notifications */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            pointer-events: none;
+        }
+
+        .toast {
+            background-color: white;
+            border-radius: var(--card-radius);
+            box-shadow: var(--shadow-lg);
+            padding: var(--spacing);
+            display: flex;
+            align-items: flex-start;
+            gap: var(--spacing);
+            min-width: 300px;
+            max-width: 400px;
+            animation: slideInRight 0.3s ease;
+            border-left: 4px solid var(--primary);
+            pointer-events: auto;
+        }
+
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideOutRight {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+        }
+
+        .toast.toast-hide {
+            animation: slideOutRight 0.3s ease forwards;
+        }
+
+        .toast-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background-color: rgba(58, 134, 255, 0.1);
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: var(--font-size-lg);
+            flex-shrink: 0;
+        }
+
+        .toast-success {
+            border-left-color: var(--success);
+        }
+
+        .toast-success .toast-icon {
+            background-color: rgba(46, 196, 182, 0.1);
+            color: var(--success);
+        }
+
+        .toast-warning {
+            border-left-color: var(--warning);
+        }
+
+        .toast-warning .toast-icon {
+            background-color: rgba(255, 159, 28, 0.1);
+            color: var(--warning);
+        }
+
+        .toast-error {
+            border-left-color: var(--danger);
+        }
+
+        .toast-error .toast-icon {
+            background-color: rgba(231, 29, 54, 0.1);
+            color: var(--danger);
+        }
+
+        .toast-content {
+            flex: 1;
+            padding-right: var(--spacing);
+        }
+
+        .toast-title {
+            font-weight: 600;
+            font-size: 0.9375rem;
+            margin-bottom: 0.25rem;
+            color: var(--gray-800);
+        }
+
+        .toast-message {
+            font-size: var(--font-size-sm);
+            color: var(--gray-600);
+        }
+
+        .toast-close {
+            font-size: var(--font-size-lg);
+            color: var(--gray-400);
+            background: none;
+            border: none;
+            cursor: pointer;
+            transition: var(--transition);
+            align-self: flex-start;
+            padding: 0.25rem;
+        }
+
+        .toast-close:hover {
+            color: var(--gray-600);
+        }
+
+        /* AI Chat Widget Styles */
+        .ai-widget {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            font-family: var(--font-family);
+            pointer-events: none;
+        }
+
+        .ai-widget-button {
+            width: 60px;
+            height: 60px;
+            border-radius: 30px;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            cursor: pointer;
+            z-index: 1001;
+            transition: all 0.3s ease;
+            align-self: flex-end;
+            pointer-events: auto;
+        }
+
+        .ai-widget-button:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+        }
+
+        .ai-widget-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 380px;
+            height: 500px;
+            background-color: white;
+            border-radius: var(--card-radius);
+            overflow: hidden;
+            box-shadow: var(--shadow-lg);
+            display: flex;
+            flex-direction: column;
+            transform: scale(0.95);
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.3s ease;
+            transform-origin: bottom right;
+            border: 1px solid var(--gray-200);
+            z-index: 1000;
+        }
+
+        .ai-widget-container.open {
+            transform: scale(1);
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .ai-widget-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 20px;
+            background-color: var(--primary);
+            color: white;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .ai-widget-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 600;
+            font-size: 16px;
+        }
+
+        .ai-widget-title i {
+            font-size: 20px;
+        }
+
+        .ai-widget-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .ai-widget-action {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .ai-widget-action:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.1);
+        }
+
+        .ai-widget-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            background-color: #f5f7fb;
+            scrollbar-width: thin;
+            scrollbar-color: var(--gray-400) transparent;
+            position: relative;
+            height: calc(100% - 120px); /* Subtract header and footer height */
+        }
+
+        .ai-widget-body::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        .ai-widget-body::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .ai-widget-body::-webkit-scrollbar-thumb {
+            background-color: var(--gray-400);
+            border-radius: 10px;
+        }
+
+        .ai-widget-body .message {
+            display: flex;
+            margin-bottom: 16px;
+            max-width: 85%;
+            animation: fadeIn 0.3s ease-out;
+            position: relative;
+            z-index: 1;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .ai-widget-body .user-message {
+            align-self: flex-end;
+            flex-direction: row-reverse;
+        }
+
+        .ai-widget-body .assistant-message {
+            align-self: flex-start;
+        }
+
+        .message-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            overflow: hidden;
+            margin-right: 12px;
+            flex-shrink: 0;
+            background-color: var(--primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .user-message .message-avatar {
+            margin-right: 0;
+            margin-left: 12px;
+            background-color: var(--secondary);
+        }
+
+        .message-content {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .message-text {
+            background-color: white;
+            padding: 12px 16px;
+            border-radius: 18px;
+            border-top-left-radius: 4px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            position: relative;
+            color: var(--gray-800);
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .user-message .message-text {
+            background-color: var(--primary);
+            color: white;
+            border-top-left-radius: 18px;
+            border-top-right-radius: 4px;
+        }
+
+        .message-time {
+            font-size: 10px;
+            color: var(--gray-500);
+            margin-top: 4px;
+            text-align: right;
+        }
+
+        .user-message .message-time {
+            color: var(--gray-500);
+        }
+
+        .ai-widget-footer {
+            padding: 16px;
+            border-top: 1px solid var(--gray-200);
+            display: flex;
+            align-items: flex-end;
+            gap: 12px;
+            background-color: white;
+        }
+
+        .ai-widget-input {
+            flex: 1;
+            border: 1px solid var(--gray-300);
+            border-radius: 24px;
+            padding: 12px 16px;
+            max-height: 120px;
+            min-height: 40px;
+            overflow-y: auto;
+            line-height: 1.5;
+            font-size: 14px;
+            font-family: inherit;
+            resize: none;
+            transition: border-color 0.2s;
+            outline: none;
+        }
+
+        .ai-widget-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(58, 134, 255, 0.15);
+        }
+
+        .ai-widget-send {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            flex-shrink: 0;
+            box-shadow: 0 2px 5px rgba(58, 134, 255, 0.25);
+        }
+
+        .ai-widget-send:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(58, 134, 255, 0.3);
+        }
+
+        .ai-widget-send:disabled {
+            background-color: var(--gray-400);
+            box-shadow: none;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .typing-indicator {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 8px 12px;
+            margin-left: 48px;
+            align-self: flex-start;
+        }
+
+        .typing-indicator span {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: var(--gray-400);
+            animation: typing-animation 1.4s infinite ease-in-out both;
+        }
+
+        .typing-indicator span:nth-child(1) {
+            animation-delay: 0s;
+        }
+
+        .typing-indicator span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-indicator span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes typing-animation {
+            0%, 80%, 100% {
+                transform: scale(0.6);
+                opacity: 0.6;
+            }
+            40% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        /* Tasks progress styles */
+        .tasks-progress {
+            height: 8px;
+            background-color: var(--gray-200);
+            border-radius: 4px;
+            margin-bottom: 15px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background-color: var(--primary);
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+
+        .tasks-completed {
+            font-size: var(--font-size-lg);
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: var(--gray-900);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .tasks-completed i {
+            color: var(--success);
+        }
+
+        .ai-summary {
+            background-color: var(--primary-bg);
+            border-left: 3px solid var(--primary);
+            padding: 12px 15px;
+            border-radius: 0 8px 8px 0;
+            color: var(--gray-700);
+            font-style: italic;
+            margin-top: 15px;
+            position: relative;
+        }
+
+        .ai-summary::before {
+            content: '\f10d';
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            font-size: 12px;
+            color: var(--primary-light);
+            opacity: 0.3;
+        }
+
+        /* Last updated timestamp */
+        .last-updated {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: var(--gray-500);
+            font-size: 0.75rem;
+            margin-left: auto;
+        }
+
+        .last-updated i {
+            color: var(--primary);
+            font-size: 0.875rem;
+        }
+
+        /* Scroll to top button */
+        .scroll-top-btn {
+            position: fixed;
+            bottom: 100px;
+            right: 30px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: white;
+            color: var(--primary);
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            box-shadow: var(--shadow);
+            cursor: pointer;
+            z-index: 999;
+            transition: all 0.3s ease;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(20px);
+        }
+
+        .scroll-top-btn.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .scroll-top-btn:hover {
+            background-color: var(--primary);
+            color: white;
+            transform: translateY(-5px);
+        }
+
+        /* Tooltips */
+        [data-tooltip] {
+            position: relative;
+        }
+
+        [data-tooltip]::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 5px 10px;
+            background-color: var(--gray-800);
+            color: white;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            white-space: nowrap;
+            pointer-events: none;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.2s ease;
+            z-index: 1000;
+        }
+
+        [data-tooltip]:hover::after {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(-50%) translateY(-5px);
+        }
+
+        /* Loading indicators */
+        .loading {
+            display: inline-block;
+            width: 1em;
+            height: 1em;
+            border: 0.2em solid currentColor;
+            border-right-color: transparent;
+            border-radius: 50%;
+            animation: spinner 0.75s linear infinite;
+            vertical-align: text-bottom;
+        }
+
+        @keyframes spinner {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Mobile Responsiveness */
+        @media (max-width: 992px) {
+            :root {
+                --sidebar-width-expanded: 100%;
+            }
+            
+            .header {
+                left: 0;
+            }
+            
+            .sidebar {
+                transform: translateX(-100%);
+                z-index: 1000;
+            }
+            
+            .sidebar.expanded {
+                transform: translateX(0);
+            }
+            
+            .sidebar.expanded ~ .header,
+            .sidebar.expanded ~ .main-content {
+                margin-left: 0;
+            }
+            
+            .main-content {
+                margin-left: 0;
+                padding: var(--spacing);
+            }
+            
+            .toggle-btn {
+                right: auto;
+                left: 20px;
+                top: 75px;
+                background-color: var(--primary);
+                z-index: 1001;
+            }
+
+            .sidebar.expanded .toggle-btn {
+                left: 20px;
+            }
+            
+            .sidebar.expanded .toggle-btn i {
+                transform: rotate(180deg);
+            }
+            
+            .ai-widget-container {
+                width: 100%;
+                height: 50vh;
+                border-radius: var(--card-radius) var(--card-radius) 0 0;
+                bottom: 0;
+                right: 0;
+                left: 0;
+            }
+            
+            .welcome-card {
+                grid-column: span 1;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .page-header {
+                flex-direction: column;
+            }
+            
+            .card-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            
+            .card-actions {
+                align-self: flex-end;
+            }
+            
+            .welcome-card .card-footer {
+                flex-direction: column;
+            }
+            
+            .welcome-card .btn {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .dashboard-header {
+                flex-direction: column;
+                gap: var(--spacing);
+            }
+
+            .greeting-container {
+                width: 100%;
+            }
+
+            .greeting-message {
+                font-size: var(--font-size-xl);
+            }
+
+            .header-actions {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .action-buttons {
+                grid-template-columns: 1fr;
+            }
+            
+            .ai-widget-button {
+                width: 50px;
+                height: 50px;
+                bottom: 20px;
+                right: 20px;
+            }
+        }
+    </style>
 </head>
 <body>
-    <div class="layout">
-        <!-- Include sidebar navigation -->
-        <nav class="sidebar">
-            <!-- ...existing navigation from template... -->
-        </nav>
-
-        <main class="main-content">
-            <header class="top-bar">
-                <div class="page-title">
-                    <h1>Dashboard</h1>
-                </div>
-                <div class="top-bar-actions">
-                    <!-- ...existing top bar actions... -->
-                </div>
-            </header>
-
-            <div class="content">
-                <div class="dashboard-container">
-                    <!-- Dashboard Stats -->
-                    <div class="stats-grid">
-                        <div class="stat-card" data-stat="patients" data-requires-permission="view_patients">
-                            <i class="fas fa-user-injured"></i>
-                            <div class="stat-content">
-                                <span class="stat-value">0</span>
-                                <span class="stat-label">Patients</span>
-                            </div>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">
+                <img src="assets/logo.png" alt="NurseCare AI Logo" onerror="this.src='https://placehold.co/40x40?text=NC'">
+                <h1>NurseCare AI</h1>
+            </div>
+            <div class="header-actions">
+                <button id="theme-toggle" class="theme-toggle" aria-label="Toggle dark mode">
+                    <i class="fas fa-moon"></i>
+                    <span>Dark Mode</span>
+                </button>
+                <div class="notifications">
+                    <button id="notifications-btn" class="notifications-btn" aria-label="Notifications">
+                        <i class="fas fa-bell"></i>
+                        <span class="badge">3</span>
+                    </button>
+                    <div id="notifications-menu" class="dropdown-menu" aria-hidden="true">
+                        <div class="dropdown-header">
+                            <h3>Tilkynningar</h3>
+                            <button class="clear-all">Hreinsa allt</button>
                         </div>
-                        <div class="stat-card" data-stat="appointments" data-requires-permission="view_schedule">
-                            <i class="fas fa-calendar"></i>
-                            <div class="stat-content">
-                                <span class="stat-value">0</span>
-                                <span class="stat-label">Appointments</span>
+                        <div class="dropdown-body">
+                            <div class="notification-item unread">
+                                <div class="notification-icon">
+                                    <i class="fas fa-user-nurse"></i>
+                                </div>
+                                <div class="notification-content">
+                                    <p>Anna tilkynnti veikindi fyrir vaktina sína</p>
+                                    <span class="notification-time">2 klst síðan</span>
+                                </div>
                             </div>
-                        </div>
-                        <div class="stat-card" data-stat="staff" data-requires-permission="view_all_reports">
-                            <i class="fas fa-users"></i>
-                            <div class="stat-content">
-                                <span class="stat-value">0</span>
-                                <span class="stat-label">Staff Members</span>
+                            <div class="notification-item unread">
+                                <div class="notification-icon">
+                                    <i class="fas fa-calendar-check"></i>
+                                </div>
+                                <div class="notification-content">
+                                    <p>Vaktaplan fyrir næstu viku er tilbúið</p>
+                                    <span class="notification-time">5 klst síðan</span>
+                                </div>
                             </div>
-                        </div>
-                        <div class="stat-card" data-stat="inventory" data-requires-permission="view_inventory">
-                            <i class="fas fa-box"></i>
-                            <div class="stat-content">
-                                <span class="stat-value">0</span>
-                                <span class="stat-label">Inventory Items</span>
+                            <div class="notification-item">
+                                <div class="notification-icon">
+                                    <i class="fas fa-capsules"></i>
+                                </div>
+                                <div class="notification-content">
+                                    <p>Lyfjabirgðir eru að verða litlar</p>
+                                    <span class="notification-time">Í gær</span>
+                                </div>
                             </div>
                         </div>
                     </div>
-
-                    <!-- Quick Actions -->
-                    <div class="quick-actions">
-                        <h2>Quick Actions</h2>
-                        <div class="actions-grid">
-                            <button data-action="add-patient" data-requires-permission="manage_patients">
-                                <i class="fas fa-user-plus"></i>
-                                Add Patient
-                            </button>
-                            <button data-action="schedule-appointment" data-requires-permission="manage_schedule">
-                                <i class="fas fa-calendar-plus"></i>
-                                Schedule Appointment
-                            </button>
-                            <button data-action="inventory-check" data-requires-permission="manage_inventory">
-                                <i class="fas fa-clipboard-check"></i>
-                                Check Inventory
-                            </button>
-                            <button data-action="generate-report" data-requires-permission="view_reports">
-                                <i class="fas fa-chart-line"></i>
-                                Generate Report
-                            </button>
+                </div>
+                <div class="profile">
+                    <button id="profile-btn" class="profile-btn" aria-label="User profile">
+                        <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=anna" alt="Profile Avatar for Anna">
+                    </button>
+                    <div id="profile-menu" class="dropdown-menu" aria-hidden="true">
+                        <div class="dropdown-header">
+                            <h3>Anna Sigurðardóttir</h3>
+                            <span>Vaktstjóri</span>
                         </div>
-                    </div>
-
-                    <!-- Recent Activity -->
-                    <div class="recent-activity" data-requires-any-permission="view_patients,view_schedule">
-                        <h2>Recent Activity</h2>
-                        <div class="activity-list">
-                            <!-- Activity items will be populated by JavaScript -->
+                        <div class="dropdown-body">
+                            <a href="#" class="dropdown-item">
+                                <i class="fas fa-user"></i>
+                                <span>Mínar síður</span>
+                            </a>
+                            <a href="#" class="dropdown-item">
+                                <i class="fas fa-cog"></i>
+                                <span>Stillingar</span>
+                            </a>
+                            <a href="#" class="dropdown-item" id="logoutBtn">
+                                <i class="fas fa-sign-out-alt"></i>
+                                <span>Útskrá</span>
+                            </a>
                         </div>
                     </div>
                 </div>
             </div>
+        </header>
+        
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <button id="toggle-sidebar" class="toggle-btn" aria-label="Toggle sidebar">
+                <i class="fas fa-bars"></i>
+            </button>
+            <nav class="sidebar-nav" aria-label="Main navigation">
+                <ul>
+                    <li class="nav-item active">
+                        <a href="index.html" aria-current="page">
+                            <i class="fas fa-tachometer-alt"></i>
+                            <span>Mælaborð</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="schedule.html">
+                            <i class="fas fa-calendar-alt"></i>
+                            <span>Vaktaplan</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="staff.html">
+                            <i class="fas fa-user-nurse"></i>
+                            <span>Starfsfólk</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="patients.html">
+                            <i class="fas fa-user-injured"></i>
+                            <span>Sjúklingar</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="inventory.html">
+                            <i class="fas fa-box"></i>
+                            <span>Birgðir</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="medications.html">
+                            <i class="fas fa-pills"></i>
+                            <span>Lyf</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="chatbot.html">
+                            <i class="fas fa-comments"></i>
+                            <span>Spjallforrit</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </aside>
+        
+        <!-- Main Content -->
+        <main class="main-content">
+            <section class="page-header">
+                <h2><i class="fas fa-tachometer-alt"></i> Mælaborð</h2>
+                <div class="page-info">
+                    <span id="current-date" class="current-date">
+                        <i class="fas fa-calendar-alt"></i>
+                        Miðvikudagur, 21. apríl 2025
+                    </span>
+                    <span class="last-updated">
+                        <i class="fas fa-sync-alt"></i>
+                        Síðast uppfært: 21. apríl, 08:45
+                    </span>
+                </div>
+            </section>
+                
+            <!-- Dashboard Header with Greeting -->
+            <section class="dashboard-header" aria-labelledby="greeting-heading">
+                <div class="greeting-container">
+                    <h3 id="greeting-heading" class="greeting-message">
+                        Góðan daginn, Anna – þú ert á morgunvaktinni í dag. 🌤️
+                    </h3>
+                    <div class="greeting-details">
+                        Þú ert skráð á morgunvakt í dag á Deild 3 – Alzheimer. Það eru 18 sjúklingar á deildinni og 8 starfsmenn á vakt.
+                    </div>
+                    <div class="header-actions">
+                        <button class="btn-white" id="view-shift-btn">
+                            <i class="fas fa-clipboard-list"></i>
+                            Skoða yfirlit vaktar
+                        </button>
+                        <button class="btn-text" id="handover-btn">
+                            <i class="fas fa-exchange-alt"></i>
+                            Vaktaskipti
+                        </button>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Dashboard Stats -->
+            <section class="dashboard-stats" aria-label="Dashboard statistics">
+                <article class="stat-card">
+                    <i class="fas fa-user-injured" aria-hidden="true"></i>
+                    <div class="stat-value">18</div>
+                    <div class="stat-label">Sjúklingar</div>
+                </article>
+                <article class="stat-card">
+                    <i class="fas fa-user-nurse" aria-hidden="true"></i>
+                    <div class="stat-value">8</div>
+                    <div class="stat-label">Starfsmenn</div>
+                </article>
+                <article class="stat-card">
+                    <i class="fas fa-pills" aria-hidden="true"></i>
+                    <div class="stat-value">82%</div>
+                    <div class="stat-label">Lyfjagjöf</div>
+                </article>
+                <article class="stat-card">
+                    <i class="fas fa-tasks" aria-hidden="true"></i>
+                    <div class="stat-value">14/16</div>
+                    <div class="stat-label">Verkefni kláruð</div>
+                </article>
+            </section>
+            
+            <div class="dashboard-content">
+                <!-- Dashboard Cards -->
+                <section class="dashboard-cards">
+                    <!-- Today's Tasks Overview -->
+                    <article class="card">
+                        <header class="card-header">
+                            <h3><i class="fas fa-tasks" aria-hidden="true"></i> Verkefni dagsins</h3>
+                            <div class="card-actions">
+                                <button class="card-action" id="refresh-tasks-btn" data-tooltip="Uppfæra verkefni" aria-label="Uppfæra verkefni">
+                                    <i class="fas fa-sync-alt" aria-hidden="true"></i>
+                                </button>
+                            </div>
+                        </header>
+                        <div class="card-body">
+                            <div class="tasks-completed">
+                                <i class="fas fa-check-circle" aria-hidden="true"></i>
+                                14/16 verkefni kláruð
+                            </div>
+                            <div class="tasks-progress" aria-label="87.5% af verkefnum lokið" role="progressbar" aria-valuenow="87.5" aria-valuemin="0" aria-valuemax="100">
+                                <div class="progress-bar" style="width: 87.5%"></div>
+                            </div>
+                            <div class="ai-summary">
+                                "Flestir sjúklingar fengu lyf sín á réttum tíma. Engin alvarleg atvik."
+                            </div>
+                            <button class="btn-outline" style="margin-top: 1.5rem; width: 100%;" id="refresh-stats-btn">
+                                <i class="fas fa-sync-alt" aria-hidden="true"></i>
+                                Uppfæra yfirlit
+                            </button>
+                        </div>
+                    </article>
+                            
+                    <!-- Staff on Duty -->
+                    <article class="card">
+                        <header class="card-header">
+                            <h3><i class="fas fa-user-nurse" aria-hidden="true"></i> Starfsfólk á vakt</h3>
+                            <div class="card-actions">
+                                <button class="card-action" data-tooltip="Skoða allt starfsfólk" aria-label="Skoða allt starfsfólk">
+                                    <i class="fas fa-external-link-alt" aria-hidden="true"></i>
+                                </button>
+                            </div>
+                        </header>
+                        <div class="card-body">
+                            <div class="metric">
+                                <div class="metric-value">8</div>
+                                <div class="metric-label">Á núverandi vakt</div>
+                            </div>
+                            <div class="metric-row">
+                                <div class="metric-col">
+                                    <div class="metric-value">3</div>
+                                    <div class="metric-label">Hjúkrunarfr.</div>
+                                </div>
+                                <div class="metric-col">
+                                    <div class="metric-value">2</div>
+                                    <div class="metric-label">Aðstoðarf.</div>
+                                </div>
+                                <div class="metric-col">
+                                    <div class="metric-value">3</div>
+                                    <div class="metric-label">Sjúkraliðar</div>
+                                </div>
+                            </div>
+                            <a href="staff.html" class="btn-link" style="margin-top: 1rem; display: block; text-align: center;">
+                                <i class="fas fa-users" aria-hidden="true"></i>
+                                Sjá allt starfsfólk
+                            </a>
+                        </div>
+                    </article>
+                
+                    <!-- Medication Tracker -->
+                    <article class="card">
+                        <header class="card-header">
+                            <h3><i class="fas fa-pills" aria-hidden="true"></i> Lyfjaskráning</h3>
+                            <div class="card-actions">
+                                <button class="card-action" data-tooltip="Uppfæra skráningu" aria-label="Uppfæra skráningu">
+                                    <i class="fas fa-sync-alt" aria-hidden="true"></i>
+                                </button>
+                            </div>
+                        </header>
+                        <div class="card-body">
+                            <div class="chart-container">
+                                <canvas id="medicationChart" aria-label="Lyfjagjafir í dag" role="img"></canvas>
+                            </div>
+                            <div style="text-align: center; margin-top: 1rem;">
+                                <p><strong>82% lyf</strong> hafa verið gefin í dag</p>
+                                <button class="btn-primary" style="margin-top: 0.75rem;" id="view-medications-btn">
+                                    <i class="fas fa-list-ul" aria-hidden="true"></i>
+                                    Skoða lyfjaskráningu
+                                </button>
+                            </div>
+                        </div>
+                    </article>
+                            
+                    <!-- AI Warnings Panel -->
+                    <article class="card">
+                        <header class="card-header">
+                            <h3><i class="fas fa-exclamation-triangle" aria-hidden="true"></i> AI Viðvaranir</h3>
+                            <div class="card-actions">
+                                <button class="card-action" id="refresh-alerts-btn" aria-label="Uppfæra viðvaranir" data-tooltip="Uppfæra viðvaranir">
+                                    <i class="fas fa-sync-alt" aria-hidden="true"></i>
+                                </button>
+                            </div>
+                        </header>
+                        <div class="card-body">
+                            <div class="alert-list">
+                                <div class="alert-item critical" id="alert-heartrate" role="alert">
+                                    <i class="fas fa-heartbeat" aria-hidden="true"></i>
+                                    <span>🚨 Jón Jónsson hefur hækkaðan hjartslátt frá kl. 10:32</span>
+                                </div>
+                                <div class="alert-item warning" id="alert-inventory" role="alert">
+                                    <i class="fas fa-box" aria-hidden="true"></i>
+                                    <span>📉 Skortur á latexhönskum – aðeins 12 eftir</span>
+                                </div>
+                                <div class="alert-item warning" id="alert-medication" role="alert">
+                                    <i class="fas fa-clock" aria-hidden="true"></i>
+                                    <span>⏰ Lyfjagjöf fyrir Maríu Ólafsdóttur er yfirstandandi</span>
+                                </div>
+                            </div>
+                            <button class="btn-link" style="margin-top: 1rem;" id="clear-alerts-btn">
+                                <i class="fas fa-check-double" aria-hidden="true"></i>
+                                Hreinsa allar viðvaranir
+                            </button>
+                        </div>
+                    </article>
+                
+                    <!-- Live Inventory Overview -->
+                    <article class="card">
+                        <header class="card-header">
+                            <h3><i class="fas fa-boxes" aria-hidden="true"></i> Birgðir</h3>
+                            <div class="card-actions">
+                                <button class="card-action" data-tooltip="Uppfæra birgðir" aria-label="Uppfæra birgðir">
+                                    <i class="fas fa-sync-alt" aria-hidden="true"></i>
+                                </button>
+                            </div>
+                        </header>
+                        <div class="card-body">
+                            <div class="chart-container">
+                                <canvas id="inventoryChart" aria-label="Birgðastaða" role="img"></canvas>
+                            </div>
+                            <button class="btn-outline" style="margin-top: 1rem; width: 100%;" id="update-inventory-btn">
+                                <i class="fas fa-sync-alt" aria-hidden="true"></i>
+                                Uppfæra birgðir
+                            </button>
+                        </div>
+                    </article>
+                        
+                    <!-- Upcoming Shifts -->
+                    <article class="card">
+                        <header class="card-header">
+                            <h3><i class="fas fa-calendar-day" aria-hidden="true"></i> Komandi vaktir</h3>
+                            <div class="card-actions">
+                                <button class="card-action" data-tooltip="Sjá vaktaáætlun" aria-label="Sjá vaktaáætlun">
+                                    <i class="fas fa-external-link-alt" aria-hidden="true"></i>
+                                </button>
+                            </div>
+                        </header>
+                        <div class="card-body">
+                            <div class="shift-list">
+                                <div class="shift-item">
+                                    <div class="shift-time">
+                                        <span class="day">Í dag</span>
+                                        <span class="time">15:00 - 23:00</span>
+                                    </div>
+                                    <div class="shift-staff">
+                                        <span class="staff-count">5 starfsmenn</span>
+                                        <span class="wing">Deild B</span>
+                                    </div>
+                                </div>
+                                <div class="shift-item">
+                                    <div class="shift-time">
+                                        <span class="day">Á morgun</span>
+                                        <span class="time">07:00 - 15:00</span>
+                                    </div>
+                                    <div class="shift-staff">
+                                        <span class="staff-count">6 starfsmenn</span>
+                                        <span class="wing">Deild A</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div style="text-align: center; margin-top: 1rem;">
+                                <div id="countdown-timer" style="font-size: 1.5rem; font-weight: 600; margin-bottom: 0.5rem;">01:23:45</div>
+                                <div style="color: var(--gray-600); font-size: 0.875rem;">Næsta vakt byrjar eftir</div>
+                            </div>
+                            <button class="btn-primary" style="margin-top: 1rem; width: 100%;" id="create-handover-btn">
+                                <i class="fas fa-file-alt" aria-hidden="true"></i>
+                                Búa til skýrslu fyrir afhendingu
+                            </button>
+                        </div>
+                    </article>
+                
+                    <!-- AI Assistant Chat Preview -->
+                    <article class="card">
+                        <header class="card-header">
+                            <h3><i class="fas fa-robot" aria-hidden="true"></i> AI Aðstoðarmaður</h3>
+                            <div class="card-actions">
+                                <button class="card-action" data-tooltip="Uppfæra upplýsingar" aria-label="Uppfæra upplýsingar">
+                                    <i class="fas fa-sync-alt" aria-hidden="true"></i>
+                                </button>
+                            </div>
+                        </header>
+                        <div class="card-body">
+                            <div class="ai-summary" style="margin-top: 0; margin-bottom: 1rem;">
+                                "Góðan daginn, Anna. Mundu að skrá vaktarlok fyrir Deild 2 og að Jón Jónsson þarf að fá lyf kl. 14:00. Get ég aðstoðað þig með eitthvað fleira?"
+                                <div style="font-size: 0.75rem; text-align: right; margin-top: 0.5rem; opacity: 0.7;">
+                                    Fyrir 10 mínútum síðan
+                                </div>
+                            </div>
+                            <button class="btn-primary" style="margin-top: 1rem; width: 100%;" id="open-ai-chat-btn">
+                                <i class="fas fa-comments" aria-hidden="true"></i>
+                                Opna AI spjall
+                            </button>
+                        </div>
+                    </article>
+                </section>
+                            
+                <!-- Patient Health Trends -->
+                <section class="card" aria-labelledby="health-trends-title">
+                    <header class="card-header">
+                        <h3 id="health-trends-title"><i class="fas fa-heartbeat" aria-hidden="true"></i> Heilsufarsmælingar</h3>
+                        <div class="card-actions">
+                            <button class="card-action" id="refresh-health-chart-btn" aria-label="Uppfæra heilsufargögn" data-tooltip="Uppfæra gögn">
+                                <i class="fas fa-sync-alt" aria-hidden="true"></i>
+                            </button>
+                            <button class="card-action" id="health-options-btn" aria-label="Stillingar heilsufarsgagna" data-tooltip="Stillingar">
+                                <i class="fas fa-ellipsis-v" aria-hidden="true"></i>
+                            </button>
+                        </div>
+                    </header>
+                    <div class="card-body">
+                        <div class="chart-container" style="height: 300px;">
+                            <canvas id="patientHealthChart" aria-label="Heilsufarsgögn sjúklinga" role="img"></canvas>
+                        </div>
+                    </div>
+                </section>
+                            
+                <!-- Quick Actions -->
+                <section class="quick-actions" aria-labelledby="quick-actions-title">
+                    <h3 id="quick-actions-title">Flýtiaðgerðir</h3>
+                    <div class="action-buttons">
+                        <button class="action-btn" id="create-schedule-btn" aria-label="Búa til vaktaáætlun">
+                            <i class="fas fa-calendar-plus" aria-hidden="true"></i>
+                            <span>Búa til vaktaáætlun</span>
+                        </button>
+                        <button class="action-btn" id="add-staff-btn" aria-label="Bæta við starfsmanni">
+                            <i class="fas fa-user-plus" aria-hidden="true"></i>
+                            <span>Bæta við starfsmanni</span>
+                        </button>
+                        <button class="action-btn" id="update-all-inventory-btn" aria-label="Uppfæra birgðir">
+                            <i class="fas fa-box-open" aria-hidden="true"></i>
+                            <span>Uppfæra birgðir</span>
+                        </button>
+                        <button class="action-btn" id="ask-ai-btn" aria-label="Spyrja AI aðstoðarmann">
+                            <i class="fas fa-robot" aria-hidden="true"></i>
+                            <span>Spyrja AI aðstoðarmann</span>
+                        </button>
+                    </div>
+                </section>
+            </div>
         </main>
+        
+        <!-- AI Widget -->
+        <div class="ai-widget">
+            <div class="ai-widget-container" id="ai-widget-container">
+                <div class="ai-widget-header">
+                    <div class="ai-widget-title">
+                        <i class="fas fa-robot" aria-hidden="true"></i>
+                        <span>NurseCare AI Aðstoðarmaður</span>
+                    </div>
+                    <div class="ai-widget-actions">
+                        <button class="ai-widget-action" id="ai-minimize-btn" aria-label="Minimize">
+                            <i class="fas fa-minus" aria-hidden="true"></i>
+                        </button>
+                        <button class="ai-widget-action" id="ai-clear-btn" aria-label="Clear chat">
+                            <i class="fas fa-trash" aria-hidden="true"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="ai-widget-body" id="ai-widget-messages" aria-live="polite">
+                    <!-- Messages will be dynamically added here -->
+                </div>
+                <div class="ai-widget-footer">
+                    <textarea 
+                        class="ai-widget-input" 
+                        id="ai-widget-input" 
+                        placeholder="Skrifaðu skilaboð..." 
+                        rows="1"
+                        aria-label="Chat message"
+                    ></textarea>
+                    <button class="ai-widget-send" id="ai-widget-send" aria-label="Send message" disabled>
+                        <i class="fas fa-paper-plane" aria-hidden="true"></i>
+                    </button>
+                </div>
+            </div>
+            <button class="ai-widget-button" id="ai-widget-toggle" aria-label="Toggle AI assistant">
+                <i class="fas fa-robot" aria-hidden="true"></i>
+            </button>
+        </div>
+
+        <!-- Scroll to top button -->
+        <button class="scroll-top-btn" id="scroll-top-btn" aria-label="Scroll to top">
+            <i class="fas fa-arrow-up" aria-hidden="true"></i>
+        </button>
     </div>
+
+    <!-- Toast Container -->
+    <div id="toast-container" class="toast-container" aria-live="polite"></div>
 
     <script src="/scripts/roles.js" type="module"></script>
     <script src="/scripts/common.js" type="module"></script>

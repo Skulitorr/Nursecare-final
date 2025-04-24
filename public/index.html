@@ -32,10 +32,25 @@
 
     <script type="module" src="/scripts/roles.js"></script>
     <script type="module" src="/scripts/common.js"></script>
-    <script>
-        // Check if user is already logged in
-        if (localStorage.getItem('authToken')) {
-            window.location.href = '/dashboard.html';
+    <script type="module">
+        // Safely validate auth token and role before redirecting
+        const authToken = localStorage.getItem('authToken');
+        const userRole = localStorage.getItem('userRole');
+        
+        if (authToken && userRole) {
+            try {
+                // Validate token format and expiration
+                const tokenData = JSON.parse(atob(authToken));
+                if (tokenData.exp && tokenData.exp > Date.now() && tokenData.role === userRole) {
+                    window.location.href = '/dashboard.html';
+                } else {
+                    // Clear invalid auth data
+                    localStorage.clear();
+                }
+            } catch (e) {
+                // Clear corrupted auth data
+                localStorage.clear();
+            }
         }
     </script>
 </body>

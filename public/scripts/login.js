@@ -11,30 +11,76 @@ document.addEventListener('DOMContentLoaded', function() {
     const loginForm = document.getElementById('login-form');
     const usernameInput = document.getElementById('username');
     const passwordInput = document.getElementById('password');
-    const loginButton = document.querySelector('button[type="submit"]');
-    const errorMessage = document.getElementById('error-message');
-    const successMessage = document.getElementById('success-message');
+    const loginError = document.getElementById('login-error');
     const loginContainer = document.querySelector('.login-container');
 
-    // Handle form submission
-    loginForm.addEventListener('submit', handleLogin);
+    // Only redirect if we have both token and role
+    const authToken = localStorage.getItem('authToken');
+    const userRole = localStorage.getItem('userRole');
+    if (authToken && userRole) {
+        window.location.href = '/dashboard.html';
+        return;
+    }
 
-    // Function to show error with animation
-    function showError(message) {
-        const errorSpan = errorMessage.querySelector('span');
-        if (errorSpan) {
-            errorSpan.textContent = message;
+    // Clear any stale auth data
+    localStorage.clear();
+
+    // Focus on username input
+    usernameInput.focus();
+
+    // Handle form submission
+    loginForm.addEventListener('submit', function(event) {
+        event.preventDefault();
+        
+        const username = usernameInput.value.trim();
+        const password = passwordInput.value;
+        
+        // Validate inputs
+        if (!username || !password) {
+            showError('Please enter both username and password');
+            return;
         }
-        errorMessage.style.display = 'block';
-        successMessage.style.display = 'none';
         
-        // Add shake animation
-        loginContainer.classList.add('shake');
+        // Mock authentication - in real app this would be an API call
+        const mockUsers = {
+            'admin': { role: USER_ROLES.ADMIN, password: 'admin123' },
+            'nurse': { role: USER_ROLES.NURSE, password: 'nurse123' },
+            'staff': { role: USER_ROLES.STAFF, password: 'staff123' },
+            'inventory': { role: USER_ROLES.INVENTORY, password: 'inv123' }
+        };
         
-        // Remove animation class after it completes
-        setTimeout(() => {
-            loginContainer.classList.remove('shake');
-        }, 600);
+        const user = mockUsers[username];
+        if (user && user.password === password) {
+            // Set auth data
+            const token = btoa(JSON.stringify({
+                username,
+                role: user.role,
+                exp: Date.now() + (24 * 60 * 60 * 1000) // 24 hours
+            }));
+            
+            localStorage.setItem('authToken', token);
+            localStorage.setItem('userRole', user.role);
+            localStorage.setItem('username', username);
+            
+            // Redirect to dashboard
+            window.location.href = '/dashboard.html';
+        } else {
+            showError('Invalid username or password');
+            passwordInput.value = ''; // Clear password on error
+        }
+    });
+
+    function showError(message) {
+        if (loginError) {
+            loginError.textContent = message;
+            loginError.style.display = 'block';
+            
+            // Add shake animation
+            loginContainer.classList.add('shake');
+            setTimeout(() => {
+                loginContainer.classList.remove('shake');
+            }, 600);
+        }
     }
 
     // Add shake animation CSS
@@ -50,57 +96,4 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     `;
     document.head.appendChild(style);
-
-    // Focus on username input when page loads
-    usernameInput.focus();
-
-    // Check if user is already logged in
-    const authToken = localStorage.getItem('authToken');
-    if (authToken) {
-        try {
-            // Validate token
-            const tokenData = JSON.parse(atob(authToken));
-            if (tokenData.exp > Date.now()) {
-                window.location.href = '/index.html';
-            } else {
-                // Clear expired token
-                localStorage.clear();
-            }
-        } catch (e) {
-            // Clear invalid token
-            localStorage.clear();
-        }
-    }
-
-    // Clear any existing auth data
-    localStorage.removeItem('userRole');
-    localStorage.removeItem('username');
 });
-
-function handleLogin(event) {
-    event.preventDefault();
-    
-    const username = document.getElementById('username').value;
-    const password = document.getElementById('password').value;
-    
-    // Simulate authentication - in real app this would be an API call
-    const mockUsers = {
-        'admin': { role: USER_ROLES.ADMIN, password: 'admin123' },
-        'nurse': { role: USER_ROLES.NURSE, password: 'nurse123' },
-        'staff': { role: USER_ROLES.STAFF, password: 'staff123' },
-        'inventory': { role: USER_ROLES.INVENTORY, password: 'inv123' }
-    };
-    
-    const user = mockUsers[username];
-    if (user && user.password === password) {
-        localStorage.setItem('userRole', user.role);
-        localStorage.setItem('username', username);
-        window.location.href = '/dashboard.html';
-    } else {
-        const errorDiv = document.getElementById('login-error');
-        if (errorDiv) {
-            errorDiv.textContent = 'Invalid username or password';
-            errorDiv.style.display = 'block';
-        }
-    }
-}
