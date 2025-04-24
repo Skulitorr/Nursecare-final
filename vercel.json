@@ -1,6 +1,41 @@
 {
   "cleanUrls": true,
+  "trailingSlash": false,
   "rewrites": [
-    { "source": "/", "destination": "/index.html" }
+    { "source": "/", "destination": "/public/index.html" },
+    { "source": "/login", "destination": "/public/login.html" },
+    { "source": "/dashboard", "destination": "/public/dashboard.html" },
+    { "source": "/patients", "destination": "/public/patients.html" },
+    { "source": "/inventory", "destination": "/public/inventory.html" },
+    { "source": "/staff", "destination": "/public/staff.html" },
+    { "source": "/reports", "destination": "/public/reports.html" },
+    { "source": "/settings", "destination": "/public/settings.html" },
+    { "source": "/schedule", "destination": "/public/schedule.html" },
+    { "source": "/unauthorized", "destination": "/public/unauthorized.html" }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=0, must-revalidate"
+        }
+      ]
+    }
+  ],
+  "routes": [
+    {
+      "handle": "filesystem"
+    },
+    {
+      "src": "/public/(.*)",
+      "dest": "/public/$1"
+    },
+    {
+      "src": "/(.*)",
+      "status": 404,
+      "dest": "/public/404.html"
+    }
   ]
 }
