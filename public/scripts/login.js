@@ -38,8 +38,8 @@ document.addEventListener('DOMContentLoaded', () => {
             localStorage.setItem("authToken", btoa(JSON.stringify(userData)));
             localStorage.setItem("userRole", "admin");
             
-            // Redirect to dashboard with correct /public/ prefix
-            window.location.href = "/public/dashboard.html";
+            // Redirect to dashboard without /public/ prefix since Vercel handles this
+            window.location.href = "/dashboard";
         } else {
             showError("Invalid username or password");
             loginBtn.disabled = false;

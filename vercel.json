@@ -5,38 +5,15 @@
     { "source": "/", "destination": "/public/login.html" },
     { "source": "/login", "destination": "/public/login.html" },
     { "source": "/dashboard", "destination": "/public/dashboard.html" },
-    { "source": "/patients", "destination": "/public/patients.html" },
-    { "source": "/inventory", "destination": "/public/inventory.html" },
-    { "source": "/staff", "destination": "/public/staff.html" },
     { "source": "/reports", "destination": "/public/reports.html" },
+    { "source": "/inventory", "destination": "/public/inventory.html" },
+    { "source": "/patients", "destination": "/public/patients.html" },
+    { "source": "/staff", "destination": "/public/staff.html" },
     { "source": "/settings", "destination": "/public/settings.html" },
-    { "source": "/schedule", "destination": "/public/schedule.html" },
     { "source": "/unauthorized", "destination": "/public/unauthorized.html" },
-    { "source": "/404", "destination": "/public/404.html" }
-  ],
-  "headers": [
-    {
-      "source": "/(.*)",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=0, must-revalidate"
-        }
-      ]
-    }
-  ],
-  "routes": [
-    {
-      "handle": "filesystem"
-    },
-    {
-      "src": "/public/(.*)",
-      "dest": "/public/$1"
-    },
-    {
-      "src": "/(.*)",
-      "status": 404,
-      "dest": "/public/404.html"
-    }
+    { "source": "/404", "destination": "/public/404.html" },
+    { "source": "/scripts/:path*", "destination": "/public/scripts/:path*" },
+    { "source": "/styles/:path*", "destination": "/public/styles/:path*" },
+    { "source": "/assets/:path*", "destination": "/public/assets/:path*" }
   ]
 }
