@@ -1,24 +1,27 @@
-import { getCurrentPage, isAuthorized, hasPermission } from './roles.js';
-
+// Common functionality for all pages
 function checkAuthorization() {
-    const currentPage = getCurrentPage();
+    const currentPage = window.location.pathname.split('/').pop() || 'index.html';
     
     // Skip auth check for login and unauthorized pages
     if (['login.html', 'unauthorized.html'].includes(currentPage)) {
         return;
     }
     
-    if (!isAuthorized(currentPage)) {
-        window.location.href = '/unauthorized.html';
+    const userRole = localStorage.getItem('userRole');
+    if (!userRole) {
+        window.location.href = '/login.html';
         return;
     }
 }
 
 function handlePermissionBasedUI() {
+    const userRole = localStorage.getItem('userRole');
+    if (!userRole) return;
+
     // Handle elements that require specific permissions
     document.querySelectorAll('[data-requires-permission]').forEach(element => {
         const requiredPermission = element.getAttribute('data-requires-permission');
-        if (!hasPermission(requiredPermission)) {
+        if (!window.hasPermission(requiredPermission, userRole)) {
             element.remove();
         }
     });
@@ -26,7 +29,9 @@ function handlePermissionBasedUI() {
     // Handle elements that require any of the specified permissions
     document.querySelectorAll('[data-requires-any-permission]').forEach(element => {
         const permissions = element.getAttribute('data-requires-any-permission').split(',');
-        const hasAnyPermission = permissions.some(permission => hasPermission(permission.trim()));
+        const hasAnyPermission = permissions.some(permission => 
+            window.hasPermission(permission.trim(), userRole)
+        );
         if (!hasAnyPermission) {
             element.remove();
         }
@@ -35,7 +40,7 @@ function handlePermissionBasedUI() {
     // Handle elements that should be disabled based on permissions
     document.querySelectorAll('[data-permission-disabled]').forEach(element => {
         const requiredPermission = element.getAttribute('data-permission-disabled');
-        if (!hasPermission(requiredPermission)) {
+        if (!window.hasPermission(requiredPermission, userRole)) {
             element.disabled = true;
         }
     });

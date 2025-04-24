@@ -286,6 +286,23 @@ export function getRoleManagementConfig() {
     };
 }
 
+// Make functions globally available
+window.hasPermission = hasPermission;
+window.getRolePermissions = getRolePermissions;
+window.hasRole = hasRole;
+window.formatRoleName = formatRoleName;
+window.getRoleDescription = getRoleDescription;
+window.getPermissionDescription = getPermissionDescription;
+window.getRequiredRole = getRequiredRole;
+window.canRenderComponent = canRenderComponent;
+window.guardRoute = guardRoute;
+window.getRoleManagementConfig = getRoleManagementConfig;
+
+// Make constants globally available
+window.ROLE_LEVELS = ROLE_LEVELS;
+window.ROLES = ROLES;
+window.PERMISSIONS = PERMISSIONS;
+
 // Example usage:
 /*
 const currentUser = {
