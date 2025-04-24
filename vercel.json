@@ -2,18 +2,15 @@
   "cleanUrls": true,
   "trailingSlash": false,
   "rewrites": [
-    { "source": "/", "destination": "/public/login.html" },
-    { "source": "/login", "destination": "/public/login.html" },
-    { "source": "/dashboard", "destination": "/public/dashboard.html" },
-    { "source": "/reports", "destination": "/public/reports.html" },
-    { "source": "/inventory", "destination": "/public/inventory.html" },
-    { "source": "/patients", "destination": "/public/patients.html" },
-    { "source": "/staff", "destination": "/public/staff.html" },
-    { "source": "/settings", "destination": "/public/settings.html" },
-    { "source": "/unauthorized", "destination": "/public/unauthorized.html" },
-    { "source": "/404", "destination": "/public/404.html" },
-    { "source": "/scripts/:path*", "destination": "/public/scripts/:path*" },
-    { "source": "/styles/:path*", "destination": "/public/styles/:path*" },
-    { "source": "/assets/:path*", "destination": "/public/assets/:path*" }
+    { "source": "/", "destination": "/login.html" },
+    { "source": "/dashboard", "destination": "/dashboard.html" },
+    { "source": "/login", "destination": "/login.html" },
+    { "source": "/inventory", "destination": "/inventory.html" },
+    { "source": "/reports", "destination": "/reports.html" },
+    { "source": "/settings", "destination": "/settings.html" },
+    { "source": "/staff", "destination": "/staff.html" },
+    { "source": "/patients", "destination": "/patients.html" },
+    { "source": "/unauthorized", "destination": "/unauthorized.html" },
+    { "source": "/404", "destination": "/404.html" }
   ]
 }
