@@ -38,20 +38,21 @@ export function initAuth() {
 /**
  * Clear all session data
  */
-function clearSession() {
+export function clearSession() {
     localStorage.clear();
+    currentUser = null;
 }
 
 /**
  * Validate token and role
  */
-function validateSession() {
+export function validateSession() {
     const authToken = localStorage.getItem(SESSION_KEYS.TOKEN);
     const userRole = localStorage.getItem(SESSION_KEYS.ROLE);
     const currentPath = window.location.pathname;
 
     if (!authToken || !userRole) {
-        if (!currentPath.includes('login')) {
+        if (!currentPath.includes('/public/login.html')) {
             redirectToLogin();
         }
         return false;
@@ -63,7 +64,7 @@ function validateSession() {
             tokenData.exp <= Date.now() || 
             tokenData.role !== userRole) {
             clearSession();
-            if (!currentPath.includes('login')) {
+            if (!currentPath.includes('/public/login.html')) {
                 redirectToLogin();
             }
             return false;
@@ -71,7 +72,7 @@ function validateSession() {
         return true;
     } catch (e) {
         clearSession();
-        if (!currentPath.includes('login')) {
+        if (!currentPath.includes('/public/login.html')) {
             redirectToLogin();
         }
         return false;
@@ -111,6 +112,7 @@ export async function login(username, password) {
         // Store session data
         localStorage.setItem(SESSION_KEYS.TOKEN, token);
         localStorage.setItem(SESSION_KEYS.ROLE, user.role);
+        localStorage.setItem(SESSION_KEYS.USERNAME, username);
         currentUser = tokenData;
         
         return { success: true };
@@ -123,7 +125,7 @@ export async function login(username, password) {
 /**
  * Handle user logout
  */
-function logout() {
+export function logout() {
     clearSession();
     redirectToLogin();
 }
@@ -138,16 +140,10 @@ function redirectToLogin() {
 /**
  * Check if user has required role
  */
-function hasRole(requiredRole) {
+export function hasRole(requiredRole) {
     const userRole = localStorage.getItem(SESSION_KEYS.ROLE);
     return userRole === requiredRole;
 }
 
-// Export functions
-export {
-    validateSession,
-    clearSession,
-    logout,
-    hasRole,
-    SESSION_KEYS
-};
+// Export constants
+export { SESSION_KEYS };

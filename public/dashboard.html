@@ -23,7 +23,7 @@
             const currentPath = window.location.pathname;
             
             if (!authToken || !userRole) {
-                if (!currentPath.includes("login")) {
+                if (!currentPath.includes("/public/login.html")) {
                     window.location.href = "/public/login.html";
                 }
                 return false;
@@ -35,7 +35,7 @@
                     tokenData.exp <= Date.now() || 
                     tokenData.role !== userRole) {
                     localStorage.clear();
-                    if (!currentPath.includes("login")) {
+                    if (!currentPath.includes("/public/login.html")) {
                         window.location.href = "/public/login.html";
                     }
                     return false;
@@ -43,7 +43,7 @@
                 return true;
             } catch (e) {
                 localStorage.clear();
-                if (!currentPath.includes("login")) {
+                if (!currentPath.includes("/public/login.html")) {
                     window.location.href = "/public/login.html";
                 }
                 return false;
@@ -2076,43 +2076,43 @@
             <nav class="sidebar-nav" aria-label="Main navigation">
                 <ul>
                     <li class="nav-item active">
-                        <a href="index.html" aria-current="page">
+                        <a href="/public/dashboard.html" aria-current="page">
                             <i class="fas fa-tachometer-alt"></i>
                             <span>Mælaborð</span>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a href="schedule.html">
+                        <a href="/public/schedule.html">
                             <i class="fas fa-calendar-alt"></i>
                             <span>Vaktaplan</span>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a href="staff.html">
+                        <a href="/public/staff.html">
                             <i class="fas fa-user-nurse"></i>
                             <span>Starfsfólk</span>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a href="patients.html">
+                        <a href="/public/patients.html">
                             <i class="fas fa-user-injured"></i>
                             <span>Sjúklingar</span>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a href="inventory.html">
+                        <a href="/public/inventory.html">
                             <i class="fas fa-box"></i>
                             <span>Birgðir</span>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a href="medications.html">
+                        <a href="/public/medications.html">
                             <i class="fas fa-pills"></i>
                             <span>Lyf</span>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a href="chatbot.html">
+                        <a href="/public/chatbot.html">
                             <i class="fas fa-comments"></i>
                             <span>Spjallforrit</span>
                         </a>
@@ -2214,6 +2214,7 @@
                         </div>
                     </article>
                             
+
                     <!-- Staff on Duty -->
                     <article class="card">
                         <header class="card-header">
@@ -2274,6 +2275,7 @@
                         </div>
                     </article>
                             
+
                     <!-- AI Warnings Panel -->
                     <article class="card">
                         <header class="card-header">
@@ -2396,12 +2398,13 @@
                     </article>
                 </section>
                             
+
                 <!-- Patient Health Trends -->
                 <section class="card" aria-labelledby="health-trends-title">
                     <header class="card-header">
                         <h3 id="health-trends-title"><i class="fas fa-heartbeat" aria-hidden="true"></i> Heilsufarsmælingar</h3>
                         <div class="card-actions">
-                            <button class="card-action" id="refresh-health-chart-btn" aria-label="Uppfæra heilsufargögn" data-tooltip="Uppfæra gögn">
+                            <button class="card-action" id="refresh-health-chart-btn" aria-label="Uppfæra heilsufargö                        <button class="card-action" id="refresh-health-chart-btn" aria-label="Uppfæra heilsufargögn" data-tooltip="Uppfæra gögn">
                                 <i class="fas fa-sync-alt" aria-hidden="true"></i>
                             </button>
                             <button class="card-action" id="health-options-btn" aria-label="Stillingar heilsufarsgagna" data-tooltip="Stillingar">
@@ -2416,6 +2419,7 @@
                     </div>
                 </section>
                             
+
                 <!-- Quick Actions -->
                 <section class="quick-actions" aria-labelledby="quick-actions-title">
                     <h3 id="quick-actions-title">Flýtiaðgerðir</h3>
@@ -2481,8 +2485,8 @@
     <!-- Toast Container -->
     <div id="toast-container" class="toast-container" aria-live="polite"></div>
 
-    <script src="scripts/roles.js" type="module"></script>
-    <script src="scripts/common.js" type="module"></script>
-    <script src="scripts/dashboard.js" type="module"></script>
+    <script src="/public/scripts/roles.js" type="module"></script>
+    <script src="/public/scripts/common.js" type="module"></script>
+    <script src="/public/scripts/dashboard.js" type="module"></script>
 </body>
 </html>

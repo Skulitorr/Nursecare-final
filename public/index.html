@@ -1,51 +1,39 @@
 <!DOCTYPE html>
-<html lang="is">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NurseCare - Healthcare Management System</title>
     <link rel="stylesheet" href="/styles/styles.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
-    <div class="landing-container">
-        <header class="landing-header">
-            <nav class="landing-nav">
-                <div class="logo">
-                    <img src="/assets/icons/logo.svg" alt="NurseCare Logo">
-                    <span>NurseCare</span>
-                </div>
-                <div class="nav-links">
-                    <a href="/login" class="login-link">Log In</a>
-                </div>
-            </nav>
-        </header>
-
-        <main class="landing-content">
+    <div class="app-container">
+        <main>
             <section class="hero">
-                <h1>Welcome to NurseCare</h1>
-                <p>A comprehensive healthcare management system for modern medical facilities</p>
-                <div class="cta-buttons">
-                    <a href="/login" class="btn-primary">Get Started</a>
-                    <a href="#features" class="btn-outline">Learn More</a>
+                <div class="hero-content">
+                    <h1>NurseCare</h1>
+                    <p>Smart healthcare management system for nursing facilities</p>
+                    <div class="cta-buttons">
+                        <a href="/public/login.html" class="btn-primary">Get Started</a>
+                        <a href="#features" class="btn-outline">Learn More</a>
+                    </div>
                 </div>
             </section>
         </main>
     </div>
 
     <script>
-        // Only redirect if user has valid role and token
+        // Check auth state and redirect if already logged in
         const authToken = localStorage.getItem('authToken');
         const userRole = localStorage.getItem('userRole');
         
         if (authToken && userRole) {
             try {
-                // Validate token format and expiration
                 const tokenData = JSON.parse(atob(authToken));
                 if (tokenData.exp && tokenData.role && 
                     tokenData.exp > Date.now() && 
                     tokenData.role === userRole) {
-                    window.location.href = '/dashboard';
+                    window.location.href = '/public/dashboard.html';
                 }
             } catch (e) {
                 // Invalid token format, clear storage

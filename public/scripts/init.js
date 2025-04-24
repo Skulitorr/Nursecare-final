@@ -1,70 +1,37 @@
 // Core initialization module
-import { roles, isAuthorized } from './roles.js';
+import { getRoleDisplayName } from './roles.js';
+import { SESSION_KEYS } from './auth.js';
 
 /**
  * Core UI initialization
  */
-export function initializeUI() {
+export async function initializeUI() {
     initializeTheme();
-    initializeSidebar();
     initializeDropdowns();
-    initializeNotifications();
     initializeDateTime();
+    await setupUserProfile();
+    return true;
 }
 
 /**
  * Initialize theme functionality
  */
 function initializeTheme() {
+    const savedTheme = localStorage.getItem('theme');
     const themeToggle = document.getElementById('theme-toggle');
-    const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)');
-    const currentTheme = localStorage.getItem('theme');
     
-    // Apply saved theme or system preference
-    if (currentTheme === 'dark' || (!currentTheme && prefersDarkScheme.matches)) {
+    // Apply saved theme
+    if (savedTheme === 'dark') {
         document.body.classList.add('dark-mode');
         updateThemeIcon(true);
     }
-    
-    // Theme toggle handler
+
+    // Setup theme toggle
     if (themeToggle) {
         themeToggle.addEventListener('click', () => {
             const isDarkMode = document.body.classList.toggle('dark-mode');
             localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
             updateThemeIcon(isDarkMode);
-            
-            // Update charts if they exist
-            if (typeof updateChartsForTheme === 'function') {
-                updateChartsForTheme(isDarkMode);
-            }
-        });
-    }
-}
-
-/**
- * Initialize sidebar functionality
- */
-function initializeSidebar() {
-    const toggleBtn = document.getElementById('toggle-sidebar');
-    const sidebar = document.querySelector('.sidebar');
-    
-    // Apply saved state
-    if (localStorage.getItem('sidebarCollapsed') === 'true') {
-        sidebar?.classList.add('collapsed');
-    }
-    
-    if (toggleBtn && sidebar) {
-        toggleBtn.addEventListener('click', () => {
-            sidebar.classList.toggle('collapsed');
-            localStorage.setItem('sidebarCollapsed', sidebar.classList.contains('collapsed'));
-            
-            // Update icon
-            const icon = toggleBtn.querySelector('i');
-            if (icon) {
-                icon.className = sidebar.classList.contains('collapsed') 
-                    ? 'fas fa-chevron-right' 
-                    : 'fas fa-bars';
-            }
         });
     }
 }
@@ -73,46 +40,59 @@ function initializeSidebar() {
  * Initialize dropdown menus
  */
 function initializeDropdowns() {
+    setupNotificationsDropdown();
+    setupProfileDropdown();
+}
+
+/**
+ * Setup notifications dropdown
+ */
+function setupNotificationsDropdown() {
     const notificationsBtn = document.getElementById('notifications-btn');
     const notificationsMenu = document.getElementById('notifications-menu');
-    const profileBtn = document.getElementById('profile-btn');
-    const profileMenu = document.getElementById('profile-menu');
     
-    // Setup notifications dropdown
     if (notificationsBtn && notificationsMenu) {
         notificationsBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             notificationsMenu.classList.toggle('show');
-            profileMenu?.classList.remove('show');
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!notificationsMenu.contains(e.target)) {
+                notificationsMenu.classList.remove('show');
+            }
         });
     }
+}
+
+/**
+ * Setup profile dropdown
+ */
+function setupProfileDropdown() {
+    const profileBtn = document.getElementById('profile-btn');
+    const profileMenu = document.getElementById('profile-menu');
     
-    // Setup profile dropdown
     if (profileBtn && profileMenu) {
         profileBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             profileMenu.classList.toggle('show');
-            notificationsMenu?.classList.remove('show');
         });
-    }
-    
-    // Close dropdowns when clicking outside
-    document.addEventListener('click', () => {
-        notificationsMenu?.classList.remove('show');
-        profileMenu?.classList.remove('show');
-    });
-}
 
-/**
- * Initialize notifications
- */
-function initializeNotifications() {
-    // Setup notification badge
-    const badge = document.querySelector('#notifications-btn .badge');
-    if (badge) {
-        const count = localStorage.getItem('notificationCount') || '0';
-        badge.textContent = count;
-        badge.style.display = count === '0' ? 'none' : 'flex';
+        document.addEventListener('click', (e) => {
+            if (!profileMenu.contains(e.target)) {
+                profileMenu.classList.remove('show');
+            }
+        });
+
+        // Setup logout handler
+        const logoutBtn = document.getElementById('logoutBtn');
+        if (logoutBtn) {
+            logoutBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                localStorage.clear();
+                window.location.href = '/public/login.html';
+            });
+        }
     }
 }
 
@@ -132,11 +112,31 @@ function initializeDateTime() {
                 hour: '2-digit',
                 minute: '2-digit'
             };
-            dateElement.textContent = now.toLocaleDateString('is-IS', options);
+            dateElement.textContent = now.toLocaleDateString('en-US', options);
         };
         
         updateDateTime();
-        setInterval(updateDateTime, 60000);
+        setInterval(updateDateTime, 60000); // Update every minute
+    }
+}
+
+/**
+ * Setup user profile information
+ */
+async function setupUserProfile() {
+    const username = localStorage.getItem(SESSION_KEYS.USERNAME);
+    const userRole = localStorage.getItem(SESSION_KEYS.ROLE);
+    
+    // Update profile elements if they exist
+    const userNameElement = document.querySelector('.user-name');
+    const userRoleElement = document.querySelector('.user-role');
+    
+    if (userNameElement && username) {
+        userNameElement.textContent = username;
+    }
+    
+    if (userRoleElement && userRole) {
+        userRoleElement.textContent = getRoleDisplayName(userRole);
     }
 }
 
@@ -145,15 +145,14 @@ function initializeDateTime() {
  */
 function updateThemeIcon(isDarkMode) {
     const themeIcon = document.querySelector('#theme-toggle i');
-    const themeText = document.querySelector('#theme-toggle span');
-    
     if (themeIcon) {
-        if (isDarkMode) {
-            themeIcon.classList.replace('fa-moon', 'fa-sun');
-            if (themeText) themeText.textContent = 'Light Mode';
-        } else {
-            themeIcon.classList.replace('fa-sun', 'fa-moon');
-            if (themeText) themeText.textContent = 'Dark Mode';
-        }
+        themeIcon.className = isDarkMode ? 'fas fa-sun' : 'fas fa-moon';
     }
+}
+
+/**
+ * Get current theme
+ */
+export function getCurrentTheme() {
+    return document.body.classList.contains('dark-mode') ? 'dark' : 'light';
 }

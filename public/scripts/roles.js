@@ -1,33 +1,47 @@
-/**
- * Role definitions and their allowed pages/features
- */
+// Role definitions and permissions
 export const roles = {
-    admin: {
-        pages: ['index', 'dashboard', 'schedule', 'staff', 'patients', 'inventory', 'medications', 'chatbot', 'reports', 'settings'],
-        permissions: ['create_user', 'edit_user', 'delete_user', 'manage_roles', 'manage_settings', 'view_all_reports'],
-        displayName: 'Kerfisstjóri'
+    ADMIN: {
+        displayName: 'Administrator',
+        pages: ['dashboard', 'patients', 'staff', 'inventory', 'reports', 'settings', 'schedule'],
+        permissions: ['manage_users', 'manage_roles', 'manage_settings', 'view_all', 'edit_all']
     },
-    nurse: {
-        pages: ['index', 'dashboard', 'schedule', 'patients', 'inventory', 'medications', 'chatbot'],
-        permissions: ['manage_patients', 'manage_medications', 'view_reports'],
-        displayName: 'Hjúkrunarfræðingur'
+    NURSE: {
+        displayName: 'Nurse',
+        pages: ['dashboard', 'patients', 'reports', 'schedule'],
+        permissions: ['manage_patients', 'view_reports', 'view_schedule']
     },
-    staff: {
-        pages: ['index', 'dashboard', 'schedule', 'patients', 'chatbot'],
-        permissions: ['view_patients', 'view_schedule'],
-        displayName: 'Starfsmaður'
+    STAFF: {
+        displayName: 'Staff',
+        pages: ['dashboard', 'patients', 'schedule'],
+        permissions: ['view_patients', 'view_schedule']
     },
-    inventory: {
-        pages: ['index', 'dashboard', 'inventory', 'medications', 'chatbot'],
-        permissions: ['manage_inventory', 'manage_medications', 'view_reports'],
-        displayName: 'Birgðastjóri'
+    INVENTORY: {
+        displayName: 'Inventory Manager',
+        pages: ['dashboard', 'inventory', 'reports'],
+        permissions: ['manage_inventory', 'view_reports']
     }
 };
 
 /**
- * Check if user has access to specified page
+ * Get current page name from URL
  */
-export function isAuthorized(page, role = localStorage.getItem('userRole')) {
+export function getCurrentPage() {
+    const path = window.location.pathname;
+    return path.split('/').pop()?.replace('.html', '') || 'index';
+}
+
+/**
+ * Get user's current role
+ */
+export function getUserRole() {
+    return localStorage.getItem('userRole')?.toUpperCase();
+}
+
+/**
+ * Check if page is allowed for role
+ */
+export function isAuthorized(page) {
+    const role = getUserRole();
     if (!role) return false;
     const allowedPages = roles[role]?.pages || [];
     const cleanPage = page.replace('.html', '');
@@ -37,7 +51,8 @@ export function isAuthorized(page, role = localStorage.getItem('userRole')) {
 /**
  * Check if user has specific permission
  */
-export function hasPermission(permission, role = localStorage.getItem('userRole')) {
+export function hasPermission(permission) {
+    const role = getUserRole();
     if (!role) return false;
     const permissions = roles[role]?.permissions || [];
     return permissions.includes(permission);
@@ -63,32 +78,3 @@ export function getRolePermissions(role) {
 export function getRolePages(role) {
     return roles[role]?.pages || [];
 }
-
-export function getCurrentPage() {
-    const path = window.location.pathname;
-    const pageName = path.split('/').pop() || 'index.html';
-    return pageName;
-}
-
-export function getUserRole() {
-    return localStorage.getItem('userRole');
-}
-
-export function isPageAllowedForRole(page, role) {
-    if (!role) return false;
-    const allowedPages = roles[role]?.pages || [];
-    const cleanPage = page.replace('.html', '');
-    return allowedPages.includes(cleanPage);
-}
-
-export default {
-    roles,
-    isAuthorized,
-    hasPermission,
-    getRoleDisplayName,
-    getRolePermissions,
-    getRolePages,
-    getCurrentPage,
-    getUserRole,
-    isPageAllowedForRole
-};

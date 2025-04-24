@@ -16,12 +16,36 @@ document.addEventListener('DOMContentLoaded', () => {
         const username = usernameInput?.value;
         const password = passwordInput?.value;
 
+        if (!username || !password) {
+            showError("Please enter both username and password");
+            return;
+        }
+
+        // Disable button while processing
+        loginBtn.disabled = true;
+        loginBtn.textContent = 'Logging in...';
+
+        // Mock authentication
         if (username === "admin" && password === "admin123") {
+            // Create auth token with expiration
+            const userData = {
+                username: "admin",
+                role: "admin",
+                exp: Date.now() + (8 * 60 * 60 * 1000) // 8 hour expiration
+            };
+            
+            // Store auth data
+            localStorage.setItem("authToken", btoa(JSON.stringify(userData)));
             localStorage.setItem("userRole", "admin");
-            window.location.href = "/dashboard.html";
+            
+            // Redirect to dashboard with correct /public/ prefix
+            window.location.href = "/public/dashboard.html";
         } else {
-            showError("Invalid credentials");
+            showError("Invalid username or password");
+            loginBtn.disabled = false;
+            loginBtn.textContent = 'Login';
             passwordInput.value = ''; // Clear password on error
+            passwordInput.focus();
         }
     });
 
@@ -36,7 +60,7 @@ document.addEventListener('DOMContentLoaded', () => {
             errorMessage.textContent = message;
             errorMessage.style.display = 'block';
             
-            // Add shake animation
+            // Add shake animation to form
             loginForm.classList.add('shake');
             setTimeout(() => loginForm.classList.remove('shake'), 600);
         }

@@ -3,12 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Unauthorized Access - NurseCare</title>
+    <title>Page Not Found - NurseCare</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
             --primary: #3a86ff;
-            --danger: #e71d36;
             --gray-800: #343a40;
             --gray-600: #6c757d;
         }
@@ -24,7 +23,7 @@
             background-color: #f8f9fa;
         }
 
-        .unauthorized-container {
+        .error-container {
             text-align: center;
             padding: 2rem;
             max-width: 500px;
@@ -35,7 +34,7 @@
 
         .error-icon {
             font-size: 4rem;
-            color: var(--danger);
+            color: var(--primary);
             margin-bottom: 1rem;
         }
 
@@ -51,7 +50,7 @@
             line-height: 1.5;
         }
 
-        .back-button {
+        .home-button {
             padding: 0.75rem 1.5rem;
             background-color: var(--primary);
             color: white;
@@ -62,62 +61,37 @@
             display: inline-flex;
             align-items: center;
             gap: 0.5rem;
-            margin-bottom: 1rem;
             text-decoration: none;
             transition: background-color 0.2s;
         }
 
-        .back-button:hover {
+        .home-button:hover {
             background-color: #2563eb;
-        }
-
-        .logout-link {
-            color: var(--primary);
-            text-decoration: none;
-            font-size: 0.9375rem;
-            display: inline-block;
-        }
-
-        .logout-link:hover {
-            text-decoration: underline;
         }
     </style>
 </head>
 <body>
-    <div class="unauthorized-container">
-        <i class="fas fa-exclamation-circle error-icon"></i>
-        <h1 class="error-title">Unauthorized Access</h1>
-        <p class="error-message">You don't have permission to access this page. Please contact your administrator if you believe this is an error.</p>
-        <button class="back-button" onclick="goBack()">
-            <i class="fas fa-arrow-left"></i>
-            Go Back
-        </button>
-        <br>
-        <a href="/public/login.html" class="logout-link" id="logoutBtn">Log Out</a>
+    <div class="error-container">
+        <i class="fas fa-compass error-icon"></i>
+        <h1 class="error-title">Page Not Found</h1>
+        <p class="error-message">The page you're looking for doesn't exist or has been moved.</p>
+        <a href="/public/dashboard.html" class="home-button" id="homeBtn">
+            <i class="fas fa-home"></i>
+            Return Home
+        </a>
     </div>
 
     <script>
-        // Handle going back
-        function goBack() {
-            window.history.back();
-        }
-
-        // Handle logout
-        document.getElementById('logoutBtn')?.addEventListener('click', (e) => {
-            e.preventDefault();
-            localStorage.clear();
-            window.location.href = '/public/login.html';
-        });
-
-        // Validate current session
         document.addEventListener('DOMContentLoaded', () => {
+            const homeBtn = document.getElementById('homeBtn');
+            
+            // Check auth status
             const authToken = localStorage.getItem('authToken');
             const userRole = localStorage.getItem('userRole');
             
-            // If no auth data exists, redirect to login
+            // If no auth, redirect to login instead of dashboard
             if (!authToken || !userRole) {
-                localStorage.clear();
-                window.location.href = '/public/login.html';
+                homeBtn.href = '/public/login.html';
             }
         });
     </script>

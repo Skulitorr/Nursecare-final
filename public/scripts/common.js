@@ -52,7 +52,7 @@ function hasPagePermission(pageName, userRole) {
     };
 
     const allowedRoles = pagePermissions[pageName] || ['ADMIN'];
-    return allowedRoles.includes(userRole.toUpperCase());
+    return allowedRoles.includes(userRole?.toUpperCase());
 }
 
 /**
@@ -104,17 +104,9 @@ function setupHeader() {
 function setupThemeToggle() {
     const themeToggle = document.getElementById('theme-toggle');
     if (themeToggle) {
-        const savedTheme = localStorage.getItem('theme');
-        if (savedTheme === 'dark') {
-            document.body.classList.add('dark-mode');
-            updateThemeIcon(themeToggle, true);
-        }
-
         themeToggle.addEventListener('click', () => {
             document.body.classList.toggle('dark-mode');
-            const isDark = document.body.classList.contains('dark-mode');
-            localStorage.setItem('theme', isDark ? 'dark' : 'light');
-            updateThemeIcon(themeToggle, isDark);
+            updateThemeIcon(themeToggle, document.body.classList.contains('dark-mode'));
         });
     }
 }
