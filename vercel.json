@@ -15,8 +15,8 @@
   ],
   "routes": [
     {
-      "source": "/api/:path*",
-      "destination": "/server/openai-proxy.js"
+      "src": "/api/(.*)",
+      "dest": "/server/openai-proxy.js"
     }
   ],
   "builds": [

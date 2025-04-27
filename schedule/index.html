@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="is">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="NurseCare AI Dashboard - Schedule Management">
+    <title>Schedule | NurseCare AI</title>
+    
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Google Fonts - Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Chart.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    
+    <!-- Application styles -->
+    <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h1>NurseCare AI</h1>
+                <button class="toggle-btn" id="toggle-sidebar">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+            
+            <ul class="sidebar-menu">
+                <li><span class="menu-section">Main</span></li>
+                <li>
+                    <a href="../index.html">
+                        <i class="fas fa-tachometer-alt"></i>
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="../schedule/index.html" class="active">
+                        <i class="fas fa-calendar-alt"></i>
+                        <span>Schedule</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="../patients/index.html">
+                        <i class="fas fa-user-injured"></i>
+                        <span>Patients</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="../staff/index.html">
+                        <i class="fas fa-user-nurse"></i>
+                        <span>Staff</span>
+                    </a>
+                </li>
+                
+                <li><span class="menu-section">Management</span></li>
+                <li>
+                    <a href="../inventory/index.html">
+                        <i class="fas fa-box"></i>
+                        <span>Inventory</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="../dashboard/index.html">
+                        <i class="fas fa-chart-bar"></i>
+                        <span>Reports</span>
+                    </a>
+                </li>
+                
+                <li><span class="menu-section">Tools</span></li>
+                <li>
+                    <a href="../chatbot/index.html">
+                        <i class="fas fa-comment-dots"></i>
+                        <span>AI Assistant</span>
+                    </a>
+                </li>
+            </ul>
+            
+            <div class="sidebar-footer">
+                <button class="theme-toggle" id="theme-toggle">
+                    <i class="fas fa-moon"></i>
+                </button>
+                <span>v1.2.0</span>
+            </div>
+        </aside>
+        
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Top Navigation -->
+            <div class="top-nav">
+                <div class="welcome-message">
+                    <h2>Schedule Management</h2>
+                    <div class="date-shift">
+                        <span id="current-date">Wednesday, April 16, 2025</span> | 
+                        <span id="current-shift">Morning Shift</span>
+                    </div>
+                </div>
+                
+                <div class="top-actions">
+                    <div class="language-toggle">
+                        <button class="language-btn active" data-lang="is">IS</button>
+                        <button class="language-btn" data-lang="en">EN</button>
+                    </div>
+                    
+                    <button class="notification-btn">
+                        <i class="fas fa-bell"></i>
+                        <span class="notification-count">3</span>
+                    </button>
+                    
+                    <button class="chat-toggle-btn">
+                        <i class="fas fa-comment-dots"></i>
+                    </button>
+                    
+                    <div class="user-info">
+                        <div class="user-avatar">
+                            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=anna" alt="User Avatar">
+                        </div>
+                        <div class="user-details">
+                            <h4>Anna S.</h4>
+                            <span>Shift Manager</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Dashboard Grid -->
+            <div class="dashboard-grid">
+                <!-- Schedule Controls Card -->
+                <div class="dashboard-card">
+                    <div class="card-header">
+                        <h3>Schedule Controls</h3>
+                    </div>
+                    <div class="card-content">
+                        <div class="schedule-actions">
+                            <div class="date-navigation">
+                                <button class="btn btn-outline" id="prev-month">
+                                    <i class="fas fa-chevron-left"></i> Previous
+                                </button>
+                                <h4 id="current-month">April 2025</h4>
+                                <button class="btn btn-outline" id="next-month">
+                                    Next <i class="fas fa-chevron-right"></i>
+                                </button>
+                            </div>
+                            <div class="schedule-controls">
+                                <button class="btn btn-primary" id="add-shift">
+                                    <i class="fas fa-plus"></i> Add Shift
+                                </button>
+                                <button class="btn btn-outline" id="print-schedule">
+                                    <i class="fas fa-print"></i> Print
+                                </button>
+                                <button class="btn btn-outline" id="export-schedule">
+                                    <i class="fas fa-file-export"></i> Export
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Calendar Card -->
+                <div class="dashboard-card full-width">
+                    <div class="card-header">
+                        <h3>Monthly Schedule</h3>
+                    </div>
+                    <div class="card-content">
+                        <div class="schedule-calendar">
+                            <div class="calendar-header">
+                                <div class="calendar-day">Monday</div>
+                                <div class="calendar-day">Tuesday</div>
+                                <div class="calendar-day">Wednesday</div>
+                                <div class="calendar-day">Thursday</div>
+                                <div class="calendar-day">Friday</div>
+                                <div class="calendar-day">Saturday</div>
+                                <div class="calendar-day">Sunday</div>
+                            </div>
+                            <div class="calendar-body">
+                                <!-- Calendar content will be generated by JavaScript -->
+                                <div class="calendar-message">
+                                    <i class="fas fa-cog fa-spin"></i>
+                                    <p>Loading schedule...</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Main JavaScript -->
+    <script src="../script.js"></script>
+    
+    <!-- Schedule Specific JavaScript -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize schedule page specific elements
+            initializeCalendar();
+            
+            // Set up button handlers
+            document.getElementById('prev-month').addEventListener('click', function() {
+                // In a real app, this would navigate to the previous month
+                showToast('Information', 'Navigating to previous month', 'info');
+            });
+            
+            document.getElementById('next-month').addEventListener('click', function() {
+                // In a real app, this would navigate to the next month
+                showToast('Information', 'Navigating to next month', 'info');
+            });
+            
+            document.getElementById('add-shift').addEventListener('click', function() {
+                // In a real app, this would open a modal to add a shift
+                showToast('Information', 'Add shift functionality will be implemented soon', 'info');
+            });
+            
+            document.getElementById('print-schedule').addEventListener('click', function() {
+                // In a real app, this would print the schedule
+                showToast('Information', 'Print functionality will be implemented soon', 'info');
+            });
+            
+            document.getElementById('export-schedule').addEventListener('click', function() {
+                // In a real app, this would export the schedule
+                showToast('Information', 'Export functionality will be implemented soon', 'info');
+            });
+        });
+        
+        function initializeCalendar() {
+            const calendarBody = document.querySelector('.calendar-body');
+            if (!calendarBody) return;
+            
+            // Remove loading message
+            calendarBody.innerHTML = '';
+            
+            // In a real app, this would be dynamically generated based on the current month
+            // For now, we'll just create a static calendar for April 2025
+            
+            // Create empty cells for days before the first of the month
+            for (let i = 0; i < 1; i++) {
+                const emptyCell = document.createElement('div');
+                emptyCell.className = 'calendar-cell empty';
+                calendarBody.appendChild(emptyCell);
+            }
+            
+            // Create cells for each day of the month
+            for (let day = 1; day <= 30; day++) {
+                const cell = document.createElement('div');
+                cell.className = 'calendar-cell';
+                
+                const dateHeader = document.createElement('div');
+                dateHeader.className = 'cell-date';
+                dateHeader.textContent = day;
+                
+                const cellContent = document.createElement('div');
+                cellContent.className = 'cell-content';
+                
+                // Add some sample shifts for demonstration
+                if (day % 4 === 0) {
+                    const shift = document.createElement('div');
+                    shift.className = 'shift-item morning';
+                    shift.innerHTML = '<span class="shift-time">07:00 - 15:00</span><span class="shift-staff">Anna S.</span>';
+                    cellContent.appendChild(shift);
+                }
+                
+                if (day % 3 === 0) {
+                    const shift = document.createElement('div');
+                    shift.className = 'shift-item evening';
+                    shift.innerHTML = '<span class="shift-time">15:00 - 23:00</span><span class="shift-staff">John D.</span>';
+                    cellContent.appendChild(shift);
+                }
+                
+                if (day % 5 === 0) {
+                    const shift = document.createElement('div');
+                    shift.className = 'shift-item night';
+                    shift.innerHTML = '<span class="shift-time">23:00 - 07:00</span><span class="shift-staff">Mary W.</span>';
+                    cellContent.appendChild(shift);
+                }
+                
+                cell.appendChild(dateHeader);
+                cell.appendChild(cellContent);
+                calendarBody.appendChild(cell);
+                
+                // Highlight the current day
+                if (day === 16) {
+                    cell.classList.add('current-day');
+                }
+            }
+        }
+        
+        function showToast(title, message, type = 'info') {
+            const toastContainer = document.querySelector('.toast-container') || createToastContainer();
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            
+            toast.innerHTML = `
+                <div class="toast-icon">
+                    <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'warning' ? 'exclamation-triangle' : 'info-circle'}"></i>
+                </div>
+                <div class="toast-content">
+                    <h4 class="toast-title">${title}</h4>
+                    <p class="toast-message">${message}</p>
+                </div>
+                <button class="toast-close">&times;</button>
+            `;
+            
+            toastContainer.appendChild(toast);
+            
+            // Show the toast
+            setTimeout(() => {
+                toast.classList.add('show');
+            }, 10);
+            
+            // Auto close after 5 seconds
+            setTimeout(() => {
+                toast.classList.add('toast-hide');
+                setTimeout(() => {
+                    toast.remove();
+                }, 300);
+            }, 5000);
+            
+            // Close button
+            const closeButton = toast.querySelector('.toast-close');
+            if (closeButton) {
+                closeButton.addEventListener('click', () => {
+                    toast.classList.add('toast-hide');
+                    setTimeout(() => {
+                        toast.remove();
+                    }, 300);
+                });
+            }
+        }
+        
+        function createToastContainer() {
+            const container = document.createElement('div');
+            container.className = 'toast-container';
+            document.body.appendChild(container);
+            return container;
+        }
+    </script>
+    
+    <style>
+        /* Schedule-specific styles */
+        .schedule-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        
+        .date-navigation {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .date-navigation h4 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin: 0;
+            min-width: 150px;
+            text-align: center;
+        }
+        
+        .schedule-controls {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .schedule-calendar {
+            background-color: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+        
+        .calendar-header {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .calendar-day {
+            padding: 10px;
+            text-align: center;
+            font-weight: 600;
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .calendar-body {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            grid-auto-rows: minmax(120px, auto);
+            background-color: var(--gray-100);
+        }
+        
+        .calendar-cell {
+            min-height: 120px;
+            border-right: 1px solid var(--gray-200);
+            border-bottom: 1px solid var(--gray-200);
+            padding: 5px;
+            background-color: white;
+        }
+        
+        .calendar-cell.empty {
+            background-color: var(--gray-100);
+        }
+        
+        .calendar-cell.current-day {
+            background-color: var(--primary-bg);
+            border: 2px solid var(--primary-color);
+        }
+        
+        .cell-date {
+            text-align: right;
+            font-weight: 600;
+            color: var(--gray-700);
+            margin-bottom: 5px;
+        }
+        
+        .current-day .cell-date {
+            color: var(--primary-color);
+        }
+        
+        .cell-content {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        
+        .shift-item {
+            padding: 4px 6px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .shift-item.morning {
+            background-color: rgba(46, 196, 182, 0.15);
+            border-left: 3px solid #2ec4b6;
+        }
+        
+        .shift-item.evening {
+            background-color: rgba(74, 108, 247, 0.15);
+            border-left: 3px solid #4a6cf7;
+        }
+        
+        .shift-item.night {
+            background-color: rgba(128, 90, 213, 0.15);
+            border-left: 3px solid #805ad5;
+        }
+        
+        .shift-time {
+            font-weight: 600;
+            color: var(--gray-800);
+        }
+        
+        .shift-staff {
+            color: var(--gray-600);
+        }
+        
+        .calendar-message {
+            grid-column: 1 / -1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            color: var(--gray-600);
+            gap: 1rem;
+        }
+        
+        .calendar-message i {
+            font-size: 2rem;
+            color: var(--primary-color);
+        }
+        
+        /* Dark mode overrides */
+        .dark-mode .schedule-calendar {
+            background-color: #2d303b;
+        }
+        
+        .dark-mode .calendar-cell {
+            background-color: #2d303b;
+            border-color: #444;
+        }
+        
+        .dark-mode .calendar-cell.empty {
+            background-color: #1a1c23;
+        }
+        
+        .dark-mode .cell-date {
+            color: var(--gray-400);
+        }
+        
+        .dark-mode .shift-time {
+            color: var(--gray-300);
+        }
+        
+        .dark-mode .shift-staff {
+            color: var(--gray-500);
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 992px) {
+            .schedule-actions {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .date-navigation {
+                width: 100%;
+                justify-content: space-between;
+            }
+            
+            .schedule-controls {
+                width: 100%;
+                justify-content: flex-end;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .calendar-header {
+                display: none;
+            }
+            
+            .calendar-body {
+                display: flex;
+                flex-direction: column;
+            }
+            
+            .calendar-cell {
+                display: flex;
+                align-items: center;
+                border-right: none;
+            }
+            
+            .cell-date {
+                width: 40px;
+                height: 40px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background-color: var(--primary-bg);
+                border-radius: 50%;
+                margin-right: 10px;
+                margin-bottom: 0;
+            }
+            
+            .cell-content {
+                flex: 1;
+            }
+        }
+    </style>
+</body>
+</html> 
