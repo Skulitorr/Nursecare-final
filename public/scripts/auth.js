@@ -1,9 +1,7 @@
-// Authentication module
-import { hasPermission } from './roles.js';
-import { showToast } from './utils.js';
+// Authentication Module
+console.log('Auth Module Loaded');
 
-// Constants
-const SESSION_KEYS = {
+export const SESSION_KEYS = {
     TOKEN: 'authToken',
     ROLE: 'userRole',
     USERNAME: 'username'
@@ -11,88 +9,83 @@ const SESSION_KEYS = {
 
 let currentUser = null;
 
-/**
- * Initialize authentication
- */
 export function initAuth() {
-    // Check for existing auth data
+    console.log('Initializing authentication...');
     const token = localStorage.getItem(SESSION_KEYS.TOKEN);
     const role = localStorage.getItem(SESSION_KEYS.ROLE);
     
-    if (token && role) {
-        try {
-            const tokenData = JSON.parse(atob(token));
-            if (tokenData.exp > Date.now() && tokenData.role === role) {
-                currentUser = tokenData;
-            } else {
-                clearSession();
-            }
-        } catch (e) {
-            clearSession();
-        }
-    } else {
+    if (!token || !role) {
         clearSession();
-    }
-}
-
-/**
- * Clear all session data
- */
-export function clearSession() {
-    localStorage.clear();
-    currentUser = null;
-}
-
-/**
- * Validate token and role
- */
-export function validateSession() {
-    const authToken = localStorage.getItem(SESSION_KEYS.TOKEN);
-    const userRole = localStorage.getItem(SESSION_KEYS.ROLE);
-    const currentPath = window.location.pathname;
-
-    if (!authToken || !userRole) {
-        if (!currentPath.includes('/public/login.html')) {
-            redirectToLogin();
-        }
+        redirectToLogin();
         return false;
     }
-
+    
     try {
-        const tokenData = JSON.parse(atob(authToken));
+        const tokenData = JSON.parse(atob(token));
+        if (!tokenData.exp || tokenData.exp <= Date.now()) {
+            console.log('Token expired');
+            clearSession();
+            redirectToLogin();
+            return false;
+        }
+        
+        currentUser = tokenData;
+        updateUserInfo();
+        return true;
+    } catch (error) {
+        console.error('Auth initialization error:', error);
+        clearSession();
+        redirectToLogin();
+        return false;
+    }
+}
+
+export function validateSession() {
+    console.log('Validating session...');
+    const currentPath = window.location.pathname;
+    
+    // Allow access to login and unauthorized pages without auth
+    if (currentPath === '/login' || currentPath === '/unauthorized') {
+        return true;
+    }
+    
+    const token = localStorage.getItem(SESSION_KEYS.TOKEN);
+    const role = localStorage.getItem(SESSION_KEYS.ROLE);
+    
+    if (!token || !role) {
+        redirectToUnauthorized();
+        return false;
+    }
+    
+    try {
+        const tokenData = JSON.parse(atob(token));
         if (!tokenData.exp || !tokenData.role || 
             tokenData.exp <= Date.now() || 
-            tokenData.role !== userRole) {
+            tokenData.role !== role) {
             clearSession();
-            if (!currentPath.includes('/public/login.html')) {
-                redirectToLogin();
-            }
+            redirectToUnauthorized();
             return false;
         }
         return true;
-    } catch (e) {
+    } catch (error) {
+        console.error('Session validation error:', error);
         clearSession();
-        if (!currentPath.includes('/public/login.html')) {
-            redirectToLogin();
-        }
+        redirectToUnauthorized();
         return false;
     }
 }
 
-/**
- * Handle user login
- */
 export async function login(username, password) {
-    // Clear any existing session
-    clearSession();
-    
+    console.log('Attempting login...');
     try {
+        // Clear any existing session
+        clearSession();
+        
         // Mock authentication - replace with real API call
         const mockUsers = {
-            'admin': { role: 'ADMIN', password: 'admin123' },
-            'nurse': { role: 'NURSE', password: 'nurse123' },
-            'staff': { role: 'STAFF', password: 'staff123' },
-            'inventory': { role: 'INVENTORY', password: 'inv123' }
+            'admin': { role: 'ADMIN', name: 'Administrator', password: 'admin123' },
+            'nurse': { role: 'NURSE', name: 'Anna', password: 'nurse123' },
+            'staff': { role: 'STAFF', name: 'Staff Member', password: 'staff123' }
         };
         
         const user = mockUsers[username];
@@ -103,6 +96,7 @@ export async function login(username, password) {
         // Create session token
         const tokenData = {
             username,
+            name: user.name,
             role: user.role,
             exp: Date.now() + (24 * 60 * 60 * 1000) // 24 hours
         };
@@ -115,6 +109,7 @@ export async function login(username, password) {
         localStorage.setItem(SESSION_KEYS.USERNAME, username);
         currentUser = tokenData;
         
+        updateUserInfo();
         return { success: true };
     } catch (error) {
         console.error('Login failed:', error);
@@ -122,28 +117,39 @@ export async function login(username, password) {
     }
 }
 
-/**
- * Handle user logout
- */
 export function logout() {
+    console.log('Logging out...');
     clearSession();
     redirectToLogin();
 }
 
-/**
- * Redirect to login
- */
+function clearSession() {
+    console.log('Clearing session...');
+    localStorage.clear();
+    currentUser = null;
+}
+
 function redirectToLogin() {
-    window.location.href = '/public/login.html';
+    window.location.href = '/login';
 }
 
-/**
- * Check if user has required role
- */
-export function hasRole(requiredRole) {
-    const userRole = localStorage.getItem(SESSION_KEYS.ROLE);
-    return userRole === requiredRole;
+function redirectToUnauthorized() {
+    window.location.href = '/unauthorized';
 }
 
-// Export constants
-export { SESSION_KEYS };
+function updateUserInfo() {
+    console.log('Updating user info display...');
+    const userNameElement = document.querySelector('.user-name');
+    const userRoleElement = document.querySelector('.user-role');
+    
+    if (userNameElement) {
+        userNameElement.textContent = currentUser?.name || 'User';
+    }
+    
+    if (userRoleElement) {
+        userRoleElement.textContent = currentUser?.role || 'Guest';
+    }
+}
+
+// Initialize auth when DOM is loaded
+document.addEventListener('DOMContentLoaded', initAuth);

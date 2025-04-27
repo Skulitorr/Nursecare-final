@@ -12,5 +12,15 @@
     { "source": "/patients", "destination": "/patients.html" },
     { "source": "/unauthorized", "destination": "/unauthorized.html" },
     { "source": "/404", "destination": "/404.html" }
+  ],
+  "routes": [
+    {
+      "source": "/api/:path*",
+      "destination": "/server/openai-proxy.js"
+    }
+  ],
+  "builds": [
+    { "src": "server/**/*.js", "use": "@vercel/node" },
+    { "src": "public/**/*", "use": "@vercel/static" }
   ]
 }

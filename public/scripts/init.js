@@ -1,105 +1,94 @@
-// Core initialization module
-import { getRoleDisplayName } from './roles.js';
-import { SESSION_KEYS } from './auth.js';
+import { initAuth } from './auth.js';
+import { initializeNavigation } from './navigation.js';
+import errorHandler from './error-handler.js';
 
-/**
- * Core UI initialization
- */
+console.log('Core Initialization Module Loaded');
+
 export async function initializeUI() {
-    initializeTheme();
-    initializeDropdowns();
-    initializeDateTime();
-    await setupUserProfile();
-    return true;
-}
-
-/**
- * Initialize theme functionality
- */
-function initializeTheme() {
-    const savedTheme = localStorage.getItem('theme');
-    const themeToggle = document.getElementById('theme-toggle');
-    
-    // Apply saved theme
-    if (savedTheme === 'dark') {
-        document.body.classList.add('dark-mode');
-        updateThemeIcon(true);
-    }
-
-    // Setup theme toggle
-    if (themeToggle) {
-        themeToggle.addEventListener('click', () => {
-            const isDarkMode = document.body.classList.toggle('dark-mode');
-            localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
-            updateThemeIcon(isDarkMode);
-        });
-    }
-}
-
-/**
- * Initialize dropdown menus
- */
-function initializeDropdowns() {
-    setupNotificationsDropdown();
-    setupProfileDropdown();
-}
-
-/**
- * Setup notifications dropdown
- */
-function setupNotificationsDropdown() {
-    const notificationsBtn = document.getElementById('notifications-btn');
-    const notificationsMenu = document.getElementById('notifications-menu');
-    
-    if (notificationsBtn && notificationsMenu) {
-        notificationsBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            notificationsMenu.classList.toggle('show');
-        });
-
-        document.addEventListener('click', (e) => {
-            if (!notificationsMenu.contains(e.target)) {
-                notificationsMenu.classList.remove('show');
-            }
-        });
-    }
-}
-
-/**
- * Setup profile dropdown
- */
-function setupProfileDropdown() {
-    const profileBtn = document.getElementById('profile-btn');
-    const profileMenu = document.getElementById('profile-menu');
-    
-    if (profileBtn && profileMenu) {
-        profileBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            profileMenu.classList.toggle('show');
-        });
-
-        document.addEventListener('click', (e) => {
-            if (!profileMenu.contains(e.target)) {
-                profileMenu.classList.remove('show');
-            }
-        });
-
-        // Setup logout handler
-        const logoutBtn = document.getElementById('logoutBtn');
-        if (logoutBtn) {
-            logoutBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                localStorage.clear();
-                window.location.href = '/public/login.html';
-            });
+    console.log('Initializing core UI...');
+    try {
+        if (!initAuth()) {
+            console.log('Authentication failed, stopping initialization');
+            return false;
         }
+
+        initializeNavigation();
+        initializeTheme();
+        initializeDropdowns();
+        setupNotifications();
+        setupUserProfile();
+        initializeDateTime();
+        
+        return true;
+    } catch (error) {
+        console.error('Error during UI initialization:', error);
+        errorHandler.showError('Error initializing application');
+        return false;
     }
 }
 
-/**
- * Initialize date/time display
- */
+function initializeTheme() {
+    console.log('Initializing theme...');
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    document.body.classList.toggle('dark-mode', savedTheme === 'dark');
+    updateThemeIcon(savedTheme === 'dark');
+}
+
+function initializeDropdowns() {
+    console.log('Initializing dropdowns...');
+    setupDropdownHandlers('notifications-btn', 'notifications-menu');
+    setupDropdownHandlers('profile-btn', 'profile-menu');
+}
+
+function setupDropdownHandlers(btnId, menuId) {
+    const btn = document.getElementById(btnId);
+    const menu = document.getElementById(menuId);
+    
+    if (btn && menu) {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            menu.classList.toggle('show');
+            console.log(`Toggled ${menuId}`);
+        });
+        
+        document.addEventListener('click', (e) => {
+            if (!menu.contains(e.target)) {
+                menu.classList.remove('show');
+            }
+        });
+    } else {
+        console.warn(`Dropdown elements not found: ${btnId} or ${menuId}`);
+    }
+}
+
+function setupNotifications() {
+    console.log('Setting up notifications...');
+    const clearAllBtn = document.querySelector('.clear-all');
+    if (clearAllBtn) {
+        clearAllBtn.addEventListener('click', () => {
+            const notificationItems = document.querySelectorAll('.notification-item');
+            notificationItems.forEach(item => {
+                item.style.animation = 'slideOutRight 0.3s forwards';
+                setTimeout(() => item.remove(), 300);
+            });
+        });
+    }
+}
+
+function setupUserProfile() {
+    console.log('Setting up user profile...');
+    const userName = localStorage.getItem('username');
+    const userRole = localStorage.getItem('userRole');
+    
+    const nameElement = document.querySelector('.dropdown-header h3');
+    const roleElement = document.querySelector('.dropdown-header span');
+    
+    if (nameElement) nameElement.textContent = userName || 'User';
+    if (roleElement) roleElement.textContent = userRole || 'Guest';
+}
+
 function initializeDateTime() {
+    console.log('Initializing date/time display...');
     const dateElement = document.getElementById('current-date');
     if (dateElement) {
         const updateDateTime = () => {
@@ -108,11 +97,12 @@ function initializeDateTime() {
                 weekday: 'long', 
                 year: 'numeric', 
                 month: 'long', 
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
+                day: 'numeric' 
             };
-            dateElement.textContent = now.toLocaleDateString('en-US', options);
+            dateElement.innerHTML = `
+                <i class="fas fa-calendar-alt"></i>
+                ${now.toLocaleDateString('is-IS', options)}
+            `;
         };
         
         updateDateTime();
@@ -120,39 +110,12 @@ function initializeDateTime() {
     }
 }
 
-/**
- * Setup user profile information
- */
-async function setupUserProfile() {
-    const username = localStorage.getItem(SESSION_KEYS.USERNAME);
-    const userRole = localStorage.getItem(SESSION_KEYS.ROLE);
-    
-    // Update profile elements if they exist
-    const userNameElement = document.querySelector('.user-name');
-    const userRoleElement = document.querySelector('.user-role');
-    
-    if (userNameElement && username) {
-        userNameElement.textContent = username;
-    }
-    
-    if (userRoleElement && userRole) {
-        userRoleElement.textContent = getRoleDisplayName(userRole);
-    }
+function updateThemeIcon(isDark) {
+    const icon = document.querySelector('#theme-toggle i');
+    const text = document.querySelector('#theme-toggle span');
+    if (icon) icon.className = isDark ? 'fas fa-sun' : 'fas fa-moon';
+    if (text) text.textContent = isDark ? 'Light Mode' : 'Dark Mode';
 }
 
-/**
- * Update theme toggle icon
- */
-function updateThemeIcon(isDarkMode) {
-    const themeIcon = document.querySelector('#theme-toggle i');
-    if (themeIcon) {
-        themeIcon.className = isDarkMode ? 'fas fa-sun' : 'fas fa-moon';
-    }
-}
-
-/**
- * Get current theme
- */
-export function getCurrentTheme() {
-    return document.body.classList.contains('dark-mode') ? 'dark' : 'light';
-}
+// Initialize when DOM is loaded
+document.addEventListener('DOMContentLoaded', initializeUI);

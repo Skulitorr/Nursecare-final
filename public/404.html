@@ -1,99 +1,180 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="is">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Page Not Found - NurseCare</title>
+    <meta name="description" content="404 - Page Not Found">
+    <title>404 - Síða fannst ekki | NurseCare AI</title>
+    
+    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Application styles -->
+    <link rel="stylesheet" href="/styles/main.css">
+    <link rel="stylesheet" href="/styles/components.css">
+    
     <style>
-        :root {
-            --primary: #3a86ff;
-            --gray-800: #343a40;
-            --gray-600: #6c757d;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-            margin: 0;
-            padding: 0;
+        .error-container {
+            min-height: 100vh;
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
-            min-height: 100vh;
-            background-color: #f8f9fa;
-        }
-
-        .error-container {
             text-align: center;
             padding: 2rem;
-            max-width: 500px;
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            background: linear-gradient(135deg, var(--primary-light), var(--primary));
+            color: white;
         }
 
         .error-icon {
-            font-size: 4rem;
-            color: var(--primary);
-            margin-bottom: 1rem;
+            font-size: 6rem;
+            margin-bottom: 2rem;
+            opacity: 0.9;
         }
 
         .error-title {
-            color: var(--gray-800);
-            font-size: 1.75rem;
+            font-size: 3rem;
+            font-weight: 700;
             margin-bottom: 1rem;
         }
 
         .error-message {
-            color: var(--gray-600);
+            font-size: 1.25rem;
             margin-bottom: 2rem;
-            line-height: 1.5;
+            max-width: 600px;
+            line-height: 1.6;
         }
 
-        .home-button {
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .btn {
             padding: 0.75rem 1.5rem;
-            background-color: var(--primary);
-            color: white;
-            border: none;
-            border-radius: 6px;
+            border-radius: var(--button-radius);
+            font-weight: 500;
             font-size: 1rem;
             cursor: pointer;
+            transition: all 0.3s ease;
             display: inline-flex;
             align-items: center;
             gap: 0.5rem;
-            text-decoration: none;
-            transition: background-color 0.2s;
         }
 
-        .home-button:hover {
-            background-color: #2563eb;
+        .btn-white {
+            background-color: white;
+            color: var(--primary);
+            border: none;
+        }
+
+        .btn-white:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 2px solid white;
+            color: white;
+        }
+
+        .btn-outline:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
         }
     </style>
 </head>
 <body>
     <div class="error-container">
-        <i class="fas fa-compass error-icon"></i>
-        <h1 class="error-title">Page Not Found</h1>
-        <p class="error-message">The page you're looking for doesn't exist or has been moved.</p>
-        <a href="/public/dashboard.html" class="home-button" id="homeBtn">
-            <i class="fas fa-home"></i>
-            Return Home
-        </a>
+        <i class="fas fa-exclamation-circle error-icon"></i>
+        <h1 class="error-title">404 - Síða fannst ekki</h1>
+        <p class="error-message">
+            Því miður fannst síðan sem þú ert að leita að ekki. Hún gæti hafa verið færð, eytt eða vistfangið slegið rangt inn.
+        </p>
+        <div class="action-buttons">
+            <button class="btn btn-white" id="go-back">
+                <i class="fas fa-arrow-left"></i>
+                Til baka
+            </button>
+            <button class="btn btn-white" id="go-home">
+                <i class="fas fa-home"></i>
+                Forsíða
+            </button>
+            <button class="btn btn-outline" id="report-issue">
+                <i class="fas fa-bug"></i>
+                Tilkynna vandamál
+            </button>
+        </div>
     </div>
 
-    <script>
+    <script type="module">
+        import errorHandler from '/scripts/error-handler.js';
+        
         document.addEventListener('DOMContentLoaded', () => {
-            const homeBtn = document.getElementById('homeBtn');
-            
-            // Check auth status
-            const authToken = localStorage.getItem('authToken');
-            const userRole = localStorage.getItem('userRole');
-            
-            // If no auth, redirect to login instead of dashboard
-            if (!authToken || !userRole) {
-                homeBtn.href = '/public/login.html';
-            }
+            console.log('404 page loaded');
+            setupButtons();
+            logError();
         });
+
+        function setupButtons() {
+            const goBack = document.getElementById('go-back');
+            const goHome = document.getElementById('go-home');
+            const reportIssue = document.getElementById('report-issue');
+
+            if (goBack) {
+                goBack.addEventListener('click', () => {
+                    console.log('Navigating back');
+                    window.history.back();
+                });
+            }
+
+            if (goHome) {
+                goHome.addEventListener('click', () => {
+                    console.log('Navigating to home');
+                    window.location.href = '/';
+                });
+            }
+
+            if (reportIssue) {
+                reportIssue.addEventListener('click', () => {
+                    console.log('Reporting issue');
+                    reportProblem();
+                });
+            }
+        }
+
+        function logError() {
+            const path = window.location.pathname;
+            const referrer = document.referrer;
+            console.error(`404 Error: Page not found - ${path} (Referrer: ${referrer})`);
+        }
+
+        async function reportProblem() {
+            try {
+                const errorData = {
+                    type: '404',
+                    path: window.location.pathname,
+                    referrer: document.referrer,
+                    userAgent: navigator.userAgent,
+                    timestamp: new Date().toISOString()
+                };
+
+                // Store in localStorage for now
+                const reports = JSON.parse(localStorage.getItem('errorReports') || '[]');
+                reports.push(errorData);
+                localStorage.setItem('errorReports', JSON.stringify(reports));
+
+                alert('Takk fyrir að láta vita af vandamálinu!');
+            } catch (error) {
+                console.error('Error reporting problem:', error);
+            }
+        }
     </script>
 </body>
 </html>

@@ -1,125 +1,187 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="is">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Unauthorized Access - NurseCare</title>
+    <meta name="description" content="Unauthorized Access - NurseCare AI">
+    <title>Óheimilaður aðgangur | NurseCare AI</title>
+    
+    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Application styles -->
+    <link rel="stylesheet" href="/styles/main.css">
+    <link rel="stylesheet" href="/styles/components.css">
+    
     <style>
-        :root {
-            --primary: #3a86ff;
-            --danger: #e71d36;
-            --gray-800: #343a40;
-            --gray-600: #6c757d;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-            margin: 0;
-            padding: 0;
+        .unauthorized-container {
+            min-height: 100vh;
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
-            min-height: 100vh;
-            background-color: #f8f9fa;
-        }
-
-        .unauthorized-container {
             text-align: center;
             padding: 2rem;
-            max-width: 500px;
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-
-        .error-icon {
-            font-size: 4rem;
-            color: var(--danger);
-            margin-bottom: 1rem;
-        }
-
-        .error-title {
-            color: var(--gray-800);
-            font-size: 1.75rem;
-            margin-bottom: 1rem;
-        }
-
-        .error-message {
-            color: var(--gray-600);
-            margin-bottom: 2rem;
-            line-height: 1.5;
-        }
-
-        .back-button {
-            padding: 0.75rem 1.5rem;
-            background-color: var(--primary);
+            background: linear-gradient(135deg, var(--danger), #ff6b6b);
             color: white;
-            border: none;
-            border-radius: 6px;
+        }
+
+        .unauthorized-icon {
+            font-size: 6rem;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+        }
+
+        .unauthorized-title {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .unauthorized-message {
+            font-size: 1.25rem;
+            margin-bottom: 2rem;
+            max-width: 600px;
+            line-height: 1.6;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: var(--button-radius);
+            font-weight: 500;
             font-size: 1rem;
             cursor: pointer;
+            transition: all 0.3s ease;
             display: inline-flex;
             align-items: center;
             gap: 0.5rem;
-            margin-bottom: 1rem;
-            text-decoration: none;
-            transition: background-color 0.2s;
         }
 
-        .back-button:hover {
-            background-color: #2563eb;
+        .btn-white {
+            background-color: white;
+            color: var(--danger);
+            border: none;
         }
 
-        .logout-link {
-            color: var(--primary);
-            text-decoration: none;
-            font-size: 0.9375rem;
-            display: inline-block;
+        .btn-white:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
 
-        .logout-link:hover {
-            text-decoration: underline;
+        .btn-outline {
+            background: transparent;
+            border: 2px solid white;
+            color: white;
+        }
+
+        .btn-outline:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .error-details {
+            margin-top: 2rem;
+            font-size: 0.875rem;
+            opacity: 0.8;
+        }
+
+        .error-details code {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-family: monospace;
         }
     </style>
 </head>
 <body>
     <div class="unauthorized-container">
-        <i class="fas fa-exclamation-circle error-icon"></i>
-        <h1 class="error-title">Unauthorized Access</h1>
-        <p class="error-message">You don't have permission to access this page. Please contact your administrator if you believe this is an error.</p>
-        <button class="back-button" onclick="goBack()">
-            <i class="fas fa-arrow-left"></i>
-            Go Back
-        </button>
-        <br>
-        <a href="/public/login.html" class="logout-link" id="logoutBtn">Log Out</a>
+        <i class="fas fa-lock unauthorized-icon"></i>
+        <h1 class="unauthorized-title">Óheimilaður aðgangur</h1>
+        <p class="unauthorized-message">
+            Þú hefur ekki heimild til að skoða þessa síðu. Vinsamlegast skráðu þig inn með viðeigandi aðgangsheimildum eða hafðu samband við kerfisstjóra.
+        </p>
+        <div class="action-buttons">
+            <button class="btn btn-white" id="login-btn">
+                <i class="fas fa-sign-in-alt"></i>
+                Skrá inn
+            </button>
+            <button class="btn btn-outline" id="contact-admin">
+                <i class="fas fa-envelope"></i>
+                Hafa samband við kerfisstjóra
+            </button>
+        </div>
+        <div class="error-details">
+            Error Code: <code id="error-code">401</code> | 
+            Requested Path: <code id="requested-path"></code>
+        </div>
     </div>
 
-    <script>
-        // Handle going back
-        function goBack() {
-            window.history.back();
+    <script type="module">
+        import errorHandler from '/scripts/error-handler.js';
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('Unauthorized page loaded');
+            setupButtons();
+            showErrorDetails();
+        });
+
+        function setupButtons() {
+            const loginBtn = document.getElementById('login-btn');
+            const contactBtn = document.getElementById('contact-admin');
+
+            if (loginBtn) {
+                loginBtn.addEventListener('click', () => {
+                    console.log('Redirecting to login');
+                    const returnPath = sessionStorage.getItem('returnPath') || '/';
+                    window.location.href = `/login?redirect=${encodeURIComponent(returnPath)}`;
+                });
+            }
+
+            if (contactBtn) {
+                contactBtn.addEventListener('click', () => {
+                    console.log('Opening contact form');
+                    openContactForm();
+                });
+            }
         }
 
-        // Handle logout
-        document.getElementById('logoutBtn')?.addEventListener('click', (e) => {
-            e.preventDefault();
-            localStorage.clear();
-            window.location.href = '/public/login.html';
-        });
-
-        // Validate current session
-        document.addEventListener('DOMContentLoaded', () => {
-            const authToken = localStorage.getItem('authToken');
-            const userRole = localStorage.getItem('userRole');
-            
-            // If no auth data exists, redirect to login
-            if (!authToken || !userRole) {
-                localStorage.clear();
-                window.location.href = '/public/login.html';
+        function showErrorDetails() {
+            const pathElement = document.getElementById('requested-path');
+            if (pathElement) {
+                const path = sessionStorage.getItem('unauthorizedPath') || window.location.pathname;
+                pathElement.textContent = path;
             }
-        });
+        }
+
+        function openContactForm() {
+            const errorInfo = {
+                type: 'unauthorized',
+                path: sessionStorage.getItem('unauthorizedPath') || window.location.pathname,
+                userAgent: navigator.userAgent,
+                timestamp: new Date().toISOString()
+            };
+
+            // Store error info for admin reference
+            const reports = JSON.parse(localStorage.getItem('accessReports') || '[]');
+            reports.push(errorInfo);
+            localStorage.setItem('accessReports', JSON.stringify(reports));
+
+            // Open email client with pre-filled subject
+            const subject = `Access Request for ${errorInfo.path}`;
+            const body = `Hello,\n\nI need access to the following page: ${errorInfo.path}\n\nError Details:\n${JSON.stringify(errorInfo, null, 2)}`;
+            
+            window.location.href = `mailto:admin@nursecare.ai?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+        }
     </script>
 </body>
 </html>

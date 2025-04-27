@@ -1,118 +1,106 @@
-import { checkAuth, authorizeUser, setupNavigation } from './common.js';
-import {
-    initializeDashboard,
-    initializePatients,
-    initializeStaff,
-    initializeInventory,
-    initializeReports,
-    initializeSettings,
-    initializeSchedule
-} from './page-specific-init.js';
+import { initializeUI } from './init.js';
+import debug from './debug.js';
+import { validatePageAccess } from './roles.js';
+import errorHandler from './error-handler.js';
 
-/**
- * Initialize page functionality
- */
-export function initializePage() {
-    const currentPage = getCurrentPage();
+console.log('Page Initialization Module Loaded');
 
-    // Check authentication and authorization
-    if (!checkAuth()) return;
-    authorizeUser(currentPage);
-    
-    // Setup navigation based on user role
-    setupNavigation();
-    
-    // Initialize UI components
-    initializeUI();
-    
-    // Additional page-specific initialization if needed
-    if (typeof window.initializePageSpecific === 'function') {
-        window.initializePageSpecific();
+// Page-specific initialization handlers
+const pageHandlers = {
+    dashboard: async () => {
+        const { default: initDashboard } = await import('./dashboard.js');
+        return initDashboard();
+    },
+    patients: async () => {
+        const { default: initPatients } = await import('./patients.js');
+        return initPatients();
+    },
+    staff: async () => {
+        const { default: initStaff } = await import('./staff.js');
+        return initStaff();
+    },
+    inventory: async () => {
+        const { default: initInventory } = await import('./inventory.js');
+        return initInventory();
+    },
+    schedule: async () => {
+        const { default: initSchedule } = await import('./schedule.js');
+        return initSchedule();
+    },
+    reports: async () => {
+        const { default: initReports } = await import('./reports.js');
+        return initReports();
+    },
+    settings: async () => {
+        const { default: initSettings } = await import('./settings.js');
+        return initSettings();
+    },
+    chatbot: async () => {
+        const { default: initChatbot } = await import('./chatbot.js');
+        return initChatbot();
     }
-}
+};
 
-/**
- * Get current page name from URL
- */
-function getCurrentPage() {
-    const path = window.location.pathname;
-    const pageName = path.split('/').pop() || 'index.html';
-    return pageName;
-}
+export async function initializePage() {
+    console.log('Initializing page...');
+    try {
+        const metrics = debug.getPageLoadMetrics();
+        console.log('Page load metrics:', metrics);
 
-/**
- * Initialize common UI components
- */
-function initializeUI() {
-    // Initialize sidebar
-    const sidebar = document.querySelector('.sidebar');
-    const toggleBtn = document.getElementById('toggle-sidebar');
-    if (toggleBtn && sidebar) {
-        toggleBtn.addEventListener('click', () => {
-            sidebar.classList.toggle('expanded');
-        });
-    }
+        // Get current page
+        const currentPath = window.location.pathname;
+        const page = currentPath.replace(/^\/|\/$/g, '').replace('.html', '') || 'dashboard';
+        console.log('Current page:', page);
 
-    // Initialize theme toggle
-    const themeToggle = document.getElementById('theme-toggle');
-    if (themeToggle) {
-        const savedTheme = localStorage.getItem('theme');
-        if (savedTheme === 'dark') {
-            document.body.classList.add('dark-mode');
-            updateThemeIcon(true);
+        // Skip auth check for public pages
+        if (!['login', 'unauthorized', '404'].includes(page)) {
+            // Initialize common UI components
+            if (!await initializeUI()) {
+                console.log('UI initialization failed');
+                return false;
+            }
+
+            // Validate page access
+            if (!validatePageAccess(page)) {
+                console.log('Access denied to page:', page);
+                window.location.href = '/unauthorized';
+                return false;
+            }
         }
 
-        themeToggle.addEventListener('click', () => {
-            const isDarkMode = document.body.classList.toggle('dark-mode');
-            localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
-            updateThemeIcon(isDarkMode);
-        });
-    }
+        // Initialize page-specific functionality
+        if (pageHandlers[page]) {
+            console.log(`Initializing ${page} page...`);
+            await pageHandlers[page]();
+        } else {
+            console.log('No specific handler for page:', page);
+        }
 
-    // Initialize dropdowns
-    initializeDropdowns();
+        // Setup error boundaries
+        setupErrorBoundaries();
+
+        return true;
+    } catch (error) {
+        console.error('Error during page initialization:', error);
+        errorHandler.showError('Error initializing page');
+        return false;
+    }
 }
 
-/**
- * Initialize dropdown menus
- */
-function initializeDropdowns() {
-    const notificationsBtn = document.getElementById('notifications-btn');
-    const notificationsMenu = document.getElementById('notifications-menu');
-    const profileBtn = document.getElementById('profile-btn');
-    const profileMenu = document.getElementById('profile-menu');
+function setupErrorBoundaries() {
+    // Setup global error handler for uncaught errors
+    window.onerror = (msg, url, lineNo, columnNo, error) => {
+        console.error('Global error:', { msg, url, lineNo, columnNo, error });
+        errorHandler.showError('An unexpected error occurred');
+        return false;
+    };
 
-    // Toggle notifications dropdown
-    if (notificationsBtn && notificationsMenu) {
-        notificationsBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            notificationsMenu.classList.toggle('show');
-            profileMenu?.classList.remove('show');
-        });
-    }
-
-    // Toggle profile dropdown
-    if (profileBtn && profileMenu) {
-        profileBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            profileMenu.classList.toggle('show');
-            notificationsMenu?.classList.remove('show');
-        });
-    }
-
-    // Close dropdowns when clicking outside
-    document.addEventListener('click', () => {
-        notificationsMenu?.classList.remove('show');
-        profileMenu?.classList.remove('show');
+    // Setup handler for unhandled promise rejections
+    window.addEventListener('unhandledrejection', event => {
+        console.error('Unhandled promise rejection:', event.reason);
+        errorHandler.showError('An unexpected error occurred');
     });
 }
 
-/**
- * Update theme toggle icon
- */
-function updateThemeIcon(isDarkMode) {
-    const themeIcon = document.querySelector('#theme-toggle i');
-    if (themeIcon) {
-        themeIcon.className = isDarkMode ? 'fas fa-sun' : 'fas fa-moon';
-    }
-}
+// Initialize when DOM is loaded
+document.addEventListener('DOMContentLoaded', initializePage);

@@ -15,676 +15,586 @@
     <!-- Chart.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     
-    <!-- Staff Page CSS -->
-    <link rel="stylesheet" href="assets/staff.css">
-    
-    <!-- Staff Page JavaScript -->
-    <script src="assets/scripts/staff.js" defer></script>
-
     <!-- Application styles -->
-    <link rel="stylesheet" href="styles/main.css">
-    <link rel="stylesheet" href="styles/components.css">
-    <link rel="stylesheet" href="assets/ai-widget.css">
+    <link rel="stylesheet" href="../style.css">
 </head>
 <body>
     <div class="app-container">
-        <!-- Header -->
-        <header class="header">
-            <div class="logo">
-                <img src="assets/logo.png" alt="NurseCare AI Logo" onerror="this.src='https://placehold.co/40x40?text=NC'">
-                <h1>NurseCare AI</h1>
-            </div>
-            <div class="header-actions">
-                <button id="theme-toggle" class="theme-toggle" aria-label="Toggle dark mode">
-                    <i class="fas fa-moon"></i>
-                    <span>Dark Mode</span>
-                </button>
-                <div class="notifications">
-                    <button id="notifications-btn" class="notifications-btn" aria-label="Notifications">
-                        <i class="fas fa-bell"></i>
-                        <span class="badge">3</span>
-                    </button>
-                    <div id="notifications-menu" class="dropdown-menu" aria-hidden="true">
-                        <div class="dropdown-header">
-                            <h3>Tilkynningar</h3>
-                            <button class="clear-all">Hreinsa allt</button>
-                        </div>
-                        <div class="dropdown-body">
-                            <div class="notification-item unread">
-                                <div class="notification-icon">
-                                    <i class="fas fa-user-nurse"></i>
-                                </div>
-                                <div class="notification-content">
-                                    <p>Anna tilkynnti veikindi fyrir vaktina sína</p>
-                                    <span class="notification-time">2 klst síðan</span>
-                                </div>
-                            </div>
-                            <div class="notification-item unread">
-                                <div class="notification-icon">
-                                    <i class="fas fa-calendar-check"></i>
-                                </div>
-                                <div class="notification-content">
-                                    <p>Vaktaplan fyrir næstu viku er tilbúið</p>
-                                    <span class="notification-time">5 klst síðan</span>
-                                </div>
-                            </div>
-                            <div class="notification-item">
-                                <div class="notification-icon">
-                                    <i class="fas fa-capsules"></i>
-                                </div>
-                                <div class="notification-content">
-                                    <p>Lyfjabirgðir eru að verða litlar</p>
-                                    <span class="notification-time">Í gær</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="profile">
-                    <button id="profile-btn" class="profile-btn" aria-label="User profile">
-                        <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=anna" alt="Profile Avatar for Anna">
-                    </button>
-                    <div id="profile-menu" class="dropdown-menu" aria-hidden="true">
-                        <div class="dropdown-header">
-                            <h3>Anna Sigurðardóttir</h3>
-                            <span>Vaktstjóri</span>
-                        </div>
-                        <div class="dropdown-body">
-                            <a href="#" class="dropdown-item">
-                                <i class="fas fa-user"></i>
-                                <span>Mínar síður</span>
-                            </a>
-                            <a href="#" class="dropdown-item">
-                                <i class="fas fa-cog"></i>
-                                <span>Stillingar</span>
-                            </a>
-                            <a href="#" class="dropdown-item">
-                                <i class="fas fa-sign-out-alt"></i>
-                                <span>Útskrá</span>
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </header>
-        
         <!-- Sidebar -->
         <aside class="sidebar">
-            <button id="toggle-sidebar" class="toggle-btn" aria-label="Toggle sidebar">
-                <i class="fas fa-bars"></i>
-            </button>
-            <nav class="sidebar-nav" aria-label="Main navigation">
-                <ul>
-                    <li class="nav-item">
-                        <a href="index.html">
-                            <i class="fas fa-tachometer-alt"></i>
-                            <span>Mælaborð</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="schedule.html">
-                            <i class="fas fa-calendar-alt"></i>
-                            <span>Vaktaplan</span>
-                        </a>
-                    </li>
-                    <li class="nav-item active">
-                        <a href="staff.html" aria-current="page">
-                            <i class="fas fa-user-nurse"></i>
-                            <span>Starfsfólk</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="patients.html">
-                            <i class="fas fa-user-injured"></i>
-                            <span>Sjúklingar</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="inventory.html">
-                            <i class="fas fa-box"></i>
-                            <span>Birgðir</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="medications.html">
-                            <i class="fas fa-pills"></i>
-                            <span>Lyf</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="chatbot.html">
-                            <i class="fas fa-comments"></i>
-                            <span>Spjallforrit</span>
-                        </a>
-                    </li>
-                </ul>
-            </nav>
+            <div class="sidebar-header">
+                <h1>NurseCare AI</h1>
+                <button class="toggle-btn" id="toggle-sidebar">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+            
+            <ul class="sidebar-menu">
+                <li><span class="menu-section">Main</span></li>
+                <li>
+                    <a href="../index.html">
+                        <i class="fas fa-tachometer-alt"></i>
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="../schedule/index.html">
+                        <i class="fas fa-calendar-alt"></i>
+                        <span>Schedule</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="../patients/index.html">
+                        <i class="fas fa-user-injured"></i>
+                        <span>Patients</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="../staff/index.html" class="active">
+                        <i class="fas fa-user-nurse"></i>
+                        <span>Staff</span>
+                    </a>
+                </li>
+                
+                <li><span class="menu-section">Management</span></li>
+                <li>
+                    <a href="../inventory/index.html">
+                        <i class="fas fa-box"></i>
+                        <span>Inventory</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="../dashboard/index.html">
+                        <i class="fas fa-chart-bar"></i>
+                        <span>Reports</span>
+                    </a>
+                </li>
+                
+                <li><span class="menu-section">Tools</span></li>
+                <li>
+                    <a href="../chatbot/index.html">
+                        <i class="fas fa-comment-dots"></i>
+                        <span>AI Assistant</span>
+                    </a>
+                </li>
+            </ul>
+            
+            <div class="sidebar-footer">
+                <button class="theme-toggle" id="theme-toggle">
+                    <i class="fas fa-moon"></i>
+                </button>
+                <span>v1.2.0</span>
+            </div>
         </aside>
         
         <!-- Main Content -->
-        <main class="main-content">
-            <section class="page-header">
-                <h2><i class="fas fa-user-nurse"></i> Starfsfólk</h2>
-                <div class="page-info">
-                    <span id="current-date" class="current-date">
-                        <i class="fas fa-calendar-alt"></i>
-                        Miðvikudagur, 16. apríl 2025
-                    </span>
-                    <span class="last-updated">
-                        <i class="fas fa-sync-alt"></i>
-                        Síðast uppfært: 16. apríl, 08:45
-                    </span>
+        <div class="main-content">
+            <!-- Top Navigation -->
+            <div class="top-nav">
+                <div class="welcome-message">
+                    <h2>Staff Management</h2>
+                    <div class="date-shift">
+                        <span id="current-date">Wednesday, April 16, 2025</span> | 
+                        <span id="current-shift">Morning Shift</span>
+                    </div>
                 </div>
-            </section>
-            
-            <!-- Today's Shift Summary -->
-            <section class="shift-summary-section">
-                <div class="dashboard-cards summary-cards">
-                    <article class="card summary-card">
-                        <div class="card-body">
-                            <div class="summary-icon">
-                                <i class="fas fa-clipboard-list"></i>
-                            </div>
-                            <div class="summary-content">
-                                <h3>Starfsfólk í dag</h3>
-                                <div class="summary-value">18</div>
-                                <div class="summary-details">Af 22 skráðum</div>
-                            </div>
+                
+                <div class="top-actions">
+                    <div class="language-toggle">
+                        <button class="language-btn active" data-lang="is">IS</button>
+                        <button class="language-btn" data-lang="en">EN</button>
+                    </div>
+                    
+                    <button class="notification-btn">
+                        <i class="fas fa-bell"></i>
+                        <span class="notification-count">3</span>
+                    </button>
+                    
+                    <button class="chat-toggle-btn">
+                        <i class="fas fa-comment-dots"></i>
+                    </button>
+                    
+                    <div class="user-info">
+                        <div class="user-avatar">
+                            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=anna" alt="User Avatar">
                         </div>
-                    </article>
-                    <article class="card summary-card">
-                        <div class="card-body">
-                            <div class="summary-icon warning-icon">
-                                <i class="fas fa-head-side-cough"></i>
-                            </div>
-                            <div class="summary-content">
-                                <h3>Veikindi</h3>
-                                <div class="summary-value">3</div>
-                                <div class="summary-details">+1 frá í gær</div>
-                            </div>
+                        <div class="user-details">
+                            <h4>Anna S.</h4>
+                            <span>Shift Manager</span>
                         </div>
-                    </article>
-                    <article class="card summary-card">
-                        <div class="card-body">
-                            <div class="summary-icon success-icon">
-                                <i class="fas fa-exchange-alt"></i>
-                            </div>
-                            <div class="summary-content">
-                                <h3>Afleysingar</h3>
-                                <div class="summary-value">2 / 3</div>
-                                <div class="summary-details">Nærri 100% mönnun</div>
-                            </div>
-                        </div>
-                    </article>
-                    <article class="card summary-card alert-card">
-                        <div class="card-body">
-                            <div class="summary-icon alert-icon">
-                                <i class="fas fa-exclamation-triangle"></i>
-                            </div>
-                            <div class="summary-content">
-                                <h3>AI Viðvörun</h3>
-                                <div class="alert-message">Vantar starfsmann á kvöldvakt í Deild A</div>
-                                <button class="btn-outline-sm" id="resolve-alert-btn">
-                                    <i class="fas fa-check"></i> Leysa
-                                </button>
-                            </div>
-                        </div>
-                    </article>
+                    </div>
                 </div>
-            </section>
+            </div>
             
-            <!-- Staff Distribution Charts -->
-            <section class="staff-charts-section">
-                <div class="dashboard-cards chart-cards">
-                    <article class="card chart-card">
-                        <header class="card-header">
-                            <h3><i class="fas fa-chart-pie"></i> Starfsfólk eftir hlutverki</h3>
-                        </header>
-                        <div class="card-body">
-                            <div class="chart-container">
-                                <canvas id="roleDistributionChart" aria-label="Starfsfólk eftir hlutverki" role="img"></canvas>
-                            </div>
-                        </div>
-                    </article>
-                    <article class="card chart-card">
-                        <header class="card-header">
-                            <h3><i class="fas fa-chart-bar"></i> Veikindafjarvistir í viku</h3>
-                        </header>
-                        <div class="card-body">
-                            <div class="chart-container">
-                                <canvas id="sicknessChart" aria-label="Veikindafjarvistir í viku" role="img"></canvas>
-                            </div>
-                        </div>
-                    </article>
-                </div>
-            </section>
-            
-            <!-- Staff Table Section -->
-            <section class="staff-table-section">
-                <article class="card table-card">
-                    <header class="card-header">
-                        <h3><i class="fas fa-users"></i> Starfsmannalisti</h3>
-                        <div class="card-actions">
-                            <button id="add-staff-btn" class="btn-primary">
-                                <i class="fas fa-user-plus"></i> Bæta við starfsmanni
-                            </button>
-                        </div>
-                    </header>
-                    <div class="card-body">
-                        <div class="table-toolbar">
-                            <div class="search-filter">
-                                <div class="search-container">
-                                    <i class="fas fa-search search-icon"></i>
-                                    <input type="text" id="staff-search" class="search-input" placeholder="Leita af starfsmanni..." aria-label="Leita af starfsmanni">
+            <!-- Dashboard Grid -->
+            <div class="dashboard-grid">
+                <!-- Staff Overview Card -->
+                <div class="dashboard-card">
+                    <div class="card-header">
+                        <h3>Staff Overview</h3>
+                        <button class="action-btn" id="refresh-staff">
+                            <i class="fas fa-sync-alt"></i>
+                        </button>
+                    </div>
+                    <div class="card-content">
+                        <div class="overview-stats">
+                            <div class="overview-stat">
+                                <div class="stat-icon">
+                                    <i class="fas fa-user-nurse"></i>
                                 </div>
-                                <div class="filter-container">
-                                    <select id="role-filter" class="filter-select" aria-label="Sía eftir hlutverki">
-                                        <option value="">Öll hlutverk</option>
-                                        <option value="Hjúkrunarfræðingur">Hjúkrunarfræðingur</option>
-                                        <option value="Sjúkraliði">Sjúkraliði</option>
-                                        <option value="Læknir">Læknir</option>
-                                        <option value="Aðstoðarfólk">Aðstoðarfólk</option>
-                                        <option value="Ræsting">Ræsting</option>
-                                    </select>
-                                    <select id="department-filter" class="filter-select" aria-label="Sía eftir deild">
-                                        <option value="">Allar deildir</option>
-                                        <option value="Deild A">Deild A</option>
-                                        <option value="Deild B">Deild B</option>
-                                        <option value="Deild C">Deild C</option>
-                                        <option value="Deild D">Deild D</option>
-                                    </select>
-                                    <select id="status-filter" class="filter-select" aria-label="Sía eftir stöðu">
-                                        <option value="">Allar stöður</option>
-                                        <option value="Á vakt">Á vakt</option>
-                                        <option value="Veikur">Veikur</option>
-                                        <option value="Frí">Frí</option>
-                                    </select>
+                                <div class="stat-info">
+                                    <div class="stat-label">Total Staff</div>
+                                    <div class="stat-value">24</div>
                                 </div>
                             </div>
-                            <div class="table-actions">
-                                <button id="remove-selected-btn" class="btn-danger" disabled>
-                                    <i class="fas fa-trash"></i> Fjarlægja valið
-                                </button>
-                                <button id="export-staff-btn" class="btn-outline">
-                                    <i class="fas fa-file-export"></i> Flytja út
-                                </button>
-                            </div>
-                        </div>
-                        
-                        <div class="table-container">
-                            <table id="staff-table" class="data-table">
-                                <thead>
-                                    <tr>
-                                        <th>
-                                            <input type="checkbox" id="select-all" aria-label="Velja allt">
-                                        </th>
-                                        <th>Nafn</th>
-                                        <th>Hlutverk</th>
-                                        <th>Deild</th>
-                                        <th>Staða</th>
-                                        <th>Vaktatími</th>
-                                        <th>Netfang</th>
-                                        <th>Aðgerðir</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="staff-table-body">
-                                    <!-- Table data will be populated by JavaScript -->
-                                </tbody>
-                            </table>
-                        </div>
-                        
-                        <div class="table-pagination">
-                            <div class="pagination-info">
-                                Sýni <span id="showing-start">1</span> - <span id="showing-end">10</span> af <span id="total-entries">22</span> starfsmönnum
-                            </div>
-                            <div class="pagination-controls">
-                                <button id="prev-page" class="pagination-btn" disabled>
-                                    <i class="fas fa-chevron-left"></i> Fyrri
-                                </button>
-                                <div class="page-numbers">
-                                    <span class="current-page">1</span> af <span id="total-pages">3</span>
+                            <div class="overview-stat">
+                                <div class="stat-icon" style="background-color: #4cc9f0;">
+                                    <i class="fas fa-user-check"></i>
                                 </div>
-                                <button id="next-page" class="pagination-btn">
-                                    Næsta <i class="fas fa-chevron-right"></i>
-                                </button>
+                                <div class="stat-info">
+                                    <div class="stat-label">On Duty</div>
+                                    <div class="stat-value">16</div>
+                                </div>
+                            </div>
+                            <div class="overview-stat">
+                                <div class="stat-icon" style="background-color: #f72585;">
+                                    <i class="fas fa-user-clock"></i>
+                                </div>
+                                <div class="stat-info">
+                                    <div class="stat-label">On Leave</div>
+                                    <div class="stat-value">3</div>
+                                </div>
+                            </div>
+                            <div class="overview-stat">
+                                <div class="stat-icon" style="background-color: #ffd166;">
+                                    <i class="fas fa-user-shield"></i>
+                                </div>
+                                <div class="stat-info">
+                                    <div class="stat-label">Unassigned</div>
+                                    <div class="stat-value">5</div>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </article>
-            </section>
+                </div>
+                
+                <!-- Staff List Card -->
+                <div class="dashboard-card">
+                    <div class="card-header">
+                        <h3>Staff List</h3>
+                        <div>
+                            <button class="btn btn-primary" id="add-staff-btn">
+                                <i class="fas fa-plus"></i> Add Staff
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-content">
+                        <div class="staff-search">
+                            <div class="search-box">
+                                <i class="fas fa-search"></i>
+                                <input type="text" placeholder="Search staff...">
+                            </div>
+                            <div class="filter-options">
+                                <select>
+                                    <option value="">All Roles</option>
+                                    <option value="nurse">Nurse</option>
+                                    <option value="doctor">Doctor</option>
+                                    <option value="admin">Admin</option>
+                                </select>
+                                <select>
+                                    <option value="">All Status</option>
+                                    <option value="active">Active</option>
+                                    <option value="leave">On Leave</option>
+                                    <option value="inactive">Inactive</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="staff-list">
+                            <div class="staff-item">
+                                <div class="staff-avatar">
+                                    <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=john" alt="John Doe">
+                                </div>
+                                <div class="staff-details">
+                                    <h4>John Doe</h4>
+                                    <span class="staff-role">Senior Nurse</span>
+                                    <span class="staff-status active">Active</span>
+                                </div>
+                                <div class="staff-actions">
+                                    <button class="action-btn view-btn" data-action="view" data-id="1">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    <button class="action-btn edit-btn" data-action="edit" data-id="1">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="action-btn delete-btn" data-action="delete" data-id="1">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="staff-item">
+                                <div class="staff-avatar">
+                                    <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=jane" alt="Jane Smith">
+                                </div>
+                                <div class="staff-details">
+                                    <h4>Jane Smith</h4>
+                                    <span class="staff-role">Doctor</span>
+                                    <span class="staff-status active">Active</span>
+                                </div>
+                                <div class="staff-actions">
+                                    <button class="action-btn view-btn" data-action="view" data-id="2">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    <button class="action-btn edit-btn" data-action="edit" data-id="2">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="action-btn delete-btn" data-action="delete" data-id="2">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="staff-item">
+                                <div class="staff-avatar">
+                                    <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=robert" alt="Robert Johnson">
+                                </div>
+                                <div class="staff-details">
+                                    <h4>Robert Johnson</h4>
+                                    <span class="staff-role">Intern</span>
+                                    <span class="staff-status inactive">On Leave</span>
+                                </div>
+                                <div class="staff-actions">
+                                    <button class="action-btn view-btn" data-action="view" data-id="3">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    <button class="action-btn edit-btn" data-action="edit" data-id="3">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="action-btn delete-btn" data-action="delete" data-id="3">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="staff-item">
+                                <div class="staff-avatar">
+                                    <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=mary" alt="Mary Williams">
+                                </div>
+                                <div class="staff-details">
+                                    <h4>Mary Williams</h4>
+                                    <span class="staff-role">Head Nurse</span>
+                                    <span class="staff-status active">Active</span>
+                                </div>
+                                <div class="staff-actions">
+                                    <button class="action-btn view-btn" data-action="view" data-id="4">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    <button class="action-btn edit-btn" data-action="edit" data-id="4">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="action-btn delete-btn" data-action="delete" data-id="4">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="pagination">
+                            <button class="pagination-btn" disabled>
+                                <i class="fas fa-chevron-left"></i>
+                            </button>
+                            <span class="pagination-info">Page 1 of 3</span>
+                            <button class="pagination-btn">
+                                <i class="fas fa-chevron-right"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Staff Charts -->
+                <div class="dashboard-card">
+                    <div class="card-header">
+                        <h3>Staff Analytics</h3>
+                    </div>
+                    <div class="card-content">
+                        <div class="charts-container">
+                            <div class="chart-wrapper">
+                                <h4>Staff Distribution</h4>
+                                <div class="chart-container">
+                                    <canvas id="staffDistributionChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
             
             <!-- Add Staff Modal -->
-            <div id="add-staff-modal" class="modal" aria-hidden="true">
+            <div class="modal" id="add-staff-modal">
                 <div class="modal-overlay"></div>
                 <div class="modal-container">
                     <div class="modal-header">
-                        <h3><i class="fas fa-user-plus"></i> Bæta við starfsmanni</h3>
-                        <button class="close-modal" aria-label="Loka glugga">
-                            <i class="fas fa-times"></i>
-                        </button>
+                        <h3>Add New Staff</h3>
+                        <button class="close-modal">&times;</button>
                     </div>
                     <div class="modal-body">
                         <form id="add-staff-form">
                             <div class="form-row">
                                 <div class="form-group">
-                                    <label for="staff-name">Nafn <span class="required">*</span></label>
+                                    <label for="staff-name">Full Name</label>
                                     <input type="text" id="staff-name" class="form-control" required>
                                 </div>
                                 <div class="form-group">
-                                    <label for="staff-role">Hlutverk <span class="required">*</span></label>
-                                    <select id="staff-role" class="form-control" required>
-                                        <option value="">Veldu hlutverk</option>
-                                        <option value="Hjúkrunarfræðingur">Hjúkrunarfræðingur</option>
-                                        <option value="Sjúkraliði">Sjúkraliði</option>
-                                        <option value="Læknir">Læknir</option>
-                                        <option value="Aðstoðarfólk">Aðstoðarfólk</option>
-                                        <option value="Ræsting">Ræsting</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label for="staff-email">Netfang <span class="required">*</span></label>
+                                    <label for="staff-email">Email</label>
                                     <input type="email" id="staff-email" class="form-control" required>
                                 </div>
+                            </div>
+                            <div class="form-row">
                                 <div class="form-group">
-                                    <label for="staff-phone">Símanúmer</label>
+                                    <label for="staff-role">Role</label>
+                                    <select id="staff-role" class="form-control" required>
+                                        <option value="">Select Role</option>
+                                        <option value="nurse">Nurse</option>
+                                        <option value="doctor">Doctor</option>
+                                        <option value="admin">Admin Staff</option>
+                                        <option value="intern">Intern</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="staff-status">Status</label>
+                                    <select id="staff-status" class="form-control" required>
+                                        <option value="active">Active</option>
+                                        <option value="leave">On Leave</option>
+                                        <option value="inactive">Inactive</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="staff-phone">Phone</label>
                                     <input type="tel" id="staff-phone" class="form-control">
                                 </div>
-                            </div>
-                            <div class="form-row">
                                 <div class="form-group">
-                                    <label for="staff-department">Deild <span class="required">*</span></label>
-                                    <select id="staff-department" class="form-control" required>
-                                        <option value="">Veldu deild</option>
-                                        <option value="Deild A">Deild A</option>
-                                        <option value="Deild B">Deild B</option>
-                                        <option value="Deild C">Deild C</option>
-                                        <option value="Deild D">Deild D</option>
+                                    <label for="staff-department">Department</label>
+                                    <select id="staff-department" class="form-control">
+                                        <option value="">Select Department</option>
+                                        <option value="emergency">Emergency</option>
+                                        <option value="cardiology">Cardiology</option>
+                                        <option value="neurology">Neurology</option>
+                                        <option value="pediatrics">Pediatrics</option>
                                     </select>
-                                </div>
-                                <div class="form-group">
-                                    <label for="staff-status">Staða <span class="required">*</span></label>
-                                    <select id="staff-status" class="form-control" required>
-                                        <option value="">Veldu stöðu</option>
-                                        <option value="Á vakt">Á vakt</option>
-                                        <option value="Veikur">Veikur</option>
-                                        <option value="Frí">Frí</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label for="staff-shift">Vaktatími</label>
-                                    <select id="staff-shift" class="form-control">
-                                        <option value="">Veldu vaktatíma</option>
-                                        <option value="Morgunvakt (07:00-15:00)">Morgunvakt (07:00-15:00)</option>
-                                        <option value="Kvöldvakt (15:00-23:00)">Kvöldvakt (15:00-23:00)</option>
-                                        <option value="Næturvakt (23:00-07:00)">Næturvakt (23:00-07:00)</option>
-                                        <option value="Dagvakt (09:00-17:00)">Dagvakt (09:00-17:00)</option>
-                                    </select>
-                                </div>
-                                <div class="form-group">
-                                    <label for="staff-certification">Vottun/Sérhæfing</label>
-                                    <input type="text" id="staff-certification" class="form-control">
                                 </div>
                             </div>
                             <div class="form-group">
-                                <label for="staff-notes">Athugasemdir</label>
+                                <label for="staff-notes">Notes</label>
                                 <textarea id="staff-notes" class="form-control" rows="3"></textarea>
                             </div>
                             <div class="form-actions">
-                                <button type="button" class="btn-outline cancel-btn">Hætta við</button>
-                                <button type="submit" class="btn-primary submit-btn">Bæta við starfsmanni</button>
+                                <button type="button" class="btn btn-outline" data-dismiss="modal">Cancel</button>
+                                <button type="submit" class="btn btn-primary">Add Staff</button>
                             </div>
                         </form>
                     </div>
                 </div>
             </div>
             
-            <!-- Edit Staff Modal -->
-            <div id="edit-staff-modal" class="modal" aria-hidden="true">
+            <!-- View Staff Modal -->
+            <div class="modal" id="view-staff-modal">
                 <div class="modal-overlay"></div>
                 <div class="modal-container">
                     <div class="modal-header">
-                        <h3><i class="fas fa-user-edit"></i> Breyta starfsmanni</h3>
-                        <button class="close-modal" aria-label="Loka glugga">
-                            <i class="fas fa-times"></i>
-                        </button>
+                        <h3>Staff Details</h3>
+                        <button class="close-modal">&times;</button>
                     </div>
                     <div class="modal-body">
-                        <form id="edit-staff-form">
-                            <input type="hidden" id="edit-staff-id">
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label for="edit-staff-name">Nafn <span class="required">*</span></label>
-                                    <input type="text" id="edit-staff-name" class="form-control" required>
-                                </div>
-                                <div class="form-group">
-                                    <label for="edit-staff-role">Hlutverk <span class="required">*</span></label>
-                                    <select id="edit-staff-role" class="form-control" required>
-                                        <option value="">Veldu hlutverk</option>
-                                        <option value="Hjúkrunarfræðingur">Hjúkrunarfræðingur</option>
-                                        <option value="Sjúkraliði">Sjúkraliði</option>
-                                        <option value="Læknir">Læknir</option>
-                                        <option value="Aðstoðarfólk">Aðstoðarfólk</option>
-                                        <option value="Ræsting">Ræsting</option>
-                                    </select>
-                                </div>
+                        <div class="staff-profile">
+                            <div class="staff-avatar-large">
+                                <img id="view-staff-avatar" src="https://api.dicebear.com/7.x/avataaars/svg?seed=john" alt="Staff Avatar">
                             </div>
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label for="edit-staff-email">Netfang <span class="required">*</span></label>
-                                    <input type="email" id="edit-staff-email" class="form-control" required>
-                                </div>
-                                <div class="form-group">
-                                    <label for="edit-staff-phone">Símanúmer</label>
-                                    <input type="tel" id="edit-staff-phone" class="form-control">
-                                </div>
+                            <div class="staff-info">
+                                <h2 id="view-staff-name">John Doe</h2>
+                                <span id="view-staff-role" class="badge">Senior Nurse</span>
+                                <span id="view-staff-status" class="badge active">Active</span>
                             </div>
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label for="edit-staff-department">Deild <span class="required">*</span></label>
-                                    <select id="edit-staff-department" class="form-control" required>
-                                        <option value="">Veldu deild</option>
-                                        <option value="Deild A">Deild A</option>
-                                        <option value="Deild B">Deild B</option>
-                                        <option value="Deild C">Deild C</option>
-                                        <option value="Deild D">Deild D</option>
-                                    </select>
-                                </div>
-                                <div class="form-group">
-                                    <label for="edit-staff-status">Staða <span class="required">*</span></label>
-                                    <select id="edit-staff-status" class="form-control" required>
-                                        <option value="">Veldu stöðu</option>
-                                        <option value="Á vakt">Á vakt</option>
-                                        <option value="Veikur">Veikur</option>
-                                        <option value="Frí">Frí</option>
-                                    </select>
-                                </div>
+                        </div>
+                        <div class="staff-details-grid">
+                            <div class="detail-item">
+                                <span class="detail-label">Email</span>
+                                <span id="view-staff-email" class="detail-value">john.doe@example.com</span>
                             </div>
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label for="edit-staff-shift">Vaktatími</label>
-                                    <select id="edit-staff-shift" class="form-control">
-                                        <option value="">Veldu vaktatíma</option>
-                                        <option value="Morgunvakt (07:00-15:00)">Morgunvakt (07:00-15:00)</option>
-                                        <option value="Kvöldvakt (15:00-23:00)">Kvöldvakt (15:00-23:00)</option>
-                                        <option value="Næturvakt (23:00-07:00)">Næturvakt (23:00-07:00)</option>
-                                        <option value="Dagvakt (09:00-17:00)">Dagvakt (09:00-17:00)</option>
-                                    </select>
-                                </div>
-                                <div class="form-group">
-                                    <label for="edit-staff-certification">Vottun/Sérhæfing</label>
-                                    <input type="text" id="edit-staff-certification" class="form-control">
-                                </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Phone</span>
+                                <span id="view-staff-phone" class="detail-value">+1 (555) 123-4567</span>
                             </div>
-                            <div class="form-group">
-                                <label for="edit-staff-notes">Athugasemdir</label>
-                                <textarea id="edit-staff-notes" class="form-control" rows="3"></textarea>
+                            <div class="detail-item">
+                                <span class="detail-label">Department</span>
+                                <span id="view-staff-department" class="detail-value">Emergency</span>
                             </div>
-                            <div class="form-actions">
-                                <button type="button" class="btn-outline cancel-btn">Hætta við</button>
-                                <button type="submit" class="btn-primary submit-btn">Vista breytingar</button>
+                            <div class="detail-item">
+                                <span class="detail-label">Joined</span>
+                                <span id="view-staff-joined" class="detail-value">Jan 15, 2023</span>
                             </div>
-                        </form>
+                            <div class="detail-item full-width">
+                                <span class="detail-label">Notes</span>
+                                <p id="view-staff-notes" class="detail-value">
+                                    Experienced nurse with specialty in emergency care. 
+                                    Team leader for night shift. Certified in advanced life support.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-outline" data-dismiss="modal">Close</button>
+                        <button class="btn btn-primary" data-action="edit" data-id="1">Edit</button>
                     </div>
                 </div>
             </div>
-            
-            <!-- Confirmation Modal -->
-            <div id="confirm-modal" class="modal" aria-hidden="true">
-                <div class="modal-overlay"></div>
-                <div class="modal-container confirm-container">
-                    <div class="modal-header">
-                        <h3><i class="fas fa-exclamation-triangle"></i> <span id="confirm-title">Staðfesta aðgerð</span></h3>
-                        <button class="close-modal" aria-label="Loka glugga">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    </div>
-                    <div class="modal-body">
-                        <p id="confirm-message">Ertu viss um að þú viljir framkvæma þessa aðgerð?</p>
-                        <div class="form-actions">
-                            <button type="button" class="btn-outline cancel-btn">Hætta við</button>
-                            <button type="button" id="confirm-action" class="btn-danger">Staðfesta</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Staff Details Modal -->
-            <div id="staff-details-modal" class="modal" aria-hidden="true">
-                <div class="modal-overlay"></div>
-                <div class="modal-container">
-                    <div class="modal-header">
-                        <h3><i class="fas fa-id-card"></i> Starfsmannaupplýsingar</h3>
-                        <button class="close-modal" aria-label="Loka glugga">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    </div>
-                    <div class="modal-body">
-                        <div class="staff-details-content">
-                            <div class="staff-profile">
-                                <div class="staff-avatar">
-                                    <img id="staff-avatar" src="https://api.dicebear.com/7.x/avataaars/svg?seed=default" alt="Staff avatar">
-                                </div>
-                                <div class="staff-info">
-                                    <h2 id="detail-staff-name">Nafn starfsmanns</h2>
-                                    <p id="detail-staff-role" class="staff-role">Hlutverk</p>
-                                    <div class="staff-contact">
-                                        <p><i class="fas fa-envelope"></i> <span id="detail-staff-email">email@example.com</span></p>
-                                        <p><i class="fas fa-phone"></i> <span id="detail-staff-phone">555-1234</span></p>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="staff-details-grid">
-                                <div class="detail-item">
-                                    <div class="detail-label">Deild</div>
-                                    <div id="detail-staff-department" class="detail-value">Deild A</div>
-                                </div>
-                                <div class="detail-item">
-                                    <div class="detail-label">Staða</div>
-                                    <div id="detail-staff-status" class="detail-value">Á vakt</div>
-                                </div>
-                                <div class="detail-item">
-                                    <div class="detail-label">Vaktatími</div>
-                                    <div id="detail-staff-shift" class="detail-value">Morgunvakt (07:00-15:00)</div>
-                                </div>
-                                <div class="detail-item">
-                                    <div class="detail-label">Vottun/Sérhæfing</div>
-                                    <div id="detail-staff-certification" class="detail-value">Hjúkrunarfræðingur með sérhæfingu í öldrunarhjúkrun</div>
-                                </div>
-                            </div>
-                            <div class="detail-notes">
-                                <div class="detail-label">Athugasemdir</div>
-                                <div id="detail-staff-notes" class="detail-value">Engar athugasemdir skráðar.</div>
-                            </div>
-                        </div>
-                        <div class="staff-charts">
-                            <div class="chart-container">
-                                <h4>Viðveruhlutfall síðasta mánuð</h4>
-                                <canvas id="staff-attendance-chart" aria-label="Viðveruhlutfall starfsmanns"></canvas>
-                            </div>
-                        </div>
-                        <div class="staff-shift-history">
-                            <h4>Vaktasaga síðustu viku</h4>
-                            <table class="shift-history-table">
-                                <thead>
-                                    <tr>
-                                        <th>Dagur</th>
-                                        <th>Dagsetning</th>
-                                        <th>Vaktatími</th>
-                                        <th>Deild</th>
-                                        <th>Staða</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="shift-history-body">
-                                    <!-- Will be populated by JavaScript -->
-                                </tbody>
-                            </table>
-                        </div>
-                        <div class="modal-actions">
-                            <button class="btn-outline" id="print-profile-btn">
-                                <i class="fas fa-print"></i> Prenta upplýsingar
-                            </button>
-                            <button class="btn-primary" id="edit-staff-details-btn">
-                                <i class="fas fa-user-edit"></i> Breyta upplýsingum
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </main>
-        
-        <!-- AI Widget -->
-        <div class="ai-widget">
-            <div class="ai-widget-container" id="ai-widget-container">
-                <div class="ai-widget-header">
-                    <div class="ai-widget-title">
-                        <i class="fas fa-robot"></i>
-                        <span>NurseCare AI Aðstoðarmaður</span>
-                    </div>
-                    <div class="ai-widget-actions">
-                        <button class="ai-widget-action" id="ai-minimize-btn" aria-label="Minimize">
-                            <i class="fas fa-minus"></i>
-                        </button>
-                        <button class="ai-widget-action" id="ai-clear-btn" aria-label="Clear chat">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </div>
-                </div>
-                <div class="ai-widget-body" id="ai-widget-messages" aria-live="polite">
-                    <!-- Messages will be dynamically added here -->
-                </div>
-                <div class="ai-widget-footer">
-                    <textarea 
-                        class="ai-widget-input" 
-                        id="ai-widget-input" 
-                        placeholder="Spyrðu um starfsfólk, vaktaskiptingar..." 
-                        rows="1"
-                        aria-label="Chat message"
-                    ></textarea>
-                    <button class="ai-widget-send" id="ai-widget-send" aria-label="Send message" disabled>
-                        <i class="fas fa-paper-plane"></i>
-                    </button>
-                </div>
-            </div>
-            <button class="ai-widget-button" id="ai-widget-toggle" aria-label="Toggle AI assistant">
-                <i class="fas fa-robot"></i>
-            </button>
         </div>
-
-        <!-- Scroll to top button -->
-        <button id="scroll-to-top" class="scroll-to-top" aria-label="Scroll to top">
-            <i class="fas fa-arrow-up"></i>
-        </button>
     </div>
-
-    <!-- Toast Container -->
-    <div id="toast-container" class="toast-container" aria-live="polite"></div>
-
-    <!-- Application Scripts -->
-    <script src="script.js"></script>
-    <script src="assets/scripts/ai-widget.js"></script>
+    
+    <!-- Main JavaScript -->
+    <script src="../script.js"></script>
+    
+    <!-- Staff Specific JavaScript -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize staff page specific elements
+            initializeStaffCharts();
+            initializeStaffModals();
+        });
+        
+        function initializeStaffCharts() {
+            const ctx = document.getElementById('staffDistributionChart');
+            if (!ctx) return;
+            
+            const staffChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Nurses', 'Doctors', 'Admin', 'Interns'],
+                    datasets: [{
+                        data: [12, 5, 4, 3],
+                        backgroundColor: [
+                            '#4a6cf7',
+                            '#4cc9f0',
+                            '#f72585',
+                            '#ffd166'
+                        ],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    },
+                    cutout: '70%'
+                }
+            });
+        }
+        
+        function initializeStaffModals() {
+            // Add staff button
+            const addStaffBtn = document.getElementById('add-staff-btn');
+            const addStaffModal = document.getElementById('add-staff-modal');
+            
+            if (addStaffBtn && addStaffModal) {
+                addStaffBtn.addEventListener('click', function() {
+                    addStaffModal.classList.add('show');
+                });
+            }
+            
+            // View staff buttons
+            const viewButtons = document.querySelectorAll('[data-action="view"]');
+            const viewStaffModal = document.getElementById('view-staff-modal');
+            
+            viewButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const staffId = this.getAttribute('data-id');
+                    // In a real app, fetch staff details by ID
+                    // For now, just show the modal
+                    if (viewStaffModal) {
+                        viewStaffModal.classList.add('show');
+                    }
+                });
+            });
+            
+            // Close modals
+            const closeButtons = document.querySelectorAll('.close-modal, [data-dismiss="modal"]');
+            closeButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const modal = this.closest('.modal');
+                    if (modal) {
+                        modal.classList.remove('show');
+                    }
+                });
+            });
+            
+            // Form submission
+            const addStaffForm = document.getElementById('add-staff-form');
+            if (addStaffForm) {
+                addStaffForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    // In a real app, save the form data
+                    // For now, just close the modal and show a success message
+                    addStaffModal.classList.remove('show');
+                    showToast('Success', 'Staff member added successfully', 'success');
+                });
+            }
+        }
+        
+        function showToast(title, message, type = 'info') {
+            const toastContainer = document.querySelector('.toast-container') || createToastContainer();
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            
+            toast.innerHTML = `
+                <div class="toast-icon">
+                    <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'warning' ? 'exclamation-triangle' : 'info-circle'}"></i>
+                </div>
+                <div class="toast-content">
+                    <h4 class="toast-title">${title}</h4>
+                    <p class="toast-message">${message}</p>
+                </div>
+                <button class="toast-close">&times;</button>
+            `;
+            
+            toastContainer.appendChild(toast);
+            
+            // Show the toast
+            setTimeout(() => {
+                toast.classList.add('show');
+            }, 10);
+            
+            // Auto close after 5 seconds
+            setTimeout(() => {
+                toast.classList.add('toast-hide');
+                setTimeout(() => {
+                    toast.remove();
+                }, 300);
+            }, 5000);
+            
+            // Close button
+            const closeButton = toast.querySelector('.toast-close');
+            if (closeButton) {
+                closeButton.addEventListener('click', () => {
+                    toast.classList.add('toast-hide');
+                    setTimeout(() => {
+                        toast.remove();
+                    }, 300);
+                });
+            }
+        }
+        
+        function createToastContainer() {
+            const container = document.createElement('div');
+            container.className = 'toast-container';
+            document.body.appendChild(container);
+            return container;
+        }
+    </script>
 </body>
-</html>
+</html> 

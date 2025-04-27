@@ -1,139 +1,124 @@
-import { validateSession, SESSION_KEYS } from './auth.js';
-import { hasPermission } from './roles.js';
+import { validateSession, logout } from './auth.js';
 
-/**
- * Initialize page requirements
- */
-export function initializePage() {
-    // Validate auth first
-    if (!validateSession()) {
-        return false;
-    }
+console.log('Common Module Loaded');
 
-    // Get current page name from path
-    const pageName = getCurrentPageName();
-    const userRole = localStorage.getItem(SESSION_KEYS.ROLE);
-    
-    try {
-        // Check page-specific permissions
-        if (!hasPagePermission(pageName, userRole)) {
-            window.location.href = '/public/unauthorized.html';
-            return false;
-        }
+export function initializeApp() {
+    console.log('Initializing application...');
+    return validateSession();
+}
+
+export function setupCommonUI() {
+    console.log('Setting up common UI elements...');
+    setupTheme();
+    setupNotifications();
+    setupUserProfile();
+    setupNavigation();
+}
+
+function setupTheme() {
+    console.log('Setting up theme...');
+    const themeToggle = document.getElementById('theme-toggle');
+    if (themeToggle) {
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        document.body.classList.toggle('dark-mode', savedTheme === 'dark');
+        updateThemeIcon(savedTheme === 'dark');
         
-        setupUI();
-        return true;
-    } catch (e) {
-        console.error('Page initialization failed:', e);
-        return false;
+        themeToggle.addEventListener('click', () => {
+            const isDark = document.body.classList.toggle('dark-mode');
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+            updateThemeIcon(isDark);
+            console.log('Theme toggled:', isDark ? 'dark' : 'light');
+        });
     }
 }
 
-/**
- * Get current page name from path
- */
-function getCurrentPageName() {
-    const path = window.location.pathname;
-    const pageName = path.split('/').pop().replace('.html', '');
-    return pageName || 'dashboard';
+function updateThemeIcon(isDark) {
+    const icon = document.querySelector('#theme-toggle i');
+    const text = document.querySelector('#theme-toggle span');
+    if (icon) {
+        icon.className = isDark ? 'fas fa-sun' : 'fas fa-moon';
+    }
+    if (text) {
+        text.textContent = isDark ? 'Light Mode' : 'Dark Mode';
+    }
 }
 
-/**
- * Check if user has permission for the current page
- */
-function hasPagePermission(pageName, userRole) {
-    const pagePermissions = {
-        'dashboard': ['ADMIN', 'NURSE', 'STAFF', 'INVENTORY'],
-        'patients': ['ADMIN', 'NURSE', 'STAFF'],
-        'inventory': ['ADMIN', 'INVENTORY'],
-        'staff': ['ADMIN'],
-        'reports': ['ADMIN', 'NURSE'],
-        'settings': ['ADMIN']
-    };
-
-    const allowedRoles = pagePermissions[pageName] || ['ADMIN'];
-    return allowedRoles.includes(userRole?.toUpperCase());
+function setupNotifications() {
+    console.log('Setting up notifications...');
+    const notificationsBtn = document.getElementById('notifications-btn');
+    const notificationsMenu = document.getElementById('notifications-menu');
+    
+    if (notificationsBtn && notificationsMenu) {
+        notificationsBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            notificationsMenu.classList.toggle('show');
+            console.log('Notifications toggled');
+        });
+        
+        document.addEventListener('click', (e) => {
+            if (!notificationsMenu.contains(e.target)) {
+                notificationsMenu.classList.remove('show');
+            }
+        });
+    }
 }
 
-/**
- * Setup common UI elements
- */
-function setupUI() {
-    setupSidebar();
-    setupHeader();
-    setupThemeToggle();
-    setupLogoutHandler();
+function setupUserProfile() {
+    console.log('Setting up user profile...');
+    const profileBtn = document.getElementById('profile-btn');
+    const profileMenu = document.getElementById('profile-menu');
+    const logoutBtn = document.getElementById('logoutBtn');
+    
+    if (profileBtn && profileMenu) {
+        profileBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            profileMenu.classList.toggle('show');
+            console.log('Profile menu toggled');
+        });
+        
+        document.addEventListener('click', (e) => {
+            if (!profileMenu.contains(e.target)) {
+                profileMenu.classList.remove('show');
+            }
+        });
+    }
+    
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            console.log('Logout clicked');
+            logout();
+        });
+    }
 }
 
-/**
- * Setup sidebar navigation
- */
-function setupSidebar() {
-    const sidebar = document.querySelector('.sidebar');
+function setupNavigation() {
+    console.log('Setting up navigation...');
     const toggleBtn = document.getElementById('toggle-sidebar');
+    const sidebar = document.querySelector('.sidebar');
     
     if (toggleBtn && sidebar) {
         toggleBtn.addEventListener('click', () => {
             sidebar.classList.toggle('expanded');
+            console.log('Sidebar toggled');
         });
     }
-}
-
-/**
- * Setup header components
- */
-function setupHeader() {
-    const username = localStorage.getItem(SESSION_KEYS.USERNAME);
-    const userRole = localStorage.getItem(SESSION_KEYS.ROLE);
     
-    // Update user info if elements exist
-    const userNameElement = document.querySelector('.user-name');
-    const userRoleElement = document.querySelector('.user-role');
-    
-    if (userNameElement) {
-        userNameElement.textContent = username || 'User';
-    }
-    if (userRoleElement) {
-        userRoleElement.textContent = userRole || 'Guest';
-    }
+    // Handle active nav item
+    const currentPath = window.location.pathname;
+    const navItems = document.querySelectorAll('.nav-item');
+    navItems.forEach(item => {
+        const link = item.querySelector('a');
+        if (link && (link.getAttribute('href') === currentPath || 
+                    link.getAttribute('href') === currentPath + '.html')) {
+            item.classList.add('active');
+        }
+    });
 }
 
-/**
- * Setup theme toggle
- */
-function setupThemeToggle() {
-    const themeToggle = document.getElementById('theme-toggle');
-    if (themeToggle) {
-        themeToggle.addEventListener('click', () => {
-            document.body.classList.toggle('dark-mode');
-            updateThemeIcon(themeToggle, document.body.classList.contains('dark-mode'));
-        });
+// Initialize common functionality when DOM is loaded
+document.addEventListener('DOMContentLoaded', () => {
+    if (initializeApp()) {
+        setupCommonUI();
     }
-}
-
-/**
- * Update theme toggle icon
- */
-function updateThemeIcon(button, isDark) {
-    const icon = button.querySelector('i');
-    if (icon) {
-        icon.className = isDark ? 'fas fa-sun' : 'fas fa-moon';
-    }
-}
-
-/**
- * Setup logout handler
- */
-function setupLogoutHandler() {
-    const logoutBtn = document.getElementById('logoutBtn');
-    if (logoutBtn) {
-        logoutBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            localStorage.clear();
-            window.location.href = '/public/login.html';
-        });
-    }
-}
-
-// Initialize page on load
-document.addEventListener('DOMContentLoaded', initializePage);
+});

@@ -1,110 +1,121 @@
+import OpenAI from 'openai';
 import express from 'express';
-import cors from 'cors';
-import axios from 'axios';
-import http from 'http';
-import { fileURLToPath } from 'url';
-import { dirname, resolve } from 'path';
-import dotenv from 'dotenv';
+import rateLimit from 'express-rate-limit';
+import { validateSession } from '../public/scripts/auth.js';
 
-// Get __dirname equivalent in ES modules
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+console.log('OpenAI Proxy Module Loaded');
 
-// Load environment variables from .env file
-dotenv.config({ path: resolve(__dirname, '../.env') });
+const router = express.Router();
 
-const app = express();
-const PORT = 5000;
-
-// Setup enhanced CORS to ensure it works with Bolt
-app.use(cors({
-    origin: '*',
-    methods: ['GET', 'POST', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization']
-}));
-
-app.use(express.json());
-
-// Add options pre-flight handling for all routes
-app.options('*', cors());
-
-// Health check route
-app.get("/test", (req, res) => {
-    console.log("Health check request received");
-    res.send("✅ The proxy is working!");
+// Initialize OpenAI client
+const openai = new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY
 });
 
-// OpenAI test route
-app.get("/openai", (req, res) => {
-    console.log("OpenAI test route accessed");
-    res.json({ message: "OpenAI Proxy is working!" });
+// Rate limiting
+const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 100 // limit each IP to 100 requests per windowMs
 });
 
-// Enhanced OpenAI route with better error handling
-app.post("/openai", async (req, res) => {
-    console.log("OpenAI API request received");
+router.use(limiter);
+
+// Middleware to validate user session
+router.use((req, res, next) => {
+    if (!validateSession(req)) {
+        return res.status(401).json({ error: 'Unauthorized' });
+    }
+    next();
+});
+
+// Generate AI report
+router.post('/generate', async (req, res) => {
     try {
-        // Validate API key
-        const apiKey = process.env.OPENAI_API_KEY;
-        if (!apiKey) {
-            console.error("API key missing");
-            throw new Error('OpenAI API key not configured in environment variables');
-        }
-
-        // Validate request body
-        if (!req.body.messages || !Array.isArray(req.body.messages)) {
-            console.error("Invalid request body format");
-            return res.status(400).json({ error: 'Invalid request format: messages array required' });
-        }
-
-        console.log("Sending request to OpenAI API");
-        const openAIResponse = await axios.post(
-            "https://api.openai.com/v1/chat/completions",
-            {
-                model: "gpt-4",
-                messages: req.body.messages,
-                max_tokens: 1000
-            },
-            {
-                headers: {
-                    "Authorization": `Bearer ${apiKey}`,
-                    "Content-Type": "application/json",
-                },
-                timeout: 30000 // 30 second timeout
-            }
-        );
-
-        console.log("OpenAI API response received successfully");
-        res.json(openAIResponse.data);
-    } catch (error) {
-        console.error("🚨 OpenAI API Error:", error.response ? error.response.data : error.message);
+        const { prompt, context } = req.body;
         
-        // Enhanced error response
-        const statusCode = error.response?.status || 500;
-        const errorMessage = error.response?.data?.error?.message 
-            || error.message 
-            || "Failed to connect to OpenAI API";
-            
-        res.status(statusCode).json({ 
-            error: errorMessage,
-            details: error.response?.data || error.message
+        if (!prompt) {
+            return res.status(400).json({ error: 'Prompt is required' });
+        }
+
+        // Construct system message with medical context
+        const systemMessage = `You are an AI assistant helping healthcare professionals at a hospital. 
+        You specialize in medical documentation and patient care summaries.
+        Always maintain patient confidentiality and use professional medical terminology.
+        Format your responses in a clear, structured way suitable for medical documentation.`;
+
+        const response = await openai.chat.completions.create({
+            model: "gpt-4",
+            messages: [
+                { role: "system", content: systemMessage },
+                { role: "user", content: `Context: ${JSON.stringify(context)}\n\nTask: ${prompt}` }
+            ],
+            temperature: 0.7,
+            max_tokens: 1000
+        });
+
+        res.json({
+            summary: response.choices[0].message.content,
+            usage: response.usage
+        });
+
+    } catch (error) {
+        console.error('OpenAI generate error:', error);
+        res.status(500).json({
+            error: 'Error generating AI response',
+            details: error.message
         });
     }
 });
 
-app.get("/", (req, res) => {
-    res.json({ message: "OpenAI Proxy is working!" });
+// Process chat messages
+router.post('/chat', async (req, res) => {
+    try {
+        const { message, history = [] } = req.body;
+        
+        if (!message) {
+            return res.status(400).json({ error: 'Message is required' });
+        }
+
+        // Construct system message for chat context
+        const systemMessage = `You are a helpful AI assistant in a hospital setting.
+        You can help with medical queries but always remind users to consult healthcare professionals for medical advice.
+        You have access to hospital protocols and can help with administrative tasks.
+        Keep responses clear, professional, and evidence-based when possible.`;
+
+        // Prepare conversation history
+        const messages = [
+            { role: "system", content: systemMessage },
+            ...history.map(msg => ({
+                role: msg.role,
+                content: msg.content
+            })),
+            { role: "user", content: message }
+        ];
+
+        const response = await openai.chat.completions.create({
+            model: "gpt-4",
+            messages,
+            temperature: 0.7,
+            max_tokens: 500
+        });
+
+        res.json({
+            message: response.choices[0].message.content,
+            usage: response.usage
+        });
+
+    } catch (error) {
+        console.error('OpenAI chat error:', error);
+        res.status(500).json({
+            error: 'Error processing chat message',
+            details: error.message
+        });
+    }
 });
 
-// Start HTTP server with enhanced logging
-const server = http.createServer(app);
-
-server.listen(PORT, () => {
-    console.log(`✅ Proxy server running on port ${PORT}`);
-    console.log(`Server URLs:`);
-    console.log(`  http://localhost:${PORT}`);
-    console.log(`  http://127.0.0.1:${PORT}`);
-}).on('error', (error) => {
-    console.error('Server error:', error);
-    process.exit(1);
+// Health check endpoint
+router.get('/health', (req, res) => {
+    res.json({ status: 'OK' });
 });
+
+export default router;

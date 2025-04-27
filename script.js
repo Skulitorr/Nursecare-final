@@ -26,6 +26,8 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeAIChat();
     initializeLanguageSelector();
     initializeRefreshButtons();
+    initializeActionButtons();
+    initializeDropdowns();
     
     debug('Dashboard initialization complete');
 });
@@ -1035,3 +1037,118 @@ function addRequiredStyles() {
 
 // Call the function to add styles
 addRequiredStyles();
+
+// Added function to initialize all action buttons across the site
+function initializeActionButtons() {
+    // Select all buttons with action attributes
+    const actionButtons = document.querySelectorAll('[data-action]');
+    
+    actionButtons.forEach(button => {
+        if (!button.hasAttribute('data-initialized')) {
+            button.setAttribute('data-initialized', 'true');
+            
+            button.addEventListener('click', function(e) {
+                e.preventDefault();
+                const action = this.getAttribute('data-action');
+                const target = this.getAttribute('data-target');
+                const toggle = this.getAttribute('data-toggle');
+                const url = this.getAttribute('href') || this.getAttribute('data-url');
+                
+                // Handle different action types
+                if (action === 'modal' && target) {
+                    const modal = document.querySelector(target);
+                    if (modal) {
+                        modal.classList.add('show');
+                        document.body.classList.add('modal-open');
+                    }
+                } else if (action === 'navigate' && url) {
+                    window.location.href = url;
+                } else if (toggle) {
+                    const targetElem = document.querySelector(toggle);
+                    if (targetElem) {
+                        targetElem.classList.toggle('show');
+                    }
+                } else if (action === 'delete' && target) {
+                    // Show confirmation before delete
+                    if (confirm('Ertu viss um að þú viljir eyða þessu?')) {
+                        // Handle deletion - in a real app this would call an API
+                        const targetElem = document.querySelector(target);
+                        if (targetElem) {
+                            targetElem.remove();
+                            showToast('Staðfesting', 'Eytt með góðum árangri', 'success');
+                        }
+                    }
+                }
+                
+                debug(`Button action triggered: ${action}`, { target, toggle, url });
+            });
+        }
+    });
+    
+    // Fix close modal buttons
+    const closeButtons = document.querySelectorAll('.close-modal, [data-dismiss="modal"]');
+    closeButtons.forEach(button => {
+        if (!button.hasAttribute('data-initialized')) {
+            button.setAttribute('data-initialized', 'true');
+            
+            button.addEventListener('click', function() {
+                const modal = this.closest('.modal');
+                if (modal) {
+                    modal.classList.remove('show');
+                    document.body.classList.remove('modal-open');
+                }
+            });
+        }
+    });
+    
+    // Fix form submission buttons
+    const formButtons = document.querySelectorAll('button[type="submit"]');
+    formButtons.forEach(button => {
+        if (!button.hasAttribute('data-initialized')) {
+            button.setAttribute('data-initialized', 'true');
+            
+            button.addEventListener('click', function(e) {
+                const form = this.closest('form');
+                if (form) {
+                    // If form has data-ajax attribute, handle it with AJAX
+                    if (form.hasAttribute('data-ajax')) {
+                        e.preventDefault();
+                        // In a real app, this would submit the form with AJAX
+                        showToast('Staðfesting', 'Form sent með góðum árangri', 'success');
+                    }
+                }
+            });
+        }
+    });
+}
+
+// Initialize dropdowns
+function initializeDropdowns() {
+    const dropdownToggles = document.querySelectorAll('.dropdown-toggle');
+    
+    dropdownToggles.forEach(toggle => {
+        if (!toggle.hasAttribute('data-initialized')) {
+            toggle.setAttribute('data-initialized', 'true');
+            
+            toggle.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                const dropdown = this.nextElementSibling;
+                if (dropdown && dropdown.classList.contains('dropdown-menu')) {
+                    dropdown.classList.toggle('show');
+                }
+            });
+        }
+    });
+    
+    // Close dropdowns when clicking outside
+    document.addEventListener('click', function(e) {
+        const dropdowns = document.querySelectorAll('.dropdown-menu.show');
+        dropdowns.forEach(dropdown => {
+            if (!dropdown.contains(e.target)) {
+                dropdown.classList.remove('show');
+            }
+        });
+    });
+}

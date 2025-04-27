@@ -1,88 +1,158 @@
-// Utility functions for NurseCare dashboard
+console.log('Utilities Module Loaded');
 
-// Format date to Icelandic locale
-export function formatDate(date) {
-    return date.toLocaleDateString('is-IS', {
-        weekday: 'long',
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-    });
+// Date formatting utilities
+export function formatDate(date, format = 'is-IS') {
+    if (!(date instanceof Date)) {
+        date = new Date(date);
+    }
+    return date.toLocaleDateString(format);
 }
 
-// Format time to Icelandic locale
-export function formatTime(date) {
-    return date.toLocaleTimeString('is-IS', {
-        hour: '2-digit',
-        minute: '2-digit'
-    });
+export function formatTime(date, format = 'is-IS') {
+    if (!(date instanceof Date)) {
+        date = new Date(date);
+    }
+    return date.toLocaleTimeString(format);
 }
 
-// Show toast notification
-export function showToast(title, message, type = 'info') {
-    const toastContainer = document.getElementById('toast-container');
-    if (!toastContainer) return;
-    
-    const toast = document.createElement('div');
-    toast.className = `toast toast-${type}`;
-    
-    const icon = getToastIcon(type);
-    
-    toast.innerHTML = `
-        <div class="toast-icon">
-            <i class="fas ${icon}"></i>
-        </div>
-        <div class="toast-content">
-            <div class="toast-title">${title}</div>
-            <div class="toast-message">${message}</div>
-        </div>
-        <button class="toast-close">
-            <i class="fas fa-times"></i>
-        </button>
-    `;
-    
-    toastContainer.appendChild(toast);
-    
-    // Add fade in animation
-    setTimeout(() => toast.classList.add('show'), 10);
-    
-    // Auto remove after 5 seconds
-    setTimeout(() => {
-        toast.classList.add('toast-hide');
-        setTimeout(() => toast.remove(), 300);
-    }, 5000);
-    
-    // Close button handler
-    toast.querySelector('.toast-close').addEventListener('click', () => {
-        toast.classList.add('toast-hide');
-        setTimeout(() => toast.remove(), 300);
-    });
+export function formatDateTime(date, format = 'is-IS') {
+    if (!(date instanceof Date)) {
+        date = new Date(date);
+    }
+    return date.toLocaleString(format);
 }
 
-// Get toast icon based on type
-function getToastIcon(type) {
-    switch (type) {
-        case 'success':
-            return 'fa-check-circle';
-        case 'error':
-            return 'fa-times-circle';
-        case 'warning':
-            return 'fa-exclamation-triangle';
-        default:
-            return 'fa-info-circle';
+// String utilities
+export function truncate(str, length = 50, ending = '...') {
+    if (str.length > length) {
+        return str.substring(0, length - ending.length) + ending;
+    }
+    return str;
+}
+
+export function capitalize(str) {
+    return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
+export function slugify(str) {
+    return str
+        .toLowerCase()
+        .trim()
+        .replace(/[^\w\s-]/g, '')
+        .replace(/[\s_-]+/g, '-')
+        .replace(/^-+|-+$/g, '');
+}
+
+// DOM utilities
+export function createElement(tag, className = '', attributes = {}) {
+    const element = document.createElement(tag);
+    if (className) {
+        element.className = className;
+    }
+    Object.entries(attributes).forEach(([key, value]) => {
+        element.setAttribute(key, value);
+    });
+    return element;
+}
+
+export function removeElement(element) {
+    if (element && element.parentNode) {
+        element.parentNode.removeChild(element);
     }
 }
 
-// Format number with Icelandic locale
-export function formatNumber(number, minimumFractionDigits = 0) {
-    return number.toLocaleString('is-IS', {
-        minimumFractionDigits,
-        maximumFractionDigits: minimumFractionDigits
+export function fadeIn(element, duration = 300) {
+    element.style.opacity = 0;
+    element.style.display = 'block';
+
+    let start = null;
+    function animate(timestamp) {
+        if (!start) start = timestamp;
+        const progress = timestamp - start;
+        element.style.opacity = Math.min(progress / duration, 1);
+        if (progress < duration) {
+            requestAnimationFrame(animate);
+        }
+    }
+    requestAnimationFrame(animate);
+}
+
+export function fadeOut(element, duration = 300) {
+    return new Promise(resolve => {
+        let start = null;
+        function animate(timestamp) {
+            if (!start) start = timestamp;
+            const progress = timestamp - start;
+            element.style.opacity = Math.max(1 - (progress / duration), 0);
+            if (progress < duration) {
+                requestAnimationFrame(animate);
+            } else {
+                element.style.display = 'none';
+                resolve();
+            }
+        }
+        requestAnimationFrame(animate);
     });
 }
 
-// Debounce function
-export function debounce(func, wait) {
+// Form utilities
+export function serializeForm(form) {
+    const formData = new FormData(form);
+    const data = {};
+    for (let [key, value] of formData.entries()) {
+        // Handle array inputs (multiple select, checkboxes)
+        if (key.endsWith('[]')) {
+            key = key.slice(0, -2);
+            if (!data[key]) {
+                data[key] = [];
+            }
+            data[key].push(value);
+        } else {
+            data[key] = value;
+        }
+    }
+    return data;
+}
+
+export function validateForm(form, rules) {
+    const errors = {};
+    const data = serializeForm(form);
+
+    Object.entries(rules).forEach(([field, fieldRules]) => {
+        fieldRules.forEach(rule => {
+            const value = data[field];
+            
+            if (rule.required && !value) {
+                errors[field] = 'This field is required';
+            } else if (rule.minLength && value.length < rule.minLength) {
+                errors[field] = `Minimum length is ${rule.minLength}`;
+            } else if (rule.maxLength && value.length > rule.maxLength) {
+                errors[field] = `Maximum length is ${rule.maxLength}`;
+            } else if (rule.pattern && !rule.pattern.test(value)) {
+                errors[field] = rule.message || 'Invalid format';
+            } else if (rule.custom && !rule.custom(value)) {
+                errors[field] = rule.message || 'Invalid value';
+            }
+        });
+    });
+
+    return { isValid: Object.keys(errors).length === 0, errors };
+}
+
+// Number formatting
+export function formatNumber(number, locale = 'is-IS') {
+    return new Intl.NumberFormat(locale).format(number);
+}
+
+export function formatCurrency(amount, currency = 'ISK', locale = 'is-IS') {
+    return new Intl.NumberFormat(locale, {
+        style: 'currency',
+        currency: currency
+    }).format(amount);
+}
+
+// Data utilities
+export function debounce(func, wait = 300) {
     let timeout;
     return function executedFunction(...args) {
         const later = () => {
@@ -94,8 +164,7 @@ export function debounce(func, wait) {
     };
 }
 
-// Throttle function
-export function throttle(func, limit) {
+export function throttle(func, limit = 300) {
     let inThrottle;
     return function executedFunction(...args) {
         if (!inThrottle) {
@@ -106,104 +175,108 @@ export function throttle(func, limit) {
     };
 }
 
-// Get greeting based on time of day
-export function getGreeting() {
-    const hour = new Date().getHours();
-    if (hour < 12) return 'Góðan morgun';
-    if (hour < 18) return 'Góðan dag';
-    return 'Gott kvöld';
+// Local storage utilities
+export function setLocalStorage(key, value, expiry = null) {
+    const item = {
+        value,
+        timestamp: Date.now()
+    };
+    if (expiry) {
+        item.expiry = Date.now() + expiry;
+    }
+    localStorage.setItem(key, JSON.stringify(item));
 }
 
-// Format timestamp as relative time
-export function getRelativeTime(date) {
-    const now = new Date();
-    const diff = now - date;
-    const minutes = Math.floor(diff / 60000);
+export function getLocalStorage(key) {
+    const item = localStorage.getItem(key);
+    if (!item) return null;
     
-    if (minutes < 1) return 'Rétt í þessu';
-    if (minutes < 60) return `Fyrir ${minutes} mínútum síðan`;
+    const parsed = JSON.parse(item);
+    if (parsed.expiry && Date.now() > parsed.expiry) {
+        localStorage.removeItem(key);
+        return null;
+    }
     
-    const hours = Math.floor(minutes / 60);
-    if (hours < 24) return `Fyrir ${hours} klst síðan`;
-    
-    const days = Math.floor(hours / 24);
-    if (days === 1) return 'Í gær';
-    if (days < 7) return `Fyrir ${days} dögum`;
-    
-    return formatDate(date);
+    return parsed.value;
 }
 
-// Safe JSON parse
+// URL utilities
+export function getQueryParams() {
+    const params = new URLSearchParams(window.location.search);
+    const result = {};
+    for (const [key, value] of params) {
+        result[key] = value;
+    }
+    return result;
+}
+
+export function buildQueryString(params) {
+    return Object.entries(params)
+        .filter(([_, value]) => value !== null && value !== undefined)
+        .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
+        .join('&');
+}
+
+// Color utilities
+export function isDarkMode() {
+    return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+}
+
+export function getContrastColor(hexcolor) {
+    // Convert hex to RGB
+    const r = parseInt(hexcolor.slice(1, 3), 16);
+    const g = parseInt(hexcolor.slice(3, 5), 16);
+    const b = parseInt(hexcolor.slice(5, 7), 16);
+    
+    // Calculate luminance
+    const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+    
+    return luminance > 0.5 ? '#000000' : '#FFFFFF';
+}
+
+// Device/browser detection utilities
+export function isMobile() {
+    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+}
+
+export function getBrowserInfo() {
+    const ua = navigator.userAgent;
+    let browser = "Unknown";
+    let version = "Unknown";
+
+    // Detect browser and version
+    if (ua.includes("Firefox/")) {
+        browser = "Firefox";
+        version = ua.split("Firefox/")[1];
+    } else if (ua.includes("Chrome/")) {
+        browser = "Chrome";
+        version = ua.split("Chrome/")[1].split(" ")[0];
+    } else if (ua.includes("Safari/")) {
+        browser = "Safari";
+        version = ua.split("Version/")[1].split(" ")[0];
+    } else if (ua.includes("Edge/")) {
+        browser = "Edge";
+        version = ua.split("Edge/")[1];
+    }
+
+    return { browser, version };
+}
+
+// Error handling utilities
 export function safeJSONParse(str, fallback = null) {
     try {
         return JSON.parse(str);
-    } catch {
+    } catch (e) {
+        console.error('JSON Parse error:', e);
         return fallback;
     }
 }
 
-// Get chart colors based on theme
-export function getChartColors(isDark = false) {
-    return {
-        primary: '#3a86ff',
-        secondary: '#4361ee',
-        success: '#2ec4b6',
-        warning: '#ff9f1c',
-        danger: '#e71d36',
-        info: '#4cc9f0',
-        text: isDark ? '#e2e8f0' : '#333333',
-        grid: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'
-    };
-}
-
-// Initialize theme based on user preference
-export function initializeTheme() {
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const savedTheme = localStorage.getItem('theme');
-    
-    if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
-        document.body.classList.add('dark-mode');
-        return true;
-    }
-    return false;
-}
-
-// Animate number change
-export function animateNumber(element, start, end, duration = 1000) {
-    if (!element) return;
-    
-    const startTime = performance.now();
-    const change = end - start;
-    
-    function update(currentTime) {
-        const elapsed = currentTime - startTime;
-        const progress = Math.min(elapsed / duration, 1);
-        
-        const value = Math.floor(start + (change * progress));
-        element.textContent = formatNumber(value);
-        
-        if (progress < 1) {
-            requestAnimationFrame(update);
-        }
-    }
-    
-    requestAnimationFrame(update);
-}
-
-// Format file size
-export function formatFileSize(bytes) {
-    if (bytes === 0) return '0 B';
-    const k = 1024;
-    const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-}
-
-// Get contrast color (for accessibility)
-export function getContrastColor(hexcolor) {
-    const r = parseInt(hexcolor.substring(1,3),16);
-    const g = parseInt(hexcolor.substring(3,5),16);
-    const b = parseInt(hexcolor.substring(5,7),16);
-    const yiq = ((r*299)+(g*587)+(b*114))/1000;
-    return (yiq >= 128) ? '#000000' : '#ffffff';
-}
+// Export common regular expressions
+export const Patterns = {
+    email: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
+    phone: /^(\+354)?[0-9]{7}$/,
+    kennitala: /^[0-9]{6}-?[0-9]{4}$/,
+    url: /^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([/\w .-]*)*\/?$/,
+    strongPassword: /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$/
+};

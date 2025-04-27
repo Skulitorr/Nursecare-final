@@ -23,8 +23,8 @@
             const currentPath = window.location.pathname;
             
             if (!authToken || !userRole) {
-                if (!currentPath.includes("/public/login.html")) {
-                    window.location.href = "/public/login.html";
+                if (!currentPath.includes("/login")) {
+                    window.location.href = "/login";
                 }
                 return false;
             }
@@ -35,16 +35,16 @@
                     tokenData.exp <= Date.now() || 
                     tokenData.role !== userRole) {
                     localStorage.clear();
-                    if (!currentPath.includes("/public/login.html")) {
-                        window.location.href = "/public/login.html";
+                    if (!currentPath.includes("/login")) {
+                        window.location.href = "/login";
                     }
                     return false;
                 }
                 return true;
             } catch (e) {
                 localStorage.clear();
-                if (!currentPath.includes("/public/login.html")) {
-                    window.location.href = "/public/login.html";
+                if (!currentPath.includes("/login")) {
+                    window.location.href = "/login";
                 }
                 return false;
             }
@@ -2076,43 +2076,43 @@
             <nav class="sidebar-nav" aria-label="Main navigation">
                 <ul>
                     <li class="nav-item active">
-                        <a href="/public/dashboard.html" aria-current="page">
+                        <a href="/dashboard" aria-current="page">
                             <i class="fas fa-tachometer-alt"></i>
                             <span>Mælaborð</span>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a href="/public/schedule.html">
+                        <a href="/schedule">
                             <i class="fas fa-calendar-alt"></i>
                             <span>Vaktaplan</span>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a href="/public/staff.html">
+                        <a href="/staff">
                             <i class="fas fa-user-nurse"></i>
                             <span>Starfsfólk</span>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a href="/public/patients.html">
+                        <a href="/patients">
                             <i class="fas fa-user-injured"></i>
                             <span>Sjúklingar</span>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a href="/public/inventory.html">
+                        <a href="/inventory">
                             <i class="fas fa-box"></i>
                             <span>Birgðir</span>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a href="/public/medications.html">
+                        <a href="/medications">
                             <i class="fas fa-pills"></i>
                             <span>Lyf</span>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a href="/public/chatbot.html">
+                        <a href="/chatbot">
                             <i class="fas fa-comments"></i>
                             <span>Spjallforrit</span>
                         </a>
@@ -2404,7 +2404,8 @@
                     <header class="card-header">
                         <h3 id="health-trends-title"><i class="fas fa-heartbeat" aria-hidden="true"></i> Heilsufarsmælingar</h3>
                         <div class="card-actions">
-                            <button class="card-action" id="refresh-health-chart-btn" aria-label="Uppfæra heilsufargö                        <button class="card-action" id="refresh-health-chart-btn" aria-label="Uppfæra heilsufargögn" data-tooltip="Uppfæra gögn">
+                            <button class="card-action" id="refresh-health-chart-btn" aria-label="Uppfæra heilsufargögn" data-tooltip="Uppfæra gögn">
+                                <i class="fas fa-sync```html
                                 <i class="fas fa-sync-alt" aria-hidden="true"></i>
                             </button>
                             <button class="card-action" id="health-options-btn" aria-label="Stillingar heilsufarsgagna" data-tooltip="Stillingar">
@@ -2485,8 +2486,9 @@
     <!-- Toast Container -->
     <div id="toast-container" class="toast-container" aria-live="polite"></div>
 
-    <script src="/public/scripts/roles.js" type="module"></script>
-    <script src="/public/scripts/common.js" type="module"></script>
-    <script src="/public/scripts/dashboard.js" type="module"></script>
+    <script src="/scripts/roles.js" type="module"></script>
+    <script src="/scripts/common.js" type="module"></script>
+    <script src="/scripts/dashboard.js" type="module"></script>
 </body>
 </html>
+```
