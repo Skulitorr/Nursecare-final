@@ -15,6 +15,11 @@ export function setupCommonUI() {
     setupNavigation();
 }
 
+export function checkAuthorization() {
+    // TODO: Implement this properly
+    return true;
+}
+
 function setupTheme() {
     console.log('Setting up theme...');
     const themeToggle = document.getElementById('theme-toggle');

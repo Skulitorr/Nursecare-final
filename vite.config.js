@@ -21,7 +21,7 @@ export default defineConfig({
                 patients: resolve(__dirname, 'public/patients.html'),
                 staff: resolve(__dirname, 'public/staff.html'),
                 inventory: resolve(__dirname, 'public/inventory.html'),
-                schedule: resolve(__dirname, 'public/schedule.html'),
+                schedule: resolve(__dirname, 'schedule/index.html'),
                 reports: resolve(__dirname, 'public/reports.html'),
                 settings: resolve(__dirname, 'public/settings.html'),
                 chatbot: resolve(__dirname, 'public/chatbot.html'),

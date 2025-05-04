@@ -152,4 +152,5 @@ function updateUserInfo() {
 }
 
 // Initialize auth when DOM is loaded
-document.addEventListener('DOMContentLoaded', initAuth);
+// NOTE: This is a browser only method, not compliant with NODEJS server
+// document.addEventListener('DOMContentLoaded', initAuth);
