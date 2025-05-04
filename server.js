@@ -16,6 +16,7 @@ const __dirname = dirname(__filename);
 const app = express();
 const port = process.env.PORT || 3000;
 
+
 // Middleware
 app.use(helmet({
     contentSecurityPolicy: {
@@ -38,7 +39,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Static files
-app.use(express.static('public'));
+app.use(express.static(join(__dirname, 'public')));
 app.use('/assets', express.static('assets'));
 
 // API routes
