@@ -15,6 +15,7 @@ export function initAuth() {
     const role = localStorage.getItem(SESSION_KEYS.ROLE);
     
     if (!token || !role) {
+        console.debug('No token or role found in localStorage');
         clearSession();
         redirectToLogin();
         return false;
@@ -30,6 +31,7 @@ export function initAuth() {
         }
         
         currentUser = tokenData;
+        console.debug('Auth initialized successfully for user:', tokenData.username);
         updateUserInfo();
         return true;
     } catch (error) {
@@ -45,7 +47,8 @@ export function validateSession() {
     const currentPath = window.location.pathname;
     
     // Allow access to login and unauthorized pages without auth
-    if (currentPath === '/login' || currentPath === '/unauthorized') {
+    if (currentPath.includes('/login') || currentPath.includes('/unauthorized')) {
+        console.debug('No authentication needed for:', currentPath);
         return true;
     }
     
@@ -53,6 +56,7 @@ export function validateSession() {
     const role = localStorage.getItem(SESSION_KEYS.ROLE);
     
     if (!token || !role) {
+        console.debug('No token or role found during validation');
         redirectToUnauthorized();
         return false;
     }
@@ -62,10 +66,12 @@ export function validateSession() {
         if (!tokenData.exp || !tokenData.role || 
             tokenData.exp <= Date.now() || 
             tokenData.role !== role) {
+            console.debug('Invalid token data:', tokenData);
             clearSession();
             redirectToUnauthorized();
             return false;
         }
+        console.debug('Session validated successfully for role:', role);
         return true;
     } catch (error) {
         console.error('Session validation error:', error);
@@ -76,7 +82,7 @@ export function validateSession() {
 }
 
 export async function login(username, password) {
-    console.log('Attempting login...');
+    console.log('Attempting login for user:', username);
     try {
         // Clear any existing session
         clearSession();
@@ -88,8 +94,9 @@ export async function login(username, password) {
             'staff': { role: 'STAFF', name: 'Staff Member', password: 'staff123' }
         };
         
-        const user = mockUsers[username];
+        const user = mockUsers[username.toLowerCase()];
         if (!user || user.password !== password) {
+            console.debug('Login failed: invalid credentials');
             throw new Error('Invalid username or password');
         }
         
@@ -109,8 +116,9 @@ export async function login(username, password) {
         localStorage.setItem(SESSION_KEYS.USERNAME, username);
         currentUser = tokenData;
         
+        console.debug('Login successful for user:', username, 'with role:', user.role);
         updateUserInfo();
-        return { success: true };
+        return { success: true, role: user.role };
     } catch (error) {
         console.error('Login failed:', error);
         throw error;
@@ -125,31 +133,61 @@ export function logout() {
 
 function clearSession() {
     console.log('Clearing session...');
-    localStorage.clear();
+    localStorage.removeItem(SESSION_KEYS.TOKEN);
+    localStorage.removeItem(SESSION_KEYS.ROLE);
+    localStorage.removeItem(SESSION_KEYS.USERNAME);
     currentUser = null;
 }
 
 function redirectToLogin() {
-    window.location.href = '/login';
+    console.debug('Redirecting to login page');
+    window.location.href = '/login.html';
 }
 
 function redirectToUnauthorized() {
-    window.location.href = '/unauthorized';
+    console.debug('Redirecting to unauthorized page');
+    window.location.href = '/unauthorized.html';
 }
 
 function updateUserInfo() {
-    console.log('Updating user info display...');
-    const userNameElement = document.querySelector('.user-name');
-    const userRoleElement = document.querySelector('.user-role');
+    console.debug('Updating user info display...');
     
-    if (userNameElement) {
-        userNameElement.textContent = currentUser?.name || 'User';
-    }
-    
-    if (userRoleElement) {
-        userRoleElement.textContent = currentUser?.role || 'Guest';
+    try {
+        const userNameElement = document.querySelector('.user-name');
+        const userRoleElement = document.querySelector('.user-role');
+        const profileAvatar = document.querySelector('.profile-btn img');
+        
+        if (userNameElement) {
+            userNameElement.textContent = currentUser?.name || 'User';
+        }
+        
+        if (userRoleElement) {
+            userRoleElement.textContent = currentUser?.role || 'Guest';
+        }
+        
+        // Update profile avatar if present
+        if (profileAvatar && currentUser) {
+            const seed = currentUser.username || currentUser.name;
+            profileAvatar.src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${seed}`;
+            profileAvatar.alt = `Profile Avatar for ${currentUser.name}`;
+        }
+        
+        console.debug('User info display updated');
+    } catch (error) {
+        console.warn('Error updating user info display:', error);
+        // Non-critical error, don't throw
     }
 }
 
-// Initialize auth when DOM is loaded
-document.addEventListener('DOMContentLoaded', initAuth);
+// Export current user to be accessible in other modules
+export function getCurrentUser() {
+    return currentUser;
+}
+
+// Initialize auth when DOM is loaded if we're not on login page
+document.addEventListener('DOMContentLoaded', () => {
+    const isLoginPage = window.location.pathname.includes('/login');
+    if (!isLoginPage) {
+        initAuth();
+    }
+});

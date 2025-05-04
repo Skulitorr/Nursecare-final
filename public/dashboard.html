@@ -654,7 +654,7 @@
         .page-header h2 {
             font-size: var(--font-size-xxl);
             font-weight: 700;
-            color: var(--gray-900);
+            color: var (--gray-900);
             margin: 0;
             display: flex;
             align-items: center;
@@ -1984,6 +1984,48 @@
                 right: 20px;
             }
         }
+        
+        /* AI Report Output Style */
+        #ai-output {
+            background-color: var(--gray-100);
+            border-left: 4px solid var(--primary);
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 4px;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            max-height: 300px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+        
+        .dark-mode #ai-output {
+            background-color: var(--gray-800);
+            border-left-color: var(--primary-light);
+        }
+        
+        #generate-ai-report {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 15px 0;
+            padding: 10px 16px;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 5px rgba(58, 134, 255, 0.25);
+        }
+        
+        #generate-ai-report:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(58, 134, 255, 0.35);
+        }
     </style>
 </head>
 <body>
@@ -2184,6 +2226,23 @@
             </section>
             
             <div class="dashboard-content">
+                <!-- AI Report Generator Section -->
+                <section class="card" aria-labelledby="ai-report-title">
+                    <header class="card-header">
+                        <h3 id="ai-report-title"><i class="fas fa-brain"></i> AI Shift Report</h3>
+                        <div class="card-actions">
+                            <button class="card-action" data-tooltip="Refresh" aria-label="Refresh report">
+                                <i class="fas fa-sync-alt"></i>
+                            </button>
+                        </div>
+                    </header>
+                    <div class="card-body">
+                        <p>Generate a comprehensive summary of the current shift using AI assistance.</p>
+                        <button id="generate-ai-report">🧠 Generate Shift Summary</button>
+                        <pre id="ai-output">AI-generated report will appear here...</pre>
+                    </div>
+                </section>
+            
                 <!-- Dashboard Cards -->
                 <section class="dashboard-cards">
                     <!-- Today's Tasks Overview -->
@@ -2485,8 +2544,23 @@
     <!-- Toast Container -->
     <div id="toast-container" class="toast-container" aria-live="polite"></div>
 
+    <!-- Application Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     <script src="/scripts/roles.js" type="module"></script>
-    <script src="/scripts/common.js" type="module"></script>
+    <script src="/scripts/auth.js" type="module"></script>
+    <script src="/scripts/utils.js" type="module"></script>
+    <script src="/scripts/event-bus.js" type="module"></script>
+    <script src="/scripts/api-client.js" type="module"></script>
+    <script src="/scripts/error-handler.js" type="module"></script>
+    <script src="/scripts/charts.js" type="module"></script>
+    <script src="/scripts/dashboard-charts.js" type="module"></script>
+    <script src="/scripts/ai.js" type="module"></script>
     <script src="/scripts/dashboard.js" type="module"></script>
+    <script>
+        console.log("Dashboard scripts loaded");
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Dashboard page fully loaded');
+        });
+    </script>
 </body>
 </html>
