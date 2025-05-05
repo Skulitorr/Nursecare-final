@@ -9,6 +9,8 @@ document.addEventListener("DOMContentLoaded", () => {
   // Elements
   const button = document.getElementById("generate-ai-report");
   const output = document.getElementById("ai-output");
+  const aiInput = document.getElementById("ai-input");
+  const askAiSimpleBtn = document.getElementById("ask-ai-btn");
   const widgetToggle = document.getElementById("ai-widget-toggle");
   const widgetContainer = document.querySelector(".ai-widget-container");
   const widgetInput = document.getElementById("ai-widget-input");
@@ -19,6 +21,50 @@ document.addEventListener("DOMContentLoaded", () => {
   const askAiAssistantBtn = document.getElementById("ask-ai-assistant-btn");
   const askAiBtn = document.getElementById("ask-ai-btn");
   const openAiChatBtn = document.getElementById("open-ai-chat-btn");
+
+  // Initialize the simple AI output with welcome message
+  if (output) {
+    output.textContent = "Welcome! How can I assist you today?";
+  }
+
+  // Handle simple AI input field enter key press
+  if (aiInput) {
+    aiInput.addEventListener("keypress", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        handleSimpleAiQuery(aiInput.value);
+      }
+    });
+  }
+
+  // Handle simple Ask AI button click
+  if (askAiSimpleBtn && aiInput) {
+    askAiSimpleBtn.addEventListener("click", () => {
+      handleSimpleAiQuery(aiInput.value);
+    });
+  }
+
+  // Process the simple AI query
+  async function handleSimpleAiQuery(query) {
+    if (!query.trim() || !output) return;
+    
+    const userMessage = query.trim();
+    
+    // Display user message
+    output.innerHTML = `<strong>You:</strong> ${userMessage}\n\n<strong>AI:</strong> Thinking...`;
+    
+    try {
+      const response = await generateAIResponse(userMessage);
+      output.innerHTML = `<strong>You:</strong> ${userMessage}\n\n<strong>AI:</strong> ${response}`;
+    } catch (error) {
+      console.error("Error in AI query:", error);
+      output.innerHTML = `<strong>You:</strong> ${userMessage}\n\n<strong>AI:</strong> AI is unavailable right now.`;
+    }
+    
+    if (aiInput) {
+      aiInput.value = "";
+    }
+  }
 
   // Widget visibility toggle
   if (widgetToggle && widgetContainer && widgetInput) {

@@ -781,22 +781,46 @@ function viewStaffDetails(staffId) {
     const staff = staffData.find(s => s.id === staffId);
     if (!staff) {
         console.error(`Staff with ID ${staffId} not found`);
+        showToast('Error', 'Staff member not found', 'error');
         return;
     }
     
-    // Populate staff details modal
-    document.getElementById('detail-staff-name').textContent = staff.name;
-    document.getElementById('detail-staff-role').textContent = staff.role;
-    document.getElementById('detail-staff-email').textContent = staff.email;
-    document.getElementById('detail-staff-phone').textContent = staff.phone || 'None provided';
-    document.getElementById('detail-staff-department').textContent = staff.department;
-    document.getElementById('detail-staff-status').textContent = staff.status;
-    document.getElementById('detail-staff-shift').textContent = staff.shift || 'Not scheduled';
-    document.getElementById('detail-staff-certification').textContent = staff.certification || 'None';
-    document.getElementById('detail-staff-notes').textContent = staff.notes || 'No notes available';
+    // Check if required DOM elements exist
+    const nameElement = document.getElementById('detail-staff-name');
+    const roleElement = document.getElementById('detail-staff-role');
+    const emailElement = document.getElementById('detail-staff-email');
+    const phoneElement = document.getElementById('detail-staff-phone');
+    const departmentElement = document.getElementById('detail-staff-department');
+    const statusElement = document.getElementById('detail-staff-status');
+    const shiftElement = document.getElementById('detail-staff-shift');
+    const certificationElement = document.getElementById('detail-staff-certification');
+    const notesElement = document.getElementById('detail-staff-notes');
+    const avatarElement = document.getElementById('staff-avatar');
+    const detailsModal = document.getElementById('staff-details-modal');
     
-    // Update avatar
-    document.getElementById('staff-avatar').src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${staff.avatar || staff.name}`;
+    // Exit early if any essential elements are missing
+    if (!nameElement || !detailsModal) {
+        console.error('Required DOM elements for staff details are missing');
+        showToast('Error', 'Could not display staff details due to missing elements', 'error');
+        return;
+    }
+    
+    // Populate staff details modal safely
+    if (nameElement) nameElement.textContent = staff.name;
+    if (roleElement) roleElement.textContent = staff.role;
+    if (emailElement) emailElement.textContent = staff.email;
+    if (phoneElement) phoneElement.textContent = staff.phone || 'None provided';
+    if (departmentElement) departmentElement.textContent = staff.department;
+    if (statusElement) statusElement.textContent = staff.status;
+    if (shiftElement) shiftElement.textContent = staff.shift || 'Not scheduled';
+    if (certificationElement) certificationElement.textContent = staff.certification || 'None';
+    if (notesElement) notesElement.textContent = staff.notes || 'No notes available';
+    
+    // Update avatar if element exists
+    if (avatarElement) {
+        avatarElement.src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${staff.avatar || staff.name}`;
+        avatarElement.alt = `Avatar for ${staff.name}`;
+    }
     
     // Create attendance chart
     createStaffAttendanceChart();
@@ -805,7 +829,7 @@ function viewStaffDetails(staffId) {
     populateShiftHistory(staffId);
     
     // Open the modal
-    document.getElementById('staff-details-modal').classList.add('show');
+    detailsModal.classList.add('show');
 }
 
 // Main chart initialization function
@@ -813,8 +837,24 @@ function initializeCharts() {
     console.log('Initializing staff charts...');
     
     try {
-        createRoleDistributionChart();
-        createSicknessChart();
+        // Check if chart containers exist before initializing
+        const roleChartContainer = document.getElementById('roleDistributionChart');
+        const sicknessChartContainer = document.getElementById('sicknessChart');
+        
+        if (roleChartContainer) {
+            console.log('Role distribution chart container found, creating chart...');
+            createRoleDistributionChart();
+        } else {
+            console.warn('Role distribution chart container not found, skipping chart creation');
+        }
+        
+        if (sicknessChartContainer) {
+            console.log('Sickness chart container found, creating chart...');
+            createSicknessChart();
+        } else {
+            console.warn('Sickness chart container not found, skipping chart creation');
+        }
+        
         console.debug('Staff charts initialized successfully');
     } catch (error) {
         console.error('Error initializing charts:', error);
@@ -1413,4 +1453,635 @@ function showToast(title, message, type = 'info') {
             }, 300);
         }
     }, 5000);
+}
+
+// Create staff attendance chart for the details modal
+function createStaffAttendanceChart() {
+    console.debug('Creating staff attendance chart');
+    
+    const chartCanvas = document.getElementById('staff-attendance-chart');
+    if (!chartCanvas) {
+        console.warn("Staff attendance chart canvas not found");
+        return;
+    }
+    
+    try {
+        // Mock data for last 14 days (present, absent, leave)
+        const days = Array.from({length: 14}, (_, i) => {
+            const date = new Date();
+            date.setDate(date.getDate() - (13 - i));
+            return date.toLocaleDateString('is-IS', {day: '2-digit', month: '2-digit'});
+        });
+        
+        // Random attendance data - 1=present, 0=absent, 0.5=half day
+        const attendanceData = [1, 1, 1, 0, 0, 0.5, 1, 1, 1, 1, 0.5, 1, 1, 1];
+        
+        // Clear any previous chart
+        if (window.staffAttendanceChart instanceof Chart) {
+            window.staffAttendanceChart.destroy();
+        }
+        
+        // Create chart colors based on attendance
+        const backgroundColor = attendanceData.map(value => {
+            if (value === 1) return '#10b981'; // Present - green
+            if (value === 0.5) return '#f59e0b'; // Half day - yellow
+            return '#ef4444'; // Absent - red
+        });
+        
+        // Create new chart
+        window.staffAttendanceChart = new Chart(chartCanvas, {
+            type: 'bar',
+            data: {
+                labels: days,
+                datasets: [{
+                    label: 'Mæting',
+                    data: attendanceData,
+                    backgroundColor: backgroundColor,
+                    borderColor: backgroundColor,
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 1,
+                        ticks: {
+                            stepSize: 0.5,
+                            callback: function(value) {
+                                if (value === 0) return 'Fjarverandi';
+                                if (value === 0.5) return 'Hálfur dagur';
+                                if (value === 1) return 'Mætt(ur)';
+                                return '';
+                            }
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const value = context.parsed.y;
+                                if (value === 0) return 'Fjarverandi';
+                                if (value === 0.5) return 'Hálfur dagur';
+                                return 'Mætt(ur)';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        
+        console.debug('Staff attendance chart created successfully');
+    } catch (error) {
+        console.error('Error creating staff attendance chart:', error);
+    }
+}
+
+// Populate shift history in staff details modal
+function populateShiftHistory(staffId) {
+    console.debug(`Populating shift history for staff ID: ${staffId}`);
+    
+    const shiftHistoryContainer = document.getElementById('staff-shift-history');
+    if (!shiftHistoryContainer) {
+        console.warn("Shift history container not found");
+        return;
+    }
+    
+    // Clear existing content
+    shiftHistoryContainer.innerHTML = '';
+    
+    // Mock shift history data for the selected staff
+    const shiftHistory = [
+        {
+            date: '2025-05-04',
+            shift: 'Morgunvakt (07:00-15:00)',
+            department: 'Deild A',
+            status: 'Lokið'
+        },
+        {
+            date: '2025-05-03',
+            shift: 'Morgunvakt (07:00-15:00)',
+            department: 'Deild A',
+            status: 'Lokið'
+        },
+        {
+            date: '2025-05-02',
+            shift: 'Dagvakt (09:00-17:00)',
+            department: 'Deild B',
+            status: 'Lokið'
+        },
+        {
+            date: '2025-05-01',
+            shift: 'Frí',
+            department: '-',
+            status: '-'
+        },
+        {
+            date: '2025-04-30',
+            shift: 'Morgunvakt (07:00-15:00)',
+            department: 'Deild A',
+            status: 'Lokið'
+        }
+    ];
+    
+    // Create shift history table
+    const table = document.createElement('table');
+    table.className = 'shift-history-table';
+    
+    // Create table header
+    const thead = document.createElement('thead');
+    thead.innerHTML = `
+        <tr>
+            <th>Dagsetning</th>
+            <th>Vakt</th>
+            <th>Deild</th>
+            <th>Staða</th>
+        </tr>
+    `;
+    table.appendChild(thead);
+    
+    // Create table body
+    const tbody = document.createElement('tbody');
+    
+    // Add rows for each shift
+    shiftHistory.forEach(shift => {
+        const row = document.createElement('tr');
+        
+        // Format date from ISO to localized format
+        const dateObj = new Date(shift.date);
+        const formattedDate = dateObj.toLocaleDateString('is-IS', {
+            weekday: 'short',
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric'
+        });
+        
+        row.innerHTML = `
+            <td>${formattedDate}</td>
+            <td>${shift.shift}</td>
+            <td>${shift.department}</td>
+            <td>${shift.status}</td>
+        `;
+        
+        tbody.appendChild(row);
+    });
+    
+    table.appendChild(tbody);
+    shiftHistoryContainer.appendChild(table);
+    
+    console.debug('Shift history populated successfully');
+}
+
+// Update charts for theme change
+function updateChartsForTheme() {
+    console.debug('Updating charts for theme change');
+    
+    try {
+        // Re-initialize charts to apply theme
+        createRoleDistributionChart();
+        createSicknessChart();
+        
+        // Update staff attendance chart if it exists
+        if (document.getElementById('staff-attendance-chart') && window.staffAttendanceChart instanceof Chart) {
+            createStaffAttendanceChart();
+        }
+        
+        console.debug('Charts updated for theme change');
+    } catch (error) {
+        console.error('Error updating charts for theme:', error);
+    }
+}
+
+// Edit staff member
+function editStaff(staffId) {
+    console.log(`Editing staff member with ID: ${staffId}`);
+    
+    const staff = staffData.find(s => s.id === staffId);
+    if (!staff) {
+        console.error(`Staff with ID ${staffId} not found`);
+        showToast('Error', 'Staff member not found', 'error');
+        return;
+    }
+    
+    // Check if edit staff form and modal exist
+    const form = document.getElementById('edit-staff-form');
+    const modal = document.getElementById('edit-staff-modal');
+    
+    if (!form || !modal) {
+        console.error('Edit staff form or modal not found');
+        showToast('Error', 'Cannot edit staff member due to missing elements', 'error');
+        return;
+    }
+    
+    // Populate form fields
+    const fields = [
+        { id: 'edit-staff-name', value: staff.name },
+        { id: 'edit-staff-role', value: staff.role },
+        { id: 'edit-staff-email', value: staff.email },
+        { id: 'edit-staff-phone', value: staff.phone },
+        { id: 'edit-staff-department', value: staff.department },
+        { id: 'edit-staff-status', value: staff.status },
+        { id: 'edit-staff-shift', value: staff.shift },
+        { id: 'edit-staff-certification', value: staff.certification },
+        { id: 'edit-staff-notes', value: staff.notes }
+    ];
+    
+    // Set form field values if they exist
+    fields.forEach(field => {
+        const element = document.getElementById(field.id);
+        if (element) {
+            if (element.tagName === 'SELECT') {
+                // For select elements, find the matching option
+                const option = Array.from(element.options).find(opt => opt.value === field.value);
+                if (option) {
+                    element.value = field.value;
+                }
+            } else {
+                // For other elements (input, textarea)
+                element.value = field.value || '';
+            }
+        }
+    });
+    
+    // Store staff ID in form for retrieval during save
+    form.dataset.staffId = staffId;
+    
+    // Show modal
+    modal.classList.add('show');
+    
+    console.debug(`Edit staff form populated for staff ID: ${staffId}`);
+}
+
+// Confirm and handle staff deletion
+function confirmDeleteStaff(staffId) {
+    console.log(`Confirming deletion for staff ID: ${staffId}`);
+    
+    const staff = staffData.find(s => s.id === staffId);
+    if (!staff) {
+        console.error(`Staff with ID ${staffId} not found`);
+        showToast('Error', 'Staff member not found', 'error');
+        return;
+    }
+    
+    // Create and show a confirmation modal
+    openConfirmModal('Eyða starfsmanni?', 
+        `Ertu viss um að þú viljir eyða ${staff.name} úr kerfinu?`,
+        () => {
+            console.debug(`Confirmed deletion for staff ID: ${staffId}`);
+            deleteStaff(staffId);
+        });
+}
+
+// Open a confirmation modal with a message and callback
+function openConfirmModal(title, message, confirmCallback) {
+    console.debug(`Opening confirmation modal: ${title}`);
+    
+    const modal = document.getElementById('confirm-modal');
+    
+    if (!modal) {
+        console.error('Confirmation modal not found');
+        showToast('Error', 'Cannot show confirmation dialog', 'error');
+        return;
+    }
+    
+    // Set modal content
+    const modalTitle = modal.querySelector('.modal-title');
+    const modalMessage = modal.querySelector('.modal-message');
+    const confirmButton = modal.querySelector('.confirm-btn');
+    
+    if (modalTitle) modalTitle.textContent = title;
+    if (modalMessage) modalMessage.textContent = message;
+    
+    // Remove existing event listeners and add new one
+    if (confirmButton) {
+        const newConfirmBtn = confirmButton.cloneNode(true);
+        if (confirmButton.parentNode) {
+            confirmButton.parentNode.replaceChild(newConfirmBtn, confirmButton);
+        }
+        
+        newConfirmBtn.addEventListener('click', function() {
+            // Hide modal
+            modal.classList.remove('show');
+            
+            // Execute callback
+            if (typeof confirmCallback === 'function') {
+                confirmCallback();
+            }
+        });
+    }
+    
+    // Show modal
+    modal.classList.add('show');
+}
+
+// Delete a staff member
+function deleteStaff(staffId) {
+    console.log(`Deleting staff with ID: ${staffId}`);
+    
+    // Find staff index
+    const staffIndex = staffData.findIndex(s => s.id === staffId);
+    if (staffIndex === -1) {
+        console.error(`Staff with ID ${staffId} not found`);
+        return;
+    }
+    
+    // Get staff name for notification
+    const staffName = staffData[staffIndex].name;
+    
+    // Remove from data array
+    staffData.splice(staffIndex, 1);
+    
+    // Remove from selected IDs if present
+    selectedStaffIds = selectedStaffIds.filter(id => id !== staffId);
+    
+    // Update table
+    filterStaffData();
+    
+    // Update charts
+    updateStaffCharts();
+    
+    // Show toast notification
+    showToast('Starfsmaður fjarlægður', `${staffName} hefur verið eytt úr kerfinu.`, 'success');
+    
+    console.debug(`Staff with ID ${staffId} deleted successfully`);
+}
+
+// Delete selected staff members
+function deleteSelectedStaff() {
+    console.log(`Deleting ${selectedStaffIds.length} selected staff members`);
+    
+    // Nothing to do if no staff selected
+    if (selectedStaffIds.length === 0) return;
+    
+    // Keep count of deleted staff
+    let deletedCount = 0;
+    
+    // Process each selected staff ID
+    for (const staffId of [...selectedStaffIds]) {
+        const staffIndex = staffData.findIndex(s => s.id === staffId);
+        if (staffIndex !== -1) {
+            // Remove from data array
+            staffData.splice(staffIndex, 1);
+            deletedCount++;
+        }
+    }
+    
+    // Clear selected IDs
+    selectedStaffIds = [];
+    
+    // Update table
+    filterStaffData();
+    
+    // Update charts
+    updateStaffCharts();
+    
+    // Show toast notification
+    showToast('Starfsfólk fjarlægt', `${deletedCount} starfsmenn hafa verið eytt úr kerfinu.`, 'success');
+    
+    // Update remove button state
+    updateRemoveButtonState();
+    
+    console.debug(`${deletedCount} staff members deleted successfully`);
+}
+
+// Update staff charts based on filtered data
+function updateStaffCharts() {
+    console.debug('Updating staff charts with filtered data');
+    
+    // Generate data summary for filtered staff
+    const roleData = {};
+    const departmentData = {};
+    const statusData = {};
+    
+    filteredData.forEach(staff => {
+        // Count by role
+        if (!roleData[staff.role]) {
+            roleData[staff.role] = 0;
+        }
+        roleData[staff.role]++;
+        
+        // Count by department
+        if (!departmentData[staff.department]) {
+            departmentData[staff.department] = 0;
+        }
+        departmentData[staff.department]++;
+        
+        // Count by status
+        if (!statusData[staff.status]) {
+            statusData[staff.status] = 0;
+        }
+        statusData[staff.status]++;
+    });
+    
+    // Log filtered data summaries
+    console.debug('Filtered staff by role:', roleData);
+    console.debug('Filtered staff by department:', departmentData);
+    console.debug('Filtered staff by status:', statusData);
+    
+    // Check if chart containers exist before updating
+    const roleChartCanvas = document.getElementById('roleDistributionChart');
+    const sicknessChartCanvas = document.getElementById('sicknessChart');
+    
+    // Re-create charts with new data if they exist
+    if (roleChartCanvas) {
+        createRoleDistributionChart();
+    }
+    
+    if (sicknessChartCanvas) {
+        createSicknessChart();
+    }
+    
+    console.debug('Staff charts updated with filtered data');
+}
+
+// Export staff data to CSV
+function exportStaffData() {
+    console.log('Exporting staff data to CSV');
+    
+    try {
+        // CSV header
+        let csvContent = 'ID,Name,Role,Department,Status,Shift,Email,Phone,Certification,Notes\n';
+        
+        // Add each staff member as a row
+        filteredData.forEach(staff => {
+            // Escape fields that might contain commas
+            const escapeCsvField = (field) => {
+                if (!field) return '';
+                field = field.toString();
+                if (field.includes(',') || field.includes('"') || field.includes('\n')) {
+                    return `"${field.replace(/"/g, '""')}"`;
+                }
+                return field;
+            };
+            
+            const row = [
+                staff.id,
+                escapeCsvField(staff.name),
+                escapeCsvField(staff.role),
+                escapeCsvField(staff.department),
+                escapeCsvField(staff.status),
+                escapeCsvField(staff.shift),
+                escapeCsvField(staff.email),
+                escapeCsvField(staff.phone),
+                escapeCsvField(staff.certification),
+                escapeCsvField(staff.notes)
+            ].join(',');
+            
+            csvContent += row + '\n';
+        });
+        
+        // Create blob and download link
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        
+        // Set up download
+        link.setAttribute('href', url);
+        link.setAttribute('download', 'staff_data.csv');
+        link.style.visibility = 'hidden';
+        
+        // Add to document, click, and remove
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        // Show toast notification
+        showToast('Export successful', `${filteredData.length} staff records exported to CSV.`, 'success');
+        
+        console.debug('Staff data exported to CSV successfully');
+    } catch (error) {
+        console.error('Error exporting staff data:', error);
+        showToast('Export failed', 'There was an error exporting staff data.', 'error');
+    }
+}
+
+// Add new staff member
+function addNewStaff() {
+    console.log('Adding new staff member');
+    
+    const form = document.getElementById('add-staff-form');
+    if (!form) {
+        console.error('Add staff form not found');
+        return;
+    }
+    
+    try {
+        // Get form data
+        const formData = new FormData(form);
+        
+        // Create new staff object
+        const newStaff = {
+            id: staffData.length > 0 ? Math.max(...staffData.map(s => s.id)) + 1 : 1,
+            name: formData.get('staff-name'),
+            role: formData.get('staff-role'),
+            department: formData.get('staff-department'),
+            status: formData.get('staff-status'),
+            shift: formData.get('staff-shift'),
+            email: formData.get('staff-email'),
+            phone: formData.get('staff-phone'),
+            certification: formData.get('staff-certification'),
+            notes: formData.get('staff-notes'),
+            avatar: formData.get('staff-name').toLowerCase().split(' ')[0] // Use first name as avatar seed
+        };
+        
+        // Validate required fields
+        if (!newStaff.name || !newStaff.role || !newStaff.department) {
+            showToast('Error', 'Name, role, and department are required.', 'error');
+            return;
+        }
+        
+        // Add to data array
+        staffData.push(newStaff);
+        
+        // Close modal
+        const modal = document.getElementById('add-staff-modal');
+        if (modal) {
+            modal.classList.remove('show');
+        }
+        
+        // Update table
+        filterStaffData();
+        
+        // Show toast notification
+        showToast('Starfsmaður bætt við', `${newStaff.name} has been added successfully.`, 'success');
+        
+        console.debug(`New staff member added with ID: ${newStaff.id}`);
+    } catch (error) {
+        console.error('Error adding new staff:', error);
+        showToast('Error', 'Failed to add new staff member.', 'error');
+    }
+}
+
+// Save changes to staff member
+function saveStaffChanges() {
+    console.log('Saving staff changes');
+    
+    const form = document.getElementById('edit-staff-form');
+    if (!form) {
+        console.error('Edit staff form not found');
+        return;
+    }
+    
+    try {
+        // Get staff ID from form dataset
+        const staffId = parseInt(form.dataset.staffId);
+        if (isNaN(staffId)) {
+            throw new Error('Invalid staff ID');
+        }
+        
+        // Find staff in data
+        const staffIndex = staffData.findIndex(s => s.id === staffId);
+        if (staffIndex === -1) {
+            throw new Error(`Staff with ID ${staffId} not found`);
+        }
+        
+        // Get form data
+        const formData = new FormData(form);
+        
+        // Update staff object
+        const updatedStaff = {
+            ...staffData[staffIndex],
+            name: formData.get('edit-staff-name'),
+            role: formData.get('edit-staff-role'),
+            department: formData.get('edit-staff-department'),
+            status: formData.get('edit-staff-status'),
+            shift: formData.get('edit-staff-shift'),
+            email: formData.get('edit-staff-email'),
+            phone: formData.get('edit-staff-phone'),
+            certification: formData.get('edit-staff-certification'),
+            notes: formData.get('edit-staff-notes')
+        };
+        
+        // Validate required fields
+        if (!updatedStaff.name || !updatedStaff.role || !updatedStaff.department) {
+            showToast('Error', 'Name, role, and department are required.', 'error');
+            return;
+        }
+        
+        // Update data array
+        staffData[staffIndex] = updatedStaff;
+        
+        // Close modal
+        const modal = document.getElementById('edit-staff-modal');
+        if (modal) {
+            modal.classList.remove('show');
+        }
+        
+        // Update table
+        filterStaffData();
+        
+        // Show toast notification
+        showToast('Starfsmaður uppfærður', `${updatedStaff.name} has been updated successfully.`, 'success');
+        
+        console.debug(`Staff member with ID ${staffId} updated successfully`);
+    } catch (error) {
+        console.error('Error saving staff changes:', error);
+        showToast('Error', 'Failed to save staff changes.', 'error');
+    }
 }

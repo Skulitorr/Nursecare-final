@@ -51,12 +51,32 @@ function setupButtons() {
 }
 
 function setupDynamicButtons() {
+    console.log('Setting up dynamic patient buttons...');
+    
     // View patient buttons
     document.querySelectorAll('.view-patient-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             const patientId = btn.dataset.patientId;
             console.log('View patient clicked:', patientId);
             viewPatient(patientId);
+        });
+    });
+
+    // Edit patient buttons
+    document.querySelectorAll('.edit-patient-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const patientId = btn.dataset.patientId;
+            console.log('Edit patient clicked:', patientId);
+            editPatient(patientId);
+        });
+    });
+
+    // Remove patient buttons
+    document.querySelectorAll('.remove-patient-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const patientId = btn.dataset.patientId;
+            console.log('Remove patient clicked:', patientId);
+            confirmRemovePatient(patientId);
         });
     });
 
@@ -70,6 +90,8 @@ function setupDynamicButtons() {
             }
         });
     });
+
+    console.log('Dynamic buttons setup complete');
 }
 
 function setupFilters() {
@@ -483,5 +505,142 @@ function viewPatient(patientId) {
     } else {
         console.error('Patient view modal not found');
         showToast('error', 'Could not load patient view');
+    }
+}
+
+function editPatient(patientId) {
+    console.log(`Editing patient with ID: ${patientId}`);
+    
+    // Find the edit modal
+    const modal = document.getElementById('edit-patient-modal');
+    if (!modal) {
+        console.error('Edit patient modal not found');
+        showToast('error', 'Could not open edit form: Modal not found');
+        return;
+    }
+    
+    // Set the patient ID in the form
+    const patientIdField = modal.querySelector('[name="patient-id"]');
+    if (patientIdField) {
+        patientIdField.value = patientId;
+    }
+    
+    // Get patient name (optional, for display purposes)
+    const patientElement = document.querySelector(`[data-patient-id="${patientId}"]`);
+    const patientCard = patientElement?.closest('.patient-card');
+    const patientName = patientCard?.querySelector('.patient-name')?.textContent || 'Patient';
+    
+    // Set modal title if we have an element for it
+    const modalTitle = modal.querySelector('.modal-title');
+    if (modalTitle) {
+        modalTitle.textContent = `Edit Patient: ${patientName}`;
+    }
+    
+    // Here you would typically fetch existing patient data and pre-fill the form
+    const modalBody = modal.querySelector('.modal-body');
+    if (modalBody) {
+        // You might want to show loading state while fetching data
+        modalBody.classList.add('loading');
+        
+        // Simulate API call to fetch patient data (replace with actual implementation)
+        setTimeout(() => {
+            // Remove loading state
+            modalBody.classList.remove('loading');
+            
+            // Pre-fill form fields with patient data (example)
+            const nameField = modal.querySelector('[name="patient-name"]');
+            if (nameField) nameField.value = patientName;
+            
+            // More fields would be filled here with actual patient data
+            
+            console.log(`Patient edit form loaded for patient ID: ${patientId}`);
+        }, 800);
+    }
+    
+    // Show the modal
+    modal.classList.add('show');
+}
+
+function confirmRemovePatient(patientId) {
+    console.log(`Confirming removal of patient with ID: ${patientId}`);
+    
+    // Find patient information for the confirmation message
+    const patientElement = document.querySelector(`[data-patient-id="${patientId}"]`);
+    const patientCard = patientElement?.closest('.patient-card');
+    const patientName = patientCard?.querySelector('.patient-name')?.textContent || 'this patient';
+    
+    // Check if we have a confirm modal
+    const confirmModal = document.getElementById('confirm-modal');
+    if (!confirmModal) {
+        console.error('Confirmation modal not found');
+        
+        // Fallback: use browser confirm dialog if modal not found
+        if (window.confirm(`Are you sure you want to remove ${patientName}?`)) {
+            removePatient(patientId);
+        }
+        return;
+    }
+    
+    // Set confirmation message
+    const messageElement = confirmModal.querySelector('.confirm-message');
+    if (messageElement) {
+        messageElement.textContent = `Are you sure you want to remove ${patientName}?`;
+    }
+    
+    // Get the confirm button
+    const confirmButton = confirmModal.querySelector('.confirm-btn');
+    if (confirmButton) {
+        // Remove any existing event listeners and create a new button
+        const newConfirmBtn = confirmButton.cloneNode(true);
+        confirmButton.parentNode.replaceChild(newConfirmBtn, confirmButton);
+        
+        // Add event listener to the new button
+        newConfirmBtn.addEventListener('click', () => {
+            console.log(`Removal confirmed for patient ID: ${patientId}`);
+            confirmModal.classList.remove('show');
+            removePatient(patientId);
+        });
+    }
+    
+    // Show the confirm modal
+    confirmModal.classList.add('show');
+}
+
+function removePatient(patientId) {
+    console.log(`Removing patient with ID: ${patientId}`);
+    
+    try {
+        // Find patient card or row
+        const patientElement = document.querySelector(`[data-patient-id="${patientId}"]`);
+        const patientCard = patientElement?.closest('.patient-card');
+        const patientRow = patientElement?.closest('tr');
+        
+        // Get name for toast message
+        const patientName = patientCard?.querySelector('.patient-name')?.textContent || 
+                             patientRow?.querySelector('.patient-name')?.textContent || 
+                             'Patient';
+        
+        // Remove from UI with animation
+        if (patientCard) {
+            patientCard.classList.add('fade-out');
+            setTimeout(() => {
+                patientCard.remove();
+            }, 300);
+        } else if (patientRow) {
+            patientRow.classList.add('fade-out');
+            setTimeout(() => {
+                patientRow.remove();
+            }, 300);
+        } else {
+            console.warn(`Could not find patient element with ID: ${patientId}`);
+        }
+        
+        // Here you would typically make an API call to remove the patient from the database
+        // For now, we'll just show a success message
+        showToast('success', `${patientName} has been removed`);
+        
+    } catch (error) {
+        console.error('Error removing patient:', error);
+        showToast('error', 'Failed to remove patient: ' + error.message);
     }
 }
