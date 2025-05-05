@@ -274,3 +274,6 @@ class AIManager {
 // Create and export singleton instance
 const aiManager = new AIManager();
 export default aiManager;
+// Named exports for direct function usage
+export const generateShiftReport = (...args) => aiManager.generateShiftReport(...args);
+export const processChatMessage = (...args) => aiManager.processChatMessage(...args);

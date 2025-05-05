@@ -102,9 +102,13 @@ function setupWelcomeMessage() {
 function setupCharts() {
     console.log('Setting up charts...');
     try {
-        // Initialize all dashboard charts
-        initDashboardCharts();
-        console.debug('Charts loaded successfully');
+        // Only initialize if containers exist
+        if (document.getElementById('medicationChart') || document.getElementById('inventoryChart') || document.getElementById('patientHealthChart')) {
+            initDashboardCharts();
+            console.debug('Charts loaded successfully');
+        } else {
+            console.warn('No chart containers found in DOM');
+        }
     } catch (error) {
         console.error('Error initializing charts:', error);
     }
@@ -113,20 +117,11 @@ function setupCharts() {
 function setupAIFeatures() {
     console.log('Setting up AI features...');
     const reportButton = document.getElementById('generate-ai-report');
-    if (!reportButton) {
-        console.log('Adding AI report button to dashboard...');
-        const aiSection = document.querySelector('.ai-insight-section');
-        if (aiSection) {
-            const button = document.createElement('button');
-            button.id = 'generate-ai-report';
-            button.className = 'btn-primary';
-            button.innerHTML = '<i class="fas fa-robot"></i> Búa til AI vaktaskýrslu';
-            aiSection.appendChild(button);
-            button.addEventListener('click', generateAIReport);
-            console.debug('AI report button added');
-        } else {
-            console.warn('AI section not found');
-        }
+    if (reportButton) {
+        reportButton.addEventListener('click', () => {
+            console.log('AI report button clicked');
+            generateAIReport();
+        });
     }
 }
 

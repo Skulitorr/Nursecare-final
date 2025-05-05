@@ -127,8 +127,10 @@ class EventBus {
     }
 
     emit(eventName, data = null) {
+        // Prevent infinite error recursion
+        if (eventName === Events.ERROR_OCCURRED && this._handlingError) return;
+        if (eventName === Events.ERROR_OCCURRED) this._handlingError = true;
         const handlers = this.events.get(eventName);
-        
         if (handlers) {
             handlers.forEach(callback => {
                 try {
@@ -141,11 +143,11 @@ class EventBus {
                     }
                 }
             });
-            
             if (this.debug) {
                 console.log(`Event emitted: ${eventName}`, data);
             }
         }
+        if (eventName === Events.ERROR_OCCURRED) this._handlingError = false;
     }
 
     clear(eventName) {
