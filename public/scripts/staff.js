@@ -871,6 +871,12 @@ function createRoleDistributionChart() {
         return;
     }
     
+    // Destroy existing chart instance if it exists
+    if (window.roleDistributionChart instanceof Chart) {
+        window.roleDistributionChart.destroy();
+        console.debug('Destroyed existing role distribution chart');
+    }
+    
     // Count staff by role
     const roleData = {};
     staffData.forEach(staff => {
@@ -887,7 +893,7 @@ function createRoleDistributionChart() {
     ];
     
     try {
-        new Chart(chartCanvas, {
+        window.roleDistributionChart = new Chart(chartCanvas, {
             type: 'pie',
             data: {
                 labels,
@@ -925,12 +931,18 @@ function createSicknessChart() {
         return;
     }
     
+    // Destroy existing chart instance if it exists
+    if (window.sicknessChart instanceof Chart) {
+        window.sicknessChart.destroy();
+        console.debug('Destroyed existing sickness chart');
+    }
+    
     // Mock data for week days
     const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
     const data = [2, 3, 1, 3, 2, 0, 0];
     
     try {
-        new Chart(chartCanvas, {
+        window.sicknessChart = new Chart(chartCanvas, {
             type: 'bar',
             data: {
                 labels: days,
