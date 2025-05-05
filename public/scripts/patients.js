@@ -275,6 +275,13 @@ function showAddMedicationModal() {
     console.log('Add medication modal not yet implemented');
 }
 
+function viewAllPatients() {
+    console.log('View all patients button clicked');
+    // Implement logic to show all patients, e.g., reset filters and reload
+    resetFilters();
+    loadPatients();
+}
+
 // Form submission handlers
 async function handleFormSubmit(modalId, form) {
     console.log(`Handling form submission for ${modalId}`);
