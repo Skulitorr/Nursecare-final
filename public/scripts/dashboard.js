@@ -4,6 +4,11 @@ import { initDashboardCharts } from './dashboard-charts.js';
 
 console.log('Dashboard Module Loaded');
 
+window.onerror = function(msg, url, lineNo, columnNo, error) {
+    console.error('Global error:', { msg, url, lineNo, columnNo, error });
+    return false;
+};
+
 document.addEventListener('DOMContentLoaded', async () => {
     console.log('Initializing dashboard...');
     

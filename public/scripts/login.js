@@ -3,6 +3,11 @@ import { login } from './auth.js';
 
 console.log('Login Module Loaded');
 
+window.onerror = function(msg, url, lineNo, columnNo, error) {
+    console.error('Global error:', { msg, url, lineNo, columnNo, error });
+    return false;
+};
+
 document.addEventListener('DOMContentLoaded', () => {
     console.log('Initializing login page...');
     

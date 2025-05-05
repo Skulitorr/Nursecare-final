@@ -221,3 +221,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 });
+
+window.onerror = function(msg, url, lineNo, columnNo, error) {
+  console.error('Global error:', { msg, url, lineNo, columnNo, error });
+  return false;
+};
