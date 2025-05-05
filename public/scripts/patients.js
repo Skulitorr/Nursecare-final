@@ -409,3 +409,79 @@ function showToast(type, message) {
         }
     }, 5000);
 }
+
+function resolveAlert(alertCard) {
+    console.log('Resolving alert...');
+    alertCard.classList.add('fade-out');
+    setTimeout(() => {
+        alertCard.remove();
+    }, 300);
+    showToast('success', 'Alert marked as resolved');
+}
+
+function viewPatient(patientId) {
+    console.log(`Viewing patient with ID: ${patientId}`);
+    const modal = document.getElementById('view-patient-modal');
+    if (modal) {
+        // Populate modal with patient data
+        const patientName = document.querySelector(`[data-patient-id="${patientId}"]`)?.closest('.patient-card')?.querySelector('.patient-name')?.textContent || 'Patient';
+        modal.querySelector('.modal-title').textContent = `Patient: ${patientName}`;
+        
+        // Here you would typically fetch detailed patient data using the patient ID
+        // and populate the modal fields with that data
+        
+        // For now, we'll just set a loading state
+        const modalBody = modal.querySelector('.modal-body');
+        if (modalBody) {
+            modalBody.innerHTML = '<div class="loading-spinner">Loading patient data...</div>';
+            
+            // Simulate loading data (replace with actual API call)
+            setTimeout(() => {
+                // This would be replaced with actual patient data from your API
+                modalBody.innerHTML = `
+                    <div class="patient-details">
+                        <h4>Patient Information</h4>
+                        <p><strong>ID:</strong> ${patientId}</p>
+                        <p><strong>Name:</strong> ${patientName}</p>
+                        <p><strong>Status:</strong> Active</p>
+                        <p><strong>Room:</strong> 203B</p>
+                        
+                        <h4>Medical Information</h4>
+                        <p><strong>Diagnosis:</strong> To be filled in</p>
+                        <p><strong>Allergies:</strong> None reported</p>
+                        
+                        <h4>Latest Vitals</h4>
+                        <div class="vitals-grid">
+                            <div class="vital-item">
+                                <span class="vital-icon"><i class="fas fa-heartbeat"></i></span>
+                                <span class="vital-value">72 bpm</span>
+                                <span class="vital-label">Heart Rate</span>
+                            </div>
+                            <div class="vital-item">
+                                <span class="vital-icon"><i class="fas fa-stethoscope"></i></span>
+                                <span class="vital-value">120/80</span>
+                                <span class="vital-label">Blood Pressure</span>
+                            </div>
+                            <div class="vital-item">
+                                <span class="vital-icon"><i class="fas fa-thermometer-half"></i></span>
+                                <span class="vital-value">36.6°C</span>
+                                <span class="vital-label">Temperature</span>
+                            </div>
+                            <div class="vital-item">
+                                <span class="vital-icon"><i class="fas fa-lungs"></i></span>
+                                <span class="vital-value">16 rpm</span>
+                                <span class="vital-label">Respiratory Rate</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }, 1000);
+        }
+        
+        // Show the modal
+        modal.classList.add('show');
+    } else {
+        console.error('Patient view modal not found');
+        showToast('error', 'Could not load patient view');
+    }
+}

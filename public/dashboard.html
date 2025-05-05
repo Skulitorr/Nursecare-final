@@ -1100,7 +1100,7 @@
             display: flex;
             flex-direction: column;
             gap: 0.75rem;
-            margin-bottom: var(--spacing);
+            margin-bottom: var (--spacing);
         }
 
         .shift-item {
@@ -2500,6 +2500,23 @@
                             <i class="fas fa-robot" aria-hidden="true"></i>
                             <span>Spyrja AI aðstoðarmann</span>
                         </button>
+                    </div>
+                </section>
+                
+                <!-- AI widget section -->
+                <section id="ai-widget-section" class="card" style="margin-top: 2rem;">
+                    <header class="card-header">
+                        <h3><i class="fas fa-brain"></i> AI Assistant</h3>
+                        <div class="card-actions">
+                            <button class="card-action" id="refresh-ai-btn">
+                                <i class="fas fa-sync-alt"></i>
+                            </button>
+                        </div>
+                    </header>
+                    <div class="card-body">
+                        <p>Ask the AI assistant for help with your nursing tasks and get instant insights.</p>
+                        <button id="ask-ai-btn" class="btn-primary" style="margin-top: 1rem;">Ask AI</button>
+                        <div id="ai-output" class="ai-output-container">AI response will appear here...</div>
                     </div>
                 </section>
             </div>
