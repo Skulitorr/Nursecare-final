@@ -848,38 +848,50 @@ function initializeCharts() {
     console.log('Initializing staff charts...');
     
     try {
-        // Check if chart containers exist before initializing
-        const roleChartContainer = document.getElementById('roleDistributionChart');
-        const sicknessChartContainer = document.getElementById('sicknessChart');
-        
-        if (roleChartContainer) {
-            console.log('Role distribution chart container found, creating chart...');
-            createRoleDistributionChart();
-        } else {
-            console.warn('Role distribution chart container not found, skipping chart creation');
+        // Set default chart options
+        if (window.Chart) {
+            console.log('Setting Chart.js defaults');
+            Chart.defaults.responsive = true;
+            Chart.defaults.maintainAspectRatio = false;
         }
         
-        if (sicknessChartContainer) {
-            console.log('Sickness chart container found, creating chart...');
-            createSicknessChart();
-        } else {
-            console.warn('Sickness chart container not found, skipping chart creation');
-        }
+        // Initialize role distribution chart
+        initializeRoleDistributionChart();
         
-        console.debug('Staff charts initialized successfully');
+        // Initialize sickness chart
+        initializeSicknessChart();
+        
+        // Initialize staff allocation chart if it exists
+        initializeStaffAllocationChart();
+        
+        // Initialize workload chart if it exists
+        initializeWorkloadChart();
+        
+        // Initialize shift distribution chart if it exists
+        initializeShiftDistributionChart();
+        
+        console.debug('All staff charts initialized successfully');
     } catch (error) {
         console.error('Error initializing charts:', error);
     }
 }
 
-// Create role distribution chart
-function createRoleDistributionChart() {
-    console.debug('Creating role distribution chart');
+// Initialize role distribution chart
+function initializeRoleDistributionChart() {
+    console.debug('Initializing role distribution chart...');
     
+    // Check if the chart container exists
     const chartCanvas = document.getElementById('roleDistributionChart');
     if (!chartCanvas) {
         console.warn("Role distribution chart canvas not found");
         return;
+    }
+    
+    // Set height on parent container for proper sizing
+    const container = chartCanvas.parentElement;
+    if (container && container.style.height === '') {
+        container.style.height = '400px';
+        console.debug('Set height on role chart container');
     }
     
     // Destroy existing chart instance if it exists
@@ -921,25 +933,42 @@ function createRoleDistributionChart() {
                 plugins: {
                     legend: {
                         position: 'bottom'
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const value = context.raw;
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const percentage = Math.round((value / total) * 100);
+                                return `${context.label}: ${value} (${percentage}%)`;
+                            }
+                        }
                     }
                 }
             }
         });
         
-        console.debug('Role distribution chart created successfully');
+        console.log('Role distribution chart loaded successfully');
     } catch (error) {
         console.error('Error creating role distribution chart:', error);
     }
 }
 
-// Create sickness chart
-function createSicknessChart() {
-    console.debug('Creating sickness chart');
+// Initialize sickness chart
+function initializeSicknessChart() {
+    console.debug('Initializing sickness chart...');
     
     const chartCanvas = document.getElementById('sicknessChart');
     if (!chartCanvas) {
         console.warn("Sickness chart canvas not found");
         return;
+    }
+    
+    // Set height on parent container for proper sizing
+    const container = chartCanvas.parentElement;
+    if (container && container.style.height === '') {
+        container.style.height = '300px';
+        console.debug('Set height on sickness chart container');
     }
     
     // Destroy existing chart instance if it exists
@@ -984,9 +1013,257 @@ function createSicknessChart() {
             }
         });
         
-        console.debug('Sickness chart created successfully');
+        console.log('Sickness chart loaded successfully');
     } catch (error) {
         console.error('Error creating sickness chart:', error);
+    }
+}
+
+// Initialize staff allocation chart
+function initializeStaffAllocationChart() {
+    console.debug('Initializing staff allocation chart...');
+    
+    const chartCanvas = document.getElementById('staffAllocationChart');
+    if (!chartCanvas) {
+        console.warn("Staff allocation chart canvas not found");
+        return; // Skip if chart doesn't exist
+    }
+    
+    // Set height on parent container for proper sizing
+    const container = chartCanvas.parentElement;
+    if (container && container.style.height === '') {
+        container.style.height = '300px';
+        console.debug('Set height on staff allocation chart container');
+    }
+    
+    // Destroy existing chart instance if it exists
+    if (window.staffAllocationChart instanceof Chart) {
+        window.staffAllocationChart.destroy();
+        console.debug('Destroyed existing staff allocation chart');
+    }
+    
+    // Mock data for departments
+    const departments = ["Wing A", "Wing B", "Wing C", "Wing D"];
+    const morningShift = [6, 5, 4, 3];
+    const eveningShift = [4, 3, 3, 2];
+    const nightShift = [2, 2, 1, 1];
+    
+    try {
+        window.staffAllocationChart = new Chart(chartCanvas, {
+            type: 'bar',
+            data: {
+                labels: departments,
+                datasets: [
+                    {
+                        label: 'Morning Shift',
+                        data: morningShift,
+                        backgroundColor: '#3a86ff',
+                        borderColor: '#3a86ff',
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'Evening Shift',
+                        data: eveningShift,
+                        backgroundColor: '#ff006e',
+                        borderColor: '#ff006e',
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'Night Shift',
+                        data: nightShift,
+                        backgroundColor: '#8338ec',
+                        borderColor: '#8338ec',
+                        borderWidth: 1
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        stacked: true
+                    },
+                    y: {
+                        stacked: true,
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1
+                        }
+                    }
+                }
+            }
+        });
+        
+        console.log('Staff allocation chart loaded successfully');
+    } catch (error) {
+        console.error('Error creating staff allocation chart:', error);
+    }
+}
+
+// Initialize workload chart
+function initializeWorkloadChart() {
+    console.debug('Initializing workload chart...');
+    
+    const chartCanvas = document.getElementById('workloadChart');
+    if (!chartCanvas) {
+        console.warn("Workload chart canvas not found");
+        return; // Skip if chart doesn't exist
+    }
+    
+    // Set height on parent container for proper sizing
+    const container = chartCanvas.parentElement;
+    if (container && container.style.height === '') {
+        container.style.height = '300px';
+        console.debug('Set height on workload chart container');
+    }
+    
+    // Destroy existing chart instance if it exists
+    if (window.workloadChart instanceof Chart) {
+        window.workloadChart.destroy();
+        console.debug('Destroyed existing workload chart');
+    }
+    
+    // Mock data for workload
+    const roles = ["Nurses", "Doctors", "Assistants", "Cleaning", "Admin"];
+    const capacity = [10, 5, 15, 8, 5];
+    const actual = [12, 3, 12, 7, 4];
+    
+    try {
+        window.workloadChart = new Chart(chartCanvas, {
+            type: 'line',
+            data: {
+                labels: roles,
+                datasets: [
+                    {
+                        label: 'Optimal Capacity',
+                        data: capacity,
+                        backgroundColor: 'rgba(58, 134, 255, 0.2)',
+                        borderColor: '#3a86ff',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4
+                    },
+                    {
+                        label: 'Actual Staff',
+                        data: actual,
+                        backgroundColor: 'rgba(231, 29, 54, 0.2)',
+                        borderColor: '#e71d36',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 2
+                        }
+                    }
+                }
+            }
+        });
+        
+        console.log('Workload chart loaded successfully');
+    } catch (error) {
+        console.error('Error creating workload chart:', error);
+    }
+}
+
+// Initialize shift distribution chart
+function initializeShiftDistributionChart() {
+    console.debug('Initializing shift distribution chart...');
+    
+    const chartCanvas = document.getElementById('shiftDistributionChart');
+    if (!chartCanvas) {
+        console.warn("Shift distribution chart canvas not found");
+        return; // Skip if chart doesn't exist
+    }
+    
+    // Set height on parent container for proper sizing
+    const container = chartCanvas.parentElement;
+    if (container && container.style.height === '') {
+        container.style.height = '300px';
+        console.debug('Set height on shift distribution chart container');
+    }
+    
+    // Destroy existing chart instance if it exists
+    if (window.shiftDistributionChart instanceof Chart) {
+        window.shiftDistributionChart.destroy();
+        console.debug('Destroyed existing shift distribution chart');
+    }
+    
+    // Count staff by shift
+    const shiftCounts = {
+        'Morning Shift': 0,
+        'Evening Shift': 0,
+        'Night Shift': 0,
+        'Day Off': 0
+    };
+    
+    staffData.forEach(staff => {
+        if (staff.shift && staff.shift.includes('Morgun')) {
+            shiftCounts['Morning Shift']++;
+        } else if (staff.shift && staff.shift.includes('Kvöld')) {
+            shiftCounts['Evening Shift']++;
+        } else if (staff.shift && staff.shift.includes('Nætru')) {
+            shiftCounts['Night Shift']++;
+        } else {
+            shiftCounts['Day Off']++;
+        }
+    });
+    
+    // Prepare data for chart
+    const labels = Object.keys(shiftCounts);
+    const data = Object.values(shiftCounts);
+    const backgroundColor = [
+        '#3a86ff', // Morning shift
+        '#ff006e', // Evening shift
+        '#8338ec', // Night shift
+        '#adb5bd'  // Day off
+    ];
+    
+    try {
+        window.shiftDistributionChart = new Chart(chartCanvas, {
+            type: 'doughnut',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: data,
+                    backgroundColor: backgroundColor,
+                    borderColor: 'white',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const value = context.raw;
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const percentage = Math.round((value / total) * 100);
+                                return `${context.label}: ${value} staff (${percentage}%)`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        
+        console.log('Shift distribution chart loaded successfully');
+    } catch (error) {
+        console.error('Error creating shift distribution chart:', error);
     }
 }
 
@@ -1667,8 +1944,8 @@ function updateChartsForTheme() {
     
     try {
         // Re-initialize charts to apply theme
-        createRoleDistributionChart();
-        createSicknessChart();
+        initializeRoleDistributionChart();
+        initializeSicknessChart();
         
         // Update staff attendance chart if it exists
         if (document.getElementById('staff-attendance-chart') && window.staffAttendanceChart instanceof Chart) {
@@ -1913,11 +2190,11 @@ function updateStaffCharts() {
     
     // Re-create charts with new data if they exist
     if (roleChartCanvas) {
-        createRoleDistributionChart();
+        initializeRoleDistributionChart();
     }
     
     if (sicknessChartCanvas) {
-        createSicknessChart();
+        initializeSicknessChart();
     }
     
     console.debug('Staff charts updated with filtered data');

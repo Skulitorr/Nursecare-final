@@ -45,6 +45,24 @@ function setupButtons() {
             console.warn(`Button not found: ${id}`);
         }
     }
+    
+    // Special handling for update patient button - requires ID parameter
+    const updatePatientBtn = document.getElementById('update-patient-btn');
+    if (updatePatientBtn) {
+        updatePatientBtn.addEventListener('click', () => {
+            console.log('Update patient button clicked');
+            // Get patient ID from hidden input or data attribute if available
+            const patientIdField = document.querySelector('#edit-patient-form [name="patient-id"]');
+            const patientId = patientIdField ? patientIdField.value : null;
+            
+            if (patientId) {
+                updatePatient(patientId);
+            } else {
+                console.error('Cannot update patient: No patient ID provided');
+                showToast('error', 'Cannot update patient: No ID provided');
+            }
+        });
+    }
 
     // Setup dynamic buttons
     setupDynamicButtons();
@@ -339,12 +357,48 @@ async function handleFormSubmit(modalId, form) {
 // API handlers
 async function loadPatients() {
     console.log('Loading patients...');
-    const patientList = document.getElementById('patient-list');
+    let patientList = document.getElementById('patient-list');
     const patientTable = document.getElementById('patient-table-body');
     
+    // If patient-list doesn't exist, try to create it
+    if (!patientList) {
+        console.warn('Patient list container not found, attempting to create one');
+        
+        // Look for common container elements where we can append our patient list
+        const possibleContainers = [
+            document.querySelector('.main-content'),
+            document.querySelector('.content-container'),
+            document.querySelector('main'),
+            document.querySelector('.patients-container'),
+            document.querySelector('.card-body')
+        ];
+        
+        // Find the first available container
+        const parentContainer = possibleContainers.find(container => container !== null);
+        
+        if (parentContainer) {
+            console.log('Found parent container, creating patient-list');
+            // Create the patient list container
+            patientList = document.createElement('section');
+            patientList.id = 'patient-list';
+            patientList.style.minHeight = '300px';
+            patientList.className = 'patient-cards-grid';
+            
+            // Add a header if needed
+            const header = document.createElement('h3');
+            header.textContent = 'Patients';
+            header.className = 'section-title';
+            
+            // Append to the parent container
+            parentContainer.appendChild(header);
+            parentContainer.appendChild(patientList);
+        }
+    }
+    
+    // Still no patient list and no patient table, can't proceed
     if (!patientList && !patientTable) {
-        console.error('Patient containers not found');
-        showToast('error', 'Could not find patient list container');
+        console.error('Patient containers not found and could not be created');
+        showToast('error', 'Could not find or create patient list container');
         return;
     }
     
