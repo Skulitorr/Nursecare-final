@@ -16,6 +16,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const widgetMessages = document.getElementById("ai-widget-messages");
   const widgetClear = document.getElementById("ai-clear-btn");
   const widgetMinimize = document.getElementById("ai-minimize-btn");
+  const askAiAssistantBtn = document.getElementById("ask-ai-assistant-btn");
+  const askAiBtn = document.getElementById("ask-ai-btn");
+  const openAiChatBtn = document.getElementById("open-ai-chat-btn");
 
   // Widget visibility toggle
   if (widgetToggle && widgetContainer && widgetInput) {
@@ -26,6 +29,42 @@ document.addEventListener("DOMContentLoaded", () => {
         widgetInput.focus();
         scrollToBottom();
       }
+    });
+  }
+
+  // Ask AI Assistant button in the AI widget section
+  if (askAiAssistantBtn && widgetContainer && widgetInput) {
+    askAiAssistantBtn.addEventListener("click", () => {
+      console.debug("Ask AI Assistant button clicked");
+      widgetContainer.classList.add("open");
+      setTimeout(() => {
+        widgetInput.focus();
+        scrollToBottom();
+      }, 300);
+    });
+  }
+
+  // Quick action Ask AI button
+  if (askAiBtn && widgetContainer && widgetInput) {
+    askAiBtn.addEventListener("click", () => {
+      console.debug("Ask AI button clicked from quick actions");
+      widgetContainer.classList.add("open");
+      setTimeout(() => {
+        widgetInput.focus();
+        scrollToBottom();
+      }, 300);
+    });
+  }
+
+  // Open AI chat button in the AI Assistant card
+  if (openAiChatBtn && widgetContainer && widgetInput) {
+    openAiChatBtn.addEventListener("click", () => {
+      console.debug("Open AI chat button clicked");
+      widgetContainer.classList.add("open");
+      setTimeout(() => {
+        widgetInput.focus();
+        scrollToBottom();
+      }, 300);
     });
   }
 
