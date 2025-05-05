@@ -12,7 +12,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const aiInput = document.getElementById("ai-input");
   const askAiSimpleBtn = document.getElementById("ask-ai-btn");
   const widgetToggle = document.getElementById("ai-widget-toggle");
-  const widgetContainer = document.querySelector(".ai-widget-container");
+  // Fix: Use getElementById instead of querySelector for more reliable selection
+  const widgetContainer = document.getElementById("ai-widget-container");
   const widgetInput = document.getElementById("ai-widget-input");
   const widgetSend = document.getElementById("ai-widget-send");
   const widgetMessages = document.getElementById("ai-widget-messages");
@@ -66,95 +67,142 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // Widget visibility toggle
-  if (widgetToggle && widgetContainer && widgetInput) {
-    widgetToggle.addEventListener("click", () => {
+  // Widget visibility toggle - Fix: Added proper checks and error handling
+  if (widgetToggle && widgetContainer) {
+    widgetToggle.addEventListener("click", (e) => {
+      e.preventDefault(); // Prevent default behavior
       console.debug("Widget toggle clicked");
-      widgetContainer.classList.toggle("open");
-      if (widgetContainer.classList.contains("open")) {
-        widgetInput.focus();
-        scrollToBottom();
+      if (widgetContainer) {
+        widgetContainer.classList.toggle("open");
+        if (widgetContainer.classList.contains("open") && widgetInput) {
+          setTimeout(() => {
+            widgetInput.focus();
+            scrollToBottom();
+          }, 100);
+        }
+      } else {
+        console.error("Widget container not found");
       }
+    });
+  } else {
+    console.warn("Widget toggle button or container not found", {
+      toggle: widgetToggle,
+      container: widgetContainer
     });
   }
 
   // Ask AI Assistant button in the AI widget section
-  if (askAiAssistantBtn && widgetContainer && widgetInput) {
-    askAiAssistantBtn.addEventListener("click", () => {
+  if (askAiAssistantBtn && widgetContainer) {
+    askAiAssistantBtn.addEventListener("click", (e) => {
+      e.preventDefault(); // Prevent default behavior
       console.debug("Ask AI Assistant button clicked");
-      widgetContainer.classList.add("open");
-      setTimeout(() => {
-        widgetInput.focus();
-        scrollToBottom();
-      }, 300);
+      if (widgetContainer) {
+        widgetContainer.classList.add("open");
+        if (widgetInput) {
+          setTimeout(() => {
+            widgetInput.focus();
+            scrollToBottom();
+          }, 300);
+        }
+      }
     });
   }
 
   // Quick action Ask AI button
-  if (askAiBtn && widgetContainer && widgetInput) {
-    askAiBtn.addEventListener("click", () => {
+  if (askAiBtn && widgetContainer) {
+    askAiBtn.addEventListener("click", (e) => {
+      e.preventDefault(); // Prevent default behavior
       console.debug("Ask AI button clicked from quick actions");
-      widgetContainer.classList.add("open");
-      setTimeout(() => {
-        widgetInput.focus();
-        scrollToBottom();
-      }, 300);
+      if (widgetContainer) {
+        widgetContainer.classList.add("open");
+        if (widgetInput) {
+          setTimeout(() => {
+            widgetInput.focus();
+            scrollToBottom();
+          }, 300);
+        }
+      }
     });
   }
 
   // Open AI chat button in the AI Assistant card
-  if (openAiChatBtn && widgetContainer && widgetInput) {
-    openAiChatBtn.addEventListener("click", () => {
+  if (openAiChatBtn && widgetContainer) {
+    openAiChatBtn.addEventListener("click", (e) => {
+      e.preventDefault(); // Prevent default behavior
       console.debug("Open AI chat button clicked");
-      widgetContainer.classList.add("open");
-      setTimeout(() => {
-        widgetInput.focus();
-        scrollToBottom();
-      }, 300);
+      if (widgetContainer) {
+        widgetContainer.classList.add("open");
+        if (widgetInput) {
+          setTimeout(() => {
+            widgetInput.focus();
+            scrollToBottom();
+          }, 300);
+        }
+      }
     });
   }
 
-  // Minimize widget
+  // Minimize widget - Fix: Added proper error handling and improved functionality
   if (widgetMinimize && widgetContainer) {
-    widgetMinimize.addEventListener("click", () => {
+    widgetMinimize.addEventListener("click", (e) => {
+      e.preventDefault(); // Prevent default behavior
+      e.stopPropagation(); // Stop event propagation
       console.debug("Widget minimize clicked");
-      widgetContainer.classList.remove("open");
+      if (widgetContainer) {
+        widgetContainer.classList.remove("open");
+      }
+    });
+  } else {
+    console.warn("Minimize button or container not found", {
+      minimize: widgetMinimize,
+      container: widgetContainer
     });
   }
 
   // Clear chat history
   if (widgetClear && widgetMessages) {
-    widgetClear.addEventListener("click", () => {
+    widgetClear.addEventListener("click", (e) => {
+      e.preventDefault(); // Prevent default behavior
       console.debug("Widget clear clicked");
-      widgetMessages.innerHTML = "";
-      addSystemMessage("Chat history has been cleared. How can I help you today?");
+      if (widgetMessages) {
+        widgetMessages.innerHTML = "";
+        addSystemMessage("Chat history has been cleared. How can I help you today?");
+      }
     });
   }
 
   // Enable/disable send button based on input
   if (widgetInput && widgetSend) {
     widgetInput.addEventListener("input", () => {
-      widgetSend.disabled = !widgetInput.value.trim();
-      // Auto resize the textarea
-      widgetInput.style.height = "auto";
-      widgetInput.style.height = (widgetInput.scrollHeight) + "px";
+      if (widgetSend) {
+        widgetSend.disabled = !widgetInput.value.trim();
+        // Auto resize the textarea
+        widgetInput.style.height = "auto";
+        widgetInput.style.height = (widgetInput.scrollHeight) + "px";
+      }
     });
     // Handle Enter key
     widgetInput.addEventListener("keypress", (e) => {
       if (e.key === "Enter" && !e.shiftKey) {
         e.preventDefault();
-        if (!widgetSend.disabled) {
+        if (widgetSend && !widgetSend.disabled) {
           sendMessage();
         }
       }
     });
   }
 
-  // Send message
+  // Send message - Fix: Added proper checks and error handling
   if (widgetSend && widgetInput) {
-    widgetSend.addEventListener("click", () => {
+    widgetSend.addEventListener("click", (e) => {
+      e.preventDefault(); // Prevent default behavior
       console.debug("Widget send clicked");
       sendMessage();
+    });
+  } else {
+    console.warn("Send button or input not found", {
+      send: widgetSend,
+      input: widgetInput
     });
   }
 
@@ -180,14 +228,24 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Functions
   async function sendMessage() {
-    if (!widgetInput || !widgetMessages) return;
+    if (!widgetInput || !widgetMessages) {
+      console.error("Missing required elements for sending message");
+      return;
+    }
+    
     const messageText = widgetInput.value.trim();
     if (!messageText) return;
+    
     addUserMessage(messageText);
     widgetInput.value = "";
     widgetInput.style.height = "auto";
-    widgetSend.disabled = true;
+    
+    if (widgetSend) {
+      widgetSend.disabled = true;
+    }
+    
     addTypingIndicator();
+    
     try {
       const response = await generateAIResponse(messageText);
       removeTypingIndicator();
@@ -226,20 +284,26 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function addUserMessage(text) {
+    if (!widgetMessages) return;
     const messageElement = createMessageElement("user", text);
     widgetMessages.appendChild(messageElement);
     scrollToBottom();
   }
+  
   function addAssistantMessage(text) {
+    if (!widgetMessages) return;
     const messageElement = createMessageElement("assistant", text);
     widgetMessages.appendChild(messageElement);
     scrollToBottom();
   }
+  
   function addSystemMessage(text) {
+    if (!widgetMessages) return;
     const messageElement = createMessageElement("system", text);
     widgetMessages.appendChild(messageElement);
     scrollToBottom();
   }
+  
   function createMessageElement(role, text) {
     const message = document.createElement("div");
     message.className = `message ${role}-message`;
@@ -261,7 +325,9 @@ document.addEventListener("DOMContentLoaded", () => {
     `;
     return message;
   }
+  
   function addTypingIndicator() {
+    if (!widgetMessages) return;
     const typing = document.createElement("div");
     typing.className = "typing-indicator";
     typing.id = "typing-indicator";
@@ -273,12 +339,14 @@ document.addEventListener("DOMContentLoaded", () => {
     widgetMessages.appendChild(typing);
     scrollToBottom();
   }
+  
   function removeTypingIndicator() {
     const typing = document.getElementById("typing-indicator");
     if (typing) {
       typing.remove();
     }
   }
+  
   function scrollToBottom() {
     if (widgetMessages) {
       widgetMessages.scrollTop = widgetMessages.scrollHeight;
