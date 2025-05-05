@@ -5,10 +5,11 @@ console.log('API Client Module Loaded');
 
 class APIClient {
     constructor() {
-        this.baseURL = '/api';
+        this.baseURL = ''; // Empty base URL since we're using relative paths for Vercel
         this.cache = new Map();
         this.pendingRequests = new Map();
         this.cacheDuration = 5 * 60 * 1000; // 5 minutes
+        console.debug('API Client initialized for Vercel deployment');
     }
 
     async fetch(endpoint, options = {}) {
@@ -32,6 +33,8 @@ class APIClient {
             // Prepare request
             const url = this.getFullURL(endpoint);
             const requestOptions = this.prepareRequestOptions(options);
+            
+            console.debug(`Sending request to: ${url}`, requestOptions);
             
             // Create promise and store it
             const promise = this.executeRequest(url, requestOptions, cacheKey);
@@ -57,25 +60,33 @@ class APIClient {
     }
 
     async executeRequest(url, options, cacheKey) {
-        const response = await fetch(url, options);
-        
-        if (!response.ok) {
-            throw new APIError(response.statusText, response.status, await response.text());
+        try {
+            console.debug(`Executing fetch to ${url}`);
+            const response = await fetch(url, options);
+            
+            if (!response.ok) {
+                console.error(`API error: ${response.status} ${response.statusText}`);
+                throw new APIError(response.statusText, response.status, await response.text());
+            }
+            
+            // Parse response based on content type
+            const contentType = response.headers.get('content-type');
+            let data;
+            
+            if (contentType?.includes('application/json')) {
+                data = await response.json();
+            } else if (contentType?.includes('text/')) {
+                data = await response.text();
+            } else {
+                data = await response.blob();
+            }
+            
+            console.debug('API response received successfully');
+            return data;
+        } catch (error) {
+            console.error('Fetch execution error:', error);
+            throw error;
         }
-        
-        // Parse response based on content type
-        const contentType = response.headers.get('content-type');
-        let data;
-        
-        if (contentType?.includes('application/json')) {
-            data = await response.json();
-        } else if (contentType?.includes('text/')) {
-            data = await response.text();
-        } else {
-            data = await response.blob();
-        }
-        
-        return data;
     }
 
     prepareRequestOptions(options) {
@@ -92,7 +103,14 @@ class APIClient {
     }
 
     getFullURL(endpoint) {
-        return endpoint.startsWith('http') ? endpoint : `${this.baseURL}${endpoint}`;
+        // For Vercel, ensure we use the right path format
+        if (endpoint.startsWith('http')) {
+            return endpoint;
+        }
+        
+        // Make sure endpoint starts with / for API routes
+        const formattedEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+        return `${this.baseURL}${formattedEndpoint}`;
     }
 
     getCacheKey(endpoint, options) {
@@ -235,18 +253,23 @@ class APIClient {
         });
     }
 
-    // AI endpoints
+    // AI endpoints for Vercel serverless functions
     async generateReport(prompt, context) {
-        return this.fetch('/ai/generate', {
+        console.debug('Generating AI report', { prompt, context });
+        return this.fetch('/api/generate', {
             method: 'POST',
             body: JSON.stringify({ prompt, context })
         });
     }
 
-    async processChatMessage(message) {
-        return this.fetch('/ai/chat', {
+    async processChatMessage(message, context = {}) {
+        console.debug('Processing chat message', { message, context });
+        return this.fetch('/api/generate', {
             method: 'POST',
-            body: JSON.stringify({ message })
+            body: JSON.stringify({ 
+                prompt: message,
+                context 
+            })
         });
     }
 }

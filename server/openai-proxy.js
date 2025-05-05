@@ -1,7 +1,7 @@
 import OpenAI from 'openai';
 import express from 'express';
 import rateLimit from 'express-rate-limit';
-import { validateSession } from '../public/scripts/auth.js';
+import { validateSession } from '../scripts/auth.js';
 
 console.log('OpenAI Proxy Module Loaded');
 

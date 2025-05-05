@@ -14,7 +14,7 @@
                     <h1>NurseCare</h1>
                     <p>Smart healthcare management system for nursing facilities</p>
                     <div class="cta-buttons">
-                        <a href="/login.html" class="btn-primary">Get Started</a>
+                        <a href="/login" class="btn-primary">Get Started</a>
                         <a href="#features" class="btn-outline">Learn More</a>
                     </div>
                 </div>
@@ -33,7 +33,7 @@
                 if (tokenData.exp && tokenData.role && 
                     tokenData.exp > Date.now() && 
                     tokenData.role === userRole) {
-                    window.location.href = '/public/dashboard.html';
+                    window.location.href = '/dashboard';
                 }
             } catch (e) {
                 // Invalid token format, clear storage
