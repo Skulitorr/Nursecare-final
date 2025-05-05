@@ -339,33 +339,241 @@ async function handleFormSubmit(modalId, form) {
 // API handlers
 async function loadPatients() {
     console.log('Loading patients...');
+    const patientList = document.getElementById('patient-list');
+    const patientTable = document.getElementById('patient-table-body');
+    
+    if (!patientList && !patientTable) {
+        console.error('Patient containers not found');
+        showToast('error', 'Could not find patient list container');
+        return;
+    }
+    
+    // Show loading indicators
+    if (patientList) patientList.innerHTML = '<div class="loading-spinner">Loading patients...</div>';
+    if (patientTable) patientTable.innerHTML = '<tr><td colspan="6" class="loading-cell">Loading patients...</td></tr>';
+    
     try {
-        // Implementation pending API integration
-        console.log('API integration pending');
+        // In a real app, this would be an API call like:
+        // const response = await fetch('/api/patients');
+        // const data = await response.json();
+        
+        // Simulate API loading time
+        await new Promise(resolve => setTimeout(resolve, 800));
+        
+        // Use mock data since we're working with a static deployment
+        const patientData = getMockPatientData();
+        console.log(`Loaded ${patientData.length} patients`);
+        
+        if (patientData.length === 0) {
+            if (patientList) patientList.innerHTML = '<div class="no-data">No patients found</div>';
+            if (patientTable) patientTable.innerHTML = '<tr><td colspan="6" class="no-data">No patients found</td></tr>';
+            return;
+        }
+        
+        // Render patients
+        renderPatients(patientData, patientList, patientTable);
+        
+        // After rendering, set up the dynamic buttons again
+        setupDynamicButtons();
+        
     } catch (error) {
         console.error('Error loading patients:', error);
-        showToast('error', 'Error loading patients: ' + error.message);
+        if (patientList) patientList.innerHTML = '<div class="error-message">Failed to load patients</div>';
+        if (patientTable) patientTable.innerHTML = '<tr><td colspan="6" class="error-cell">Failed to load patients</td></tr>';
+        showToast('error', 'Error loading patients: ' + (error.message || 'Unknown error'));
     }
 }
 
-async function addPatient(data) {
-    console.log('Adding patient:', data);
-    // Implementation pending API integration
+function getMockPatientData() {
+    // Mock patient data for demonstration
+    return [
+        {
+            id: 'P001',
+            name: 'Jón Jónsson',
+            age: 78,
+            room: '101A',
+            status: 'Stable',
+            department: 'Wing A',
+            careLevel: 'Medium',
+            avatar: 'jon',
+            medicalConditions: ['Alzheimer\'s', 'Hypertension'],
+            medications: ['Donepezil', 'Lisinopril'],
+            vitals: {
+                heartRate: 72,
+                bloodPressure: '130/85',
+                temperature: 36.8,
+                respRate: 16
+            }
+        },
+        {
+            id: 'P002',
+            name: 'Guðrún Jónsdóttir',
+            age: 82,
+            room: '102B',
+            status: 'Needs Attention',
+            department: 'Wing A',
+            careLevel: 'High',
+            avatar: 'gudrun',
+            medicalConditions: ['Diabetes Type 2', 'Osteoporosis'],
+            medications: ['Metformin', 'Calcium supplements'],
+            vitals: {
+                heartRate: 80,
+                bloodPressure: '140/90',
+                temperature: 37.2,
+                respRate: 18
+            }
+        },
+        {
+            id: 'P003',
+            name: 'Sigurður Gunnarsson',
+            age: 71,
+            room: '103A',
+            status: 'Stable',
+            department: 'Wing B',
+            careLevel: 'Low',
+            avatar: 'sigurdur',
+            medicalConditions: ['Arthritis', 'Glaucoma'],
+            medications: ['Ibuprofen', 'Eye drops'],
+            vitals: {
+                heartRate: 68,
+                bloodPressure: '125/80',
+                temperature: 36.6,
+                respRate: 14
+            }
+        },
+        {
+            id: 'P004',
+            name: 'Helga Magnúsdóttir',
+            age: 85,
+            room: '104B',
+            status: 'Critical',
+            department: 'Wing A',
+            careLevel: 'High',
+            avatar: 'helga',
+            medicalConditions: ['Congestive Heart Failure', 'COPD'],
+            medications: ['Digoxin', 'Albuterol'],
+            vitals: {
+                heartRate: 90,
+                bloodPressure: '150/95',
+                temperature: 38.1,
+                respRate: 22
+            }
+        },
+        {
+            id: 'P005',
+            name: 'Ólafur Ólafsson',
+            age: 69,
+            room: '105A',
+            status: 'Stable',
+            department: 'Wing B',
+            careLevel: 'Medium',
+            avatar: 'olafur',
+            medicalConditions: ['Parkinson\'s', 'Depression'],
+            medications: ['Levodopa', 'Sertraline'],
+            vitals: {
+                heartRate: 65,
+                bloodPressure: '120/75',
+                temperature: 36.5,
+                respRate: 15
+            }
+        }
+    ];
 }
 
-async function addVitals(data) {
-    console.log('Adding vitals:', data);
-    // Implementation pending API integration
+function renderPatients(patients, listContainer, tableContainer) {
+    // Render card view if container exists
+    if (listContainer) {
+        listContainer.innerHTML = '';
+        patients.forEach(patient => {
+            const statusClass = getStatusClass(patient.status);
+            const patientCard = document.createElement('div');
+            patientCard.className = 'patient-card';
+            patientCard.innerHTML = `
+                <div class="patient-header">
+                    <div class="patient-avatar">
+                        <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=${patient.avatar || patient.name}" alt="${patient.name}">
+                    </div>
+                    <div class="patient-info">
+                        <h3 class="patient-name">${patient.name}</h3>
+                        <div class="patient-meta">
+                            <span>Room ${patient.room}</span> | <span>Age ${patient.age}</span>
+                        </div>
+                        <span class="status-badge ${statusClass}">${patient.status}</span>
+                    </div>
+                </div>
+                <div class="patient-body">
+                    <div class="patient-detail">
+                        <span class="label">Department:</span>
+                        <span class="value">${patient.department}</span>
+                    </div>
+                    <div class="patient-detail">
+                        <span class="label">Care Level:</span>
+                        <span class="value">${patient.careLevel}</span>
+                    </div>
+                    <div class="patient-detail">
+                        <span class="label">Medical Conditions:</span>
+                        <span class="value">${patient.medicalConditions.join(', ')}</span>
+                    </div>
+                </div>
+                <div class="patient-actions">
+                    <button class="action-btn view-patient-btn" data-patient-id="${patient.id}">
+                        <i class="fas fa-eye"></i> View
+                    </button>
+                    <button class="action-btn edit-patient-btn" data-patient-id="${patient.id}">
+                        <i class="fas fa-pencil-alt"></i> Edit
+                    </button>
+                    <button class="action-btn remove-patient-btn" data-patient-id="${patient.id}">
+                        <i class="fas fa-trash"></i> Remove
+                    </button>
+                </div>
+            `;
+            listContainer.appendChild(patientCard);
+        });
+        console.log(`Rendered ${patients.length} patient cards`);
+    }
+    
+    // Render table view if container exists
+    if (tableContainer) {
+        tableContainer.innerHTML = '';
+        patients.forEach(patient => {
+            const statusClass = getStatusClass(patient.status);
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>
+                    <div class="patient-name-cell">
+                        <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=${patient.avatar || patient.name}" 
+                             alt="${patient.name}" class="patient-avatar-small">
+                        <span class="patient-name">${patient.name}</span>
+                    </div>
+                </td>
+                <td>${patient.room}</td>
+                <td>${patient.age}</td>
+                <td><span class="status-badge ${statusClass}">${patient.status}</span></td>
+                <td>${patient.department}</td>
+                <td class="actions-cell">
+                    <button class="action-btn view-patient-btn" data-patient-id="${patient.id}" aria-label="View ${patient.name}">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                    <button class="action-btn edit-patient-btn" data-patient-id="${patient.id}" aria-label="Edit ${patient.name}">
+                        <i class="fas fa-pencil-alt"></i>
+                    </button>
+                    <button class="action-btn remove-patient-btn" data-patient-id="${patient.id}" aria-label="Remove ${patient.name}">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </td>
+            `;
+            tableContainer.appendChild(row);
+        });
+        console.log(`Rendered ${patients.length} patient table rows`);
+    }
 }
 
-async function addNote(data) {
-    console.log('Adding note:', data);
-    // Implementation pending API integration
-}
-
-async function updatePatient(data) {
-    console.log('Updating patient:', data);
-    // Implementation pending API integration
+function getStatusClass(status) {
+    status = status.toLowerCase();
+    if (status.includes('critical')) return 'status-critical';
+    if (status.includes('attention')) return 'status-warning';
+    if (status.includes('stable')) return 'status-stable';
+    return 'status-normal';
 }
 
 // Filter handlers
