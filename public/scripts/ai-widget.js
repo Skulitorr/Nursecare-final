@@ -6,29 +6,168 @@ window.onerror = function(msg, url, lineNo, columnNo, error) {
 
 document.addEventListener("DOMContentLoaded", () => {
   console.log("AI Widget initialized");
-  // Elements
-  const button = document.getElementById("generate-ai-report");
-  const output = document.getElementById("ai-output");
-  const aiInput = document.getElementById("ai-input");
-  const askAiSimpleBtn = document.getElementById("ask-ai-btn");
+  
+  // Toast notification system
+  function showToast(title, message, type = 'info') {
+    console.log(`Toast: ${title} - ${message} (${type})`);
+    const toastContainer = document.getElementById('toast-container');
+    if (!toastContainer) return;
+    
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    
+    let icon = 'info-circle';
+    if (type === 'success') icon = 'check-circle';
+    if (type === 'warning') icon = 'exclamation-triangle';
+    if (type === 'error') icon = 'exclamation-circle';
+    
+    toast.innerHTML = `
+      <div class="toast-icon">
+        <i class="fas fa-${icon}"></i>
+      </div>
+      <div class="toast-content">
+        <h4 class="toast-title">${title}</h4>
+        <div class="toast-message">${message}</div>
+      </div>
+      <button class="toast-close" aria-label="Close notification">
+        <i class="fas fa-times"></i>
+      </button>
+    `;
+    
+    const closeBtn = toast.querySelector('.toast-close');
+    if (closeBtn) {
+      closeBtn.addEventListener('click', () => {
+        toast.classList.add('toast-hide');
+        setTimeout(() => toast.remove(), 300);
+      });
+    }
+    
+    toastContainer.appendChild(toast);
+    setTimeout(() => toast.classList.add('toast-hide'), 5000);
+    setTimeout(() => toast.remove(), 5300);
+  }
+
+  // Elements - Main AI Widget elements (floating widget)
   const widgetToggle = document.getElementById("ai-widget-toggle");
-  // Fix: Use getElementById instead of querySelector for more reliable selection
   const widgetContainer = document.getElementById("ai-widget-container");
   const widgetInput = document.getElementById("ai-widget-input");
   const widgetSend = document.getElementById("ai-widget-send");
   const widgetMessages = document.getElementById("ai-widget-messages");
   const widgetClear = document.getElementById("ai-clear-btn");
   const widgetMinimize = document.getElementById("ai-minimize-btn");
+  
+  // Elements - Dashboard AI elements (embedded in page)
+  const generateReportBtn = document.getElementById("generate-ai-report");
+  const aiOutput = document.getElementById("ai-output");
+  const aiInput = document.getElementById("ai-input");
+  const askAiSimpleBtn = document.getElementById("ask-ai-btn");
   const askAiAssistantBtn = document.getElementById("ask-ai-assistant-btn");
-  const askAiBtn = document.getElementById("ask-ai-btn");
   const openAiChatBtn = document.getElementById("open-ai-chat-btn");
-
-  // Initialize the simple AI output with welcome message
-  if (output) {
-    output.textContent = "Welcome! How can I assist you today?";
+  
+  // Elements - Other dashboard buttons
+  const clearAlertsBtn = document.getElementById("clear-alerts-btn");
+  const refreshStatsBtn = document.getElementById("refresh-stats-btn");
+  const logoutBtn = document.getElementById("logoutBtn");
+  const updateInventoryBtn = document.getElementById("update-inventory-btn");
+  const viewShiftBtn = document.getElementById("view-shift-btn");
+  const handoverBtn = document.getElementById("handover-btn");
+  const addStaffBtn = document.getElementById("add-staff-btn");
+  const createScheduleBtn = document.getElementById("create-schedule-btn");
+  const updateAllInventoryBtn = document.getElementById("update-all-inventory-btn");
+  
+  // Initialize dashboard AI output with welcome message if it exists
+  if (aiOutput) {
+    aiOutput.innerHTML = "<p>Welcome to your AI assistant 👋 — how can I help?</p>";
   }
 
-  // Handle simple AI input field enter key press
+  // DASHBOARD BUTTONS - Handle standard dashboard buttons
+  if (clearAlertsBtn) {
+    clearAlertsBtn.addEventListener("click", (e) => {
+      console.log("Clear alerts button clicked");
+      showToast("Alerts cleared", "All alert notifications have been cleared", "success");
+      
+      // Find and clear alert items
+      const alertList = document.querySelector('.alert-list');
+      if (alertList) {
+        alertList.innerHTML = '<p>No active alerts at this time.</p>';
+      }
+    });
+  }
+  
+  if (refreshStatsBtn) {
+    refreshStatsBtn.addEventListener("click", (e) => {
+      console.log("Refresh statistics button clicked");
+      showToast("Refreshing stats", "Dashboard statistics are being updated...", "info");
+      
+      // Show loading animation
+      if (refreshStatsBtn.innerHTML.indexOf('loading') === -1) {
+        refreshStatsBtn.innerHTML += ' <span class="loading"></span>';
+      }
+      
+      // Remove loading after delay
+      setTimeout(() => {
+        refreshStatsBtn.innerHTML = refreshStatsBtn.innerHTML.replace(' <span class="loading"></span>', '');
+        showToast("Stats updated", "Dashboard statistics have been refreshed", "success");
+      }, 1500);
+    });
+  }
+  
+  if (logoutBtn) {
+    logoutBtn.addEventListener("click", (e) => {
+      console.log("Logout button clicked");
+      showToast("Logging out", "You are being logged out...", "info");
+      
+      // Perform logout
+      setTimeout(() => {
+        localStorage.removeItem('authToken');
+        window.location.href = '/login.html';
+      }, 1000);
+    });
+  }
+  
+  if (updateInventoryBtn) {
+    updateInventoryBtn.addEventListener("click", (e) => {
+      console.log("Update inventory button clicked");
+      showToast("Inventory update", "Inventory data is being refreshed", "info");
+    });
+  }
+  
+  if (viewShiftBtn) {
+    viewShiftBtn.addEventListener("click", (e) => {
+      console.log("View shift button clicked");
+      showToast("Shift overview", "Viewing today's shift details", "info");
+    });
+  }
+  
+  if (handoverBtn) {
+    handoverBtn.addEventListener("click", (e) => {
+      console.log("Handover button clicked");
+      showToast("Shift handover", "Preparing shift handover documentation", "info");
+    });
+  }
+  
+  if (addStaffBtn) {
+    addStaffBtn.addEventListener("click", (e) => {
+      console.log("Add staff button clicked");
+      showToast("Staff management", "Opening add staff form", "info");
+    });
+  }
+  
+  if (createScheduleBtn) {
+    createScheduleBtn.addEventListener("click", (e) => {
+      console.log("Create schedule button clicked");
+      showToast("Schedule creation", "Opening schedule creation wizard", "info");
+    });
+  }
+  
+  if (updateAllInventoryBtn) {
+    updateAllInventoryBtn.addEventListener("click", (e) => {
+      console.log("Update all inventory button clicked");
+      showToast("Inventory update", "Starting full inventory audit", "info");
+    });
+  }
+  
+  // DASHBOARD AI INPUT - Handle simple AI input field enter key press
   if (aiInput) {
     aiInput.addEventListener("keypress", (e) => {
       if (e.key === "Enter") {
@@ -38,40 +177,62 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Handle simple Ask AI button click
+  // DASHBOARD AI BUTTON - Handle direct Ask AI button click
   if (askAiSimpleBtn && aiInput) {
-    askAiSimpleBtn.addEventListener("click", () => {
+    askAiSimpleBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      console.log("Ask AI button clicked");
       handleSimpleAiQuery(aiInput.value);
     });
   }
 
-  // Process the simple AI query
+  // Process the simple AI query for dashboard AI
   async function handleSimpleAiQuery(query) {
-    if (!query.trim() || !output) return;
+    if (!query || !query.trim() || !aiOutput) return;
     
     const userMessage = query.trim();
+    console.log("Processing AI query:", userMessage);
     
-    // Display user message
-    output.innerHTML = `<strong>You:</strong> ${userMessage}\n\n<strong>AI:</strong> Thinking...`;
-    
-    try {
-      const response = await generateAIResponse(userMessage);
-      output.innerHTML = `<strong>You:</strong> ${userMessage}\n\n<strong>AI:</strong> ${response}`;
-    } catch (error) {
-      console.error("Error in AI query:", error);
-      output.innerHTML = `<strong>You:</strong> ${userMessage}\n\n<strong>AI:</strong> AI is unavailable right now.`;
+    // Save input and disable
+    let originalValue = "";
+    if (aiInput) {
+      originalValue = aiInput.value;
+      aiInput.value = "";
+      aiInput.disabled = true;
     }
     
-    if (aiInput) {
-      aiInput.value = "";
+    if (askAiSimpleBtn) {
+      askAiSimpleBtn.disabled = true;
+    }
+    
+    // Display user message and thinking indicator
+    aiOutput.innerHTML = `<p><strong>You:</strong> ${userMessage}</p><p><strong>AI:</strong> 🧠 Thinking...</p>`;
+    
+    try {
+      const response = await generateAIResponse(userMessage, "dashboard_ai_widget");
+      aiOutput.innerHTML = `<p><strong>You:</strong> ${userMessage}</p><p><strong>AI:</strong> ${response}</p>`;
+    } catch (error) {
+      console.error("Error in AI query:", error);
+      aiOutput.innerHTML = `<p><strong>You:</strong> ${userMessage}</p><p><strong>AI:</strong> ⚠️ The AI is temporarily unavailable. Please try again later.</p>`;
+    } finally {
+      // Re-enable controls
+      if (aiInput) {
+        aiInput.disabled = false;
+        aiInput.focus();
+      }
+      
+      if (askAiSimpleBtn) {
+        askAiSimpleBtn.disabled = false;
+      }
     }
   }
 
-  // Widget visibility toggle - Fix: Added proper checks and error handling
+  // WIDGET TOGGLE - Control visibility of the floating widget
   if (widgetToggle && widgetContainer) {
     widgetToggle.addEventListener("click", (e) => {
       e.preventDefault(); // Prevent default behavior
-      console.debug("Widget toggle clicked");
+      console.log("Widget toggle clicked");
+      
       if (widgetContainer) {
         widgetContainer.classList.toggle("open");
         if (widgetContainer.classList.contains("open") && widgetInput) {
@@ -85,17 +246,17 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
   } else {
-    console.warn("Widget toggle button or container not found", {
-      toggle: widgetToggle,
-      container: widgetContainer
-    });
+    console.warn("Widget toggle button or container not found");
   }
 
+  // DASHBOARD AI WIDGET BUTTONS - AI Widget triggers from various buttons
+  
   // Ask AI Assistant button in the AI widget section
   if (askAiAssistantBtn && widgetContainer) {
     askAiAssistantBtn.addEventListener("click", (e) => {
-      e.preventDefault(); // Prevent default behavior
-      console.debug("Ask AI Assistant button clicked");
+      e.preventDefault();
+      console.log("Ask AI Assistant button clicked");
+      
       if (widgetContainer) {
         widgetContainer.classList.add("open");
         if (widgetInput) {
@@ -108,28 +269,12 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Quick action Ask AI button
-  if (askAiBtn && widgetContainer) {
-    askAiBtn.addEventListener("click", (e) => {
-      e.preventDefault(); // Prevent default behavior
-      console.debug("Ask AI button clicked from quick actions");
-      if (widgetContainer) {
-        widgetContainer.classList.add("open");
-        if (widgetInput) {
-          setTimeout(() => {
-            widgetInput.focus();
-            scrollToBottom();
-          }, 300);
-        }
-      }
-    });
-  }
-
-  // Open AI chat button in the AI Assistant card
+  // Open AI chat button in dashboard cards
   if (openAiChatBtn && widgetContainer) {
     openAiChatBtn.addEventListener("click", (e) => {
-      e.preventDefault(); // Prevent default behavior
-      console.debug("Open AI chat button clicked");
+      e.preventDefault();
+      console.log("Open AI chat button clicked");
+      
       if (widgetContainer) {
         widgetContainer.classList.add("open");
         if (widgetInput) {
@@ -142,31 +287,31 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Minimize widget - Fix: Added proper error handling and improved functionality
+  // WIDGET CONTROLS - Handle widget-specific controls
+  
+  // Minimize widget button
   if (widgetMinimize && widgetContainer) {
     widgetMinimize.addEventListener("click", (e) => {
-      e.preventDefault(); // Prevent default behavior
-      e.stopPropagation(); // Stop event propagation
-      console.debug("Widget minimize clicked");
+      e.preventDefault();
+      e.stopPropagation();
+      console.log("Widget minimize clicked");
+      
       if (widgetContainer) {
         widgetContainer.classList.remove("open");
       }
     });
-  } else {
-    console.warn("Minimize button or container not found", {
-      minimize: widgetMinimize,
-      container: widgetContainer
-    });
   }
 
-  // Clear chat history
+  // Clear chat history button
   if (widgetClear && widgetMessages) {
     widgetClear.addEventListener("click", (e) => {
-      e.preventDefault(); // Prevent default behavior
-      console.debug("Widget clear clicked");
+      e.preventDefault();
+      console.log("Widget clear clicked");
+      
       if (widgetMessages) {
         widgetMessages.innerHTML = "";
         addSystemMessage("Chat history has been cleared. How can I help you today?");
+        showToast("Chat cleared", "Your conversation history has been cleared", "success");
       }
     });
   }
@@ -181,7 +326,8 @@ document.addEventListener("DOMContentLoaded", () => {
         widgetInput.style.height = (widgetInput.scrollHeight) + "px";
       }
     });
-    // Handle Enter key
+    
+    // Handle Enter key in widget input
     widgetInput.addEventListener("keypress", (e) => {
       if (e.key === "Enter" && !e.shiftKey) {
         e.preventDefault();
@@ -192,41 +338,44 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Send message - Fix: Added proper checks and error handling
-  if (widgetSend && widgetInput) {
+  // Widget send button
+  if (widgetSend) {
     widgetSend.addEventListener("click", (e) => {
-      e.preventDefault(); // Prevent default behavior
-      console.debug("Widget send clicked");
+      e.preventDefault();
+      console.log("Widget send button clicked");
       sendMessage();
-    });
-  } else {
-    console.warn("Send button or input not found", {
-      send: widgetSend,
-      input: widgetInput
     });
   }
 
-  // Generate report button in dashboard
-  if (button && output) {
-    button.addEventListener("click", async () => {
+  // GENERATE REPORT - Handle AI report generation in dashboard
+  if (generateReportBtn && aiOutput) {
+    generateReportBtn.addEventListener("click", async () => {
       console.log("Generating AI report");
-      output.textContent = "Asking AI...";
+      generateReportBtn.disabled = true;
+      aiOutput.innerHTML = "<p>🧠 Asking AI to generate a report...</p>";
+      
       try {
-        const response = await generateAIResponse("Summarize today's nursing home shift and provide key observations.");
-        output.textContent = response;
+        const response = await generateAIResponse("Summarize today's nursing home shift and provide key observations.", "ai_report");
+        aiOutput.innerHTML = `<p>${response}</p>`;
+        showToast("Report generated", "AI shift summary is ready", "success");
       } catch (err) {
         console.error("Error generating report:", err);
-        output.textContent = "Failed to generate AI report. Please try again later.";
+        aiOutput.innerHTML = "<p>⚠️ Failed to generate AI report. Please try again later.</p>";
+        showToast("Report failed", "Unable to generate the AI report", "error");
+      } finally {
+        generateReportBtn.disabled = false;
       }
     });
   }
 
-  // Add initial system message
+  // Add initial system welcome message to widget
   if (widgetMessages && widgetMessages.children.length === 0) {
     addSystemMessage("Hello! I'm your NurseCare AI assistant. How can I help you today?");
   }
 
-  // Functions
+  // WIDGET MESSAGING FUNCTIONS
+  
+  // Send message from widget
   async function sendMessage() {
     if (!widgetInput || !widgetMessages) {
       console.error("Missing required elements for sending message");
@@ -236,6 +385,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const messageText = widgetInput.value.trim();
     if (!messageText) return;
     
+    console.log("Sending message:", messageText);
+    
+    // Update UI
     addUserMessage(messageText);
     widgetInput.value = "";
     widgetInput.style.height = "auto";
@@ -247,42 +399,54 @@ document.addEventListener("DOMContentLoaded", () => {
     addTypingIndicator();
     
     try {
-      const response = await generateAIResponse(messageText);
+      const response = await generateAIResponse(messageText, "ai_widget");
       removeTypingIndicator();
       addAssistantMessage(response);
     } catch (error) {
       console.error("Error sending message:", error);
       removeTypingIndicator();
-      addAssistantMessage("I'm sorry, I'm having trouble connecting to my knowledge base right now. Please try again later.");
+      addAssistantMessage("⚠️ I'm sorry, I'm having trouble connecting to my knowledge base right now. Please try again later.");
+      showToast("Connection issue", "The AI service is temporarily unavailable", "warning");
+    } finally {
+      // Re-enable input after response
+      if (widgetSend) {
+        widgetSend.disabled = false;
+      }
+      if (widgetInput) {
+        widgetInput.focus();
+      }
     }
   }
 
-  async function generateAIResponse(prompt) {
-    console.debug("Generating AI response for:", prompt);
+  // Make API request to OpenAI
+  async function generateAIResponse(prompt, contextType = "general") {
+    console.log(`Generating AI response for: "${prompt}" (context: ${contextType})`);
+    
     try {
       const res = await fetch("/api/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ 
           prompt,
-          context: { 
-            date: new Date().toLocaleDateString('is-IS'),
-            page: window.location.pathname
-          }
+          context: contextType
         })
       });
+      
       if (!res.ok) {
         throw new Error(`API request failed with status ${res.status}`);
       }
+      
       const data = await res.json();
-      console.debug("AI response received:", data);
-      return data.summary || data.result || "No response from AI.";
+      console.log("AI response received:", data);
+      
+      return data.result || data.summary || "No response received from AI.";
     } catch (err) {
       console.error("Error in AI request:", err);
       throw err;
     }
   }
 
+  // Add a user message to the widget
   function addUserMessage(text) {
     if (!widgetMessages) return;
     const messageElement = createMessageElement("user", text);
@@ -290,6 +454,7 @@ document.addEventListener("DOMContentLoaded", () => {
     scrollToBottom();
   }
   
+  // Add an AI assistant message to the widget
   function addAssistantMessage(text) {
     if (!widgetMessages) return;
     const messageElement = createMessageElement("assistant", text);
@@ -297,6 +462,7 @@ document.addEventListener("DOMContentLoaded", () => {
     scrollToBottom();
   }
   
+  // Add a system message to the widget
   function addSystemMessage(text) {
     if (!widgetMessages) return;
     const messageElement = createMessageElement("system", text);
@@ -304,16 +470,20 @@ document.addEventListener("DOMContentLoaded", () => {
     scrollToBottom();
   }
   
+  // Create a message element for the chat
   function createMessageElement(role, text) {
     const message = document.createElement("div");
     message.className = `message ${role}-message`;
+    
     let avatarIcon = "fa-robot";
     if (role === "user") {
       avatarIcon = "fa-user";
     } else if (role === "system") {
       avatarIcon = "fa-info-circle";
     }
+    
     const time = new Date().toLocaleTimeString('is-IS', { hour: '2-digit', minute: '2-digit' });
+    
     message.innerHTML = `
       <div class="message-avatar">
         <i class="fas ${avatarIcon}"></i>
@@ -323,11 +493,14 @@ document.addEventListener("DOMContentLoaded", () => {
         <div class="message-time">${time}</div>
       </div>
     `;
+    
     return message;
   }
   
+  // Add typing indicator to show AI is thinking
   function addTypingIndicator() {
     if (!widgetMessages) return;
+    
     const typing = document.createElement("div");
     typing.className = "typing-indicator";
     typing.id = "typing-indicator";
@@ -336,10 +509,12 @@ document.addEventListener("DOMContentLoaded", () => {
       <span></span>
       <span></span>
     `;
+    
     widgetMessages.appendChild(typing);
     scrollToBottom();
   }
   
+  // Remove typing indicator when AI response is ready
   function removeTypingIndicator() {
     const typing = document.getElementById("typing-indicator");
     if (typing) {
@@ -347,6 +522,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
   
+  // Scroll chat to bottom after new messages
   function scrollToBottom() {
     if (widgetMessages) {
       widgetMessages.scrollTop = widgetMessages.scrollHeight;
