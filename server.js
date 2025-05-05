@@ -37,6 +37,14 @@ app.use(compression());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Set proper MIME type for JavaScript modules
+app.use((req, res, next) => {
+    if (req.path.endsWith('.js')) {
+        res.type('application/javascript');
+    }
+    next();
+});
+
 // Static files
 app.use(express.static('public'));
 app.use('/assets', express.static('assets'));
