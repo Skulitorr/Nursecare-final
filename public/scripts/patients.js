@@ -852,3 +852,143 @@ function removePatient(patientId) {
         showToast('error', 'Failed to remove patient: ' + error.message);
     }
 }
+
+// Update patient data
+function updatePatient(patientId) {
+    console.log(`Updating patient with ID: ${patientId}`);
+    
+    const modal = document.getElementById('edit-patient-modal');
+    if (!modal) {
+        console.error('Edit patient modal not found');
+        showToast('error', 'Could not update patient: Edit form not found');
+        return;
+    }
+    
+    // Show loading state in modal if it exists
+    const modalBody = modal.querySelector('.modal-body');
+    if (modalBody) {
+        modalBody.innerHTML = '<div class="loading-spinner">Loading patient data...</div>';
+    }
+    
+    // Show the modal
+    modal.classList.add('show');
+    
+    try {
+        // Find patient data (in a real app this would be fetched from API)
+        const patients = getMockPatientData();
+        const patient = patients.find(p => p.id === patientId);
+        
+        if (!patient) {
+            throw new Error(`Patient with ID ${patientId} not found`);
+        }
+        
+        console.log(`Found patient data for ID ${patientId}:`, patient.name);
+        
+        // If we have a form, populate it after a short delay to simulate API fetch
+        setTimeout(() => {
+            const form = modal.querySelector('form');
+            if (!form) {
+                console.error('Patient edit form not found');
+                if (modalBody) {
+                    modalBody.innerHTML = '<div class="error-message">Error loading patient form</div>';
+                }
+                return;
+            }
+            
+            // Populate form with patient data
+            if (modalBody) {
+                modalBody.innerHTML = `
+                    <form id="edit-patient-form">
+                        <input type="hidden" name="patient-id" value="${patient.id}">
+                        
+                        <div class="form-group">
+                            <label for="patient-name">Name</label>
+                            <input type="text" id="patient-name" name="patient-name" value="${patient.name}" required>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="patient-age">Age</label>
+                                <input type="number" id="patient-age" name="patient-age" value="${patient.age}" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="patient-room">Room</label>
+                                <input type="text" id="patient-room" name="patient-room" value="${patient.room}" required>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="patient-status">Status</label>
+                                <select id="patient-status" name="patient-status" required>
+                                    <option value="Stable" ${patient.status === 'Stable' ? 'selected' : ''}>Stable</option>
+                                    <option value="Needs Attention" ${patient.status === 'Needs Attention' ? 'selected' : ''}>Needs Attention</option>
+                                    <option value="Critical" ${patient.status === 'Critical' ? 'selected' : ''}>Critical</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="patient-department">Department</label>
+                                <select id="patient-department" name="patient-department" required>
+                                    <option value="Wing A" ${patient.department === 'Wing A' ? 'selected' : ''}>Wing A</option>
+                                    <option value="Wing B" ${patient.department === 'Wing B' ? 'selected' : ''}>Wing B</option>
+                                    <option value="Wing C" ${patient.department === 'Wing C' ? 'selected' : ''}>Wing C</option>
+                                    <option value="Wing D" ${patient.department === 'Wing D' ? 'selected' : ''}>Wing D</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="patient-medical">Medical Conditions (comma separated)</label>
+                            <input type="text" id="patient-medical" name="patient-medical" value="${patient.medicalConditions.join(', ')}">
+                        </div>
+                        
+                        <div class="form-actions">
+                            <button type="submit" class="btn-primary">Save Changes</button>
+                            <button type="button" class="btn-outline cancel-btn">Cancel</button>
+                        </div>
+                    </form>
+                `;
+                
+                // Add event listeners to the new form
+                const newForm = modalBody.querySelector('form');
+                if (newForm) {
+                    newForm.addEventListener('submit', function(e) {
+                        e.preventDefault();
+                        savePatientChanges(patient.id);
+                        modal.classList.remove('show');
+                        showToast('success', `${patient.name} updated successfully`);
+                    });
+                    
+                    const cancelBtn = newForm.querySelector('.cancel-btn');
+                    if (cancelBtn) {
+                        cancelBtn.addEventListener('click', () => {
+                            modal.classList.remove('show');
+                        });
+                    }
+                }
+            }
+        }, 800);
+        
+    } catch (error) {
+        console.error('Error updating patient:', error);
+        showToast('error', 'Error updating patient: ' + error.message);
+        
+        if (modalBody) {
+            modalBody.innerHTML = '<div class="error-message">Error loading patient data</div>';
+        }
+    }
+}
+
+// Save patient changes from form
+function savePatientChanges(patientId) {
+    console.log(`Saving changes for patient ID: ${patientId}`);
+    
+    // In a real app, this would send data to an API
+    // For now, just log the action
+    console.log('Patient data would be saved to API/database');
+    
+    // Reload patient list to show changes
+    setTimeout(() => {
+        loadPatients();
+    }, 500);
+}

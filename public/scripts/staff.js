@@ -16,6 +16,17 @@ console.log('Staff Management Module Loaded');
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Initializing Staff Management page...');
     
+    // Set global chart defaults
+    if (window.Chart) {
+        console.log('Setting Chart.js defaults');
+        Chart.defaults.responsive = true;
+        Chart.defaults.maintainAspectRatio = false;
+        Chart.defaults.plugins.legend.display = true;
+        Chart.defaults.font.family = "'Inter', -apple-system, BlinkMacSystemFont, sans-serif";
+    } else {
+        console.error('Chart.js library not found! Charts will not render.');
+    }
+    
     if (!validateSession()) {
         console.warn("Session validation failed, redirecting to login");
         return;
