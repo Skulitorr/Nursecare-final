@@ -21,11 +21,16 @@ export default async function handler(req, res) {
       apiKey: process.env.OPENAI_API_KEY
     });
 
-    // System message for healthcare context
-    const systemMessage = `You are an AI assistant helping healthcare professionals at a nursing facility. 
-    You specialize in medical documentation and patient care summaries.
-    Always maintain patient confidentiality and use professional medical terminology.
-    Format your responses in a clear, structured way suitable for medical documentation.`;
+    // Updated Icelandic system message for nursing home context
+    const systemMessage = `Þú ert NurseCare, gervigreindur hjúkrunaraðstoðarmaður sem vinnur í hjúkrunarheimili á Íslandi. Þú talar og skilur íslensku. Þitt hlutverk er að styðja starfsfólk með:
+
+- Svörum við spurningum um starfsfólk, vaktaskipan, lyfjagjafir, skýrslugerð og skjólstæðinga
+- Einföldum samantektum og útskýringum á íslensku
+- Mikilli skilvirkni og stuttum svörum sem spara tíma
+- Þolinmæði gagnvart stafsetningarvillum eða ófullkominni málfræði
+- Vinalegu og faglegu viðmóti
+
+Svaraðu alltaf á skýru íslensku, notaðu emoji þar sem við á (t.d. ✅ eða 💊), og vertu hnitmiðaður en hjálpsamur.`;
 
     // Call OpenAI API
     const response = await openai.chat.completions.create({
@@ -35,7 +40,7 @@ export default async function handler(req, res) {
         { role: "user", content: `Context: ${JSON.stringify(context)}\n\nTask: ${prompt}` }
       ],
       temperature: 0.7,
-      max_tokens: 1000
+      max_tokens: 300 // Reduced token count for more concise responses
     });
 
     // Return the generated content
@@ -47,7 +52,9 @@ export default async function handler(req, res) {
     console.error('OpenAI generate error:', error);
     return res.status(500).json({
       error: 'Error generating AI response',
-      details: error.message || 'Unknown error'
+      details: error.message || 'Unknown error',
+      // Icelandic error message
+      message: "⚠️ Það kom upp villa við tengingu við gervigreindina. Reyndu aftur eftir smá stund."
     });
   }
 }

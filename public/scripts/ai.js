@@ -77,6 +77,7 @@ class AIManager {
             ${basePrompt}
             
             Please format the response in a clear, professional manner suitable for medical documentation.
+            Respond in Icelandic.
         `;
     }
 
@@ -126,7 +127,7 @@ class AIManager {
                 responseText = response;
             } else {
                 console.warn('Unexpected response format:', response);
-                responseText = "I'm not sure how to respond to that. Can you try asking in a different way?";
+                responseText = "Ég er ekki alveg viss hvað þú átt við 🤔 — geturðu útskýrt nánar?";
             }
             
             this.addToChatHistory(responseText, 'assistant');
@@ -160,30 +161,34 @@ class AIManager {
             const lowercaseMsg = message.toLowerCase();
             
             if (lowercaseMsg.includes('hæ') || lowercaseMsg.includes('halló') || lowercaseMsg.includes('hallo')) {
-                return 'Hæ! Hvernig get ég aðstoðað þig í dag?';
+                return 'Hæ! Hvernig get ég aðstoðað þig í dag? 👋';
             }
             
             if (lowercaseMsg.includes('veik') || lowercaseMsg.includes('sjúk')) {
-                return 'Algengustu veikindi á þessum árstíma eru kvef og flensa. Viltu nánar upplýsingar?';
+                return 'Algengustu veikindi á þessum árstíma eru kvef og flensa. Viltu nánar upplýsingar? 🤒';
             }
             
             if (lowercaseMsg.includes('vakt') || lowercaseMsg.includes('vakta')) {
-                return 'Vaktaáætlunin sýnir að það eru 8 starfsmenn á dagvakt, 5 á kvöldvakt og 3 á næturvakt í dag.';
+                return 'Vaktaáætlunin sýnir að það eru 8 starfsmenn á dagvakt, 5 á kvöldvakt og 3 á næturvakt í dag. 📋';
             }
             
-            if (lowercaseMsg.includes('sjúkling') || lowercaseMsg.includes('patient')) {
-                return 'Það eru 18 sjúklingar á deildinni í dag. Viltu sjá lista yfir þá?';
+            if (lowercaseMsg.includes('sjúkling') || lowercaseMsg.includes('patient') || lowercaseMsg.includes('skjólstæðing')) {
+                return 'Það eru 18 sjúklingar á deildinni í dag. Viltu sjá lista yfir þá? 👨‍👩‍👧‍👦';
+            }
+            
+            if (lowercaseMsg.includes('lyf') || lowercaseMsg.includes('lyfjagjöf')) {
+                return 'Næstu lyfjagjafir eru kl. 14:00. Viltu sjá nákvæma lyfjalista? 💊';
             }
             
             // Default response when offline
-            return 'Ég get ekki svarað nákvæmlega núna vegna þess að ég hef ekki netsamband. Get ég aðstoðað með eitthvað annað?';
+            return '⚠️ Ég get ekki svarað nákvæmlega núna vegna þess að ég hef ekki netsamband. Get ég aðstoðað með eitthvað annað?';
         }
         
         if (type === 'report') {
-            return 'Ekki tókst að búa til sjálfvirka skýrslu. Vinsamlegast skráðu skýrsluna handvirkt eða reyndu aftur síðar þegar nettenging er betri.';
+            return '⚠️ Ekki tókst að búa til sjálfvirka skýrslu. Vinsamlegast skráðu skýrsluna handvirkt eða reyndu aftur síðar þegar nettenging er betri.';
         }
         
-        return 'AI þjónustan er ekki tiltæk. Vinsamlegast reyndu aftur síðar.';
+        return '⚠️ Það kom upp villa við tengingu við gervigreindina. Reyndu aftur eftir smá stund.';
     }
 
     // Debounced typing indicator
@@ -198,21 +203,21 @@ class AIManager {
         console.log('Generating medical summary...');
         
         const prompt = `
-            Generate a concise medical summary for the patient with the following information:
+            Generate a concise medical summary in Icelandic for the patient with the following information:
             ${JSON.stringify(patientData)}
             
             Include:
-            - Key diagnoses
-            - Current medications
-            - Recent vital signs
-            - Important notes
-            - Recommendations
+            - Key diagnoses (Helstu sjúkdómsgreiningar)
+            - Current medications (Lyf sem sjúklingur tekur)
+            - Recent vital signs (Nýlegar lífsmörk)
+            - Important notes (Mikilvægar athugasemdir)
+            - Recommendations (Tillögur)
         `;
         
         try {
             console.debug('Sending medical summary request to API');
             const response = await apiClient.generateReport(prompt, { patient: patientData });
-            return response.summary || response.message || 'No summary available';
+            return response.summary || response.message || 'Engin samantekt tiltæk';
         } catch (error) {
             console.error('Error generating medical summary:', error);
             eventBus.emit(Events.AI_ERROR, error);
@@ -224,20 +229,22 @@ class AIManager {
         console.log(`Analyzing ${type} trends...`);
         
         const prompt = `
-            Analyze the following ${type} data and identify significant trends or patterns:
-            ${JSON.stringify(data)}
+            Analyze the following ${type} data and identify significant trends or patterns.
+            Respond in Icelandic.
+            
+            Data: ${JSON.stringify(data)}
             
             Please provide:
-            - Key observations
-            - Notable changes
-            - Potential areas of concern
-            - Recommendations for follow-up
+            - Key observations (Helstu athuganir)
+            - Notable changes (Athyglisverðar breytingar)
+            - Potential areas of concern (Möguleg áhyggjuefni)
+            - Recommendations for follow-up (Tillögur um eftirfylgni)
         `;
         
         try {
             console.debug(`Sending ${type} trends analysis request to API`);
             const response = await apiClient.generateReport(prompt, { [type]: data });
-            return response.summary || response.message || 'No trend analysis available';
+            return response.summary || response.message || 'Engin þróunargreining tiltæk';
         } catch (error) {
             console.error('Error analyzing trends:', error);
             eventBus.emit(Events.AI_ERROR, error);
@@ -252,17 +259,17 @@ class AIManager {
             Based on the following context:
             ${JSON.stringify(context)}
             
-            Please provide:
-            - Care recommendations
-            - Potential risks to monitor
-            - Suggested interventions
-            - Follow-up actions
+            Please provide in Icelandic:
+            - Care recommendations (Umönnunartillögur)
+            - Potential risks to monitor (Möguleg áhætta sem þarf að fylgjast með)
+            - Suggested interventions (Tillögur að inngripum)
+            - Follow-up actions (Eftirfylgni)
         `;
         
         try {
             console.debug('Sending recommendations request to API');
             const response = await apiClient.generateReport(prompt, context);
-            return response.summary || response.message || 'No recommendations available';
+            return response.summary || response.message || 'Engar tillögur tiltækar';
         } catch (error) {
             console.error('Error getting recommendations:', error);
             eventBus.emit(Events.AI_ERROR, error);

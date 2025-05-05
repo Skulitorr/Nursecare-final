@@ -77,19 +77,19 @@ document.addEventListener("DOMContentLoaded", () => {
   
   // Initialize dashboard AI output with welcome message if it exists
   if (aiOutput) {
-    aiOutput.innerHTML = "<p>Welcome to your AI assistant 👋 — how can I help?</p>";
+    aiOutput.innerHTML = "<p>Velkomin(n) í NurseCare gervigreindaraðstoðarmann 👋 — hvernig get ég hjálpað þér í dag?</p>";
   }
 
   // DASHBOARD BUTTONS - Handle standard dashboard buttons
   if (clearAlertsBtn) {
     clearAlertsBtn.addEventListener("click", (e) => {
       console.log("Clear alerts button clicked");
-      showToast("Alerts cleared", "All alert notifications have been cleared", "success");
+      showToast("Viðvaranir hreinsaðar", "Allar viðvaranir hafa verið hreinsaðar", "success");
       
       // Find and clear alert items
       const alertList = document.querySelector('.alert-list');
       if (alertList) {
-        alertList.innerHTML = '<p>No active alerts at this time.</p>';
+        alertList.innerHTML = '<p>Engar virkar viðvaranir á þessari stundu.</p>';
       }
     });
   }
@@ -97,7 +97,7 @@ document.addEventListener("DOMContentLoaded", () => {
   if (refreshStatsBtn) {
     refreshStatsBtn.addEventListener("click", (e) => {
       console.log("Refresh statistics button clicked");
-      showToast("Refreshing stats", "Dashboard statistics are being updated...", "info");
+      showToast("Uppfærir tölfræði", "Tölfræðigögn eru að uppfærast...", "info");
       
       // Show loading animation
       if (refreshStatsBtn.innerHTML.indexOf('loading') === -1) {
@@ -107,7 +107,7 @@ document.addEventListener("DOMContentLoaded", () => {
       // Remove loading after delay
       setTimeout(() => {
         refreshStatsBtn.innerHTML = refreshStatsBtn.innerHTML.replace(' <span class="loading"></span>', '');
-        showToast("Stats updated", "Dashboard statistics have been refreshed", "success");
+        showToast("Tölfræði uppfærð", "Tölfræðigögn hafa verið uppfærð", "success");
       }, 1500);
     });
   }
@@ -206,14 +206,14 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     
     // Display user message and thinking indicator
-    aiOutput.innerHTML = `<p><strong>You:</strong> ${userMessage}</p><p><strong>AI:</strong> 🧠 Thinking...</p>`;
+    aiOutput.innerHTML = `<p><strong>Þú:</strong> ${userMessage}</p><p><strong>AI:</strong> 🧠 Hugsa...</p>`;
     
     try {
       const response = await generateAIResponse(userMessage, "dashboard_ai_widget");
-      aiOutput.innerHTML = `<p><strong>You:</strong> ${userMessage}</p><p><strong>AI:</strong> ${response}</p>`;
+      aiOutput.innerHTML = `<p><strong>Þú:</strong> ${userMessage}</p><p><strong>AI:</strong> ${response}</p>`;
     } catch (error) {
       console.error("Error in AI query:", error);
-      aiOutput.innerHTML = `<p><strong>You:</strong> ${userMessage}</p><p><strong>AI:</strong> ⚠️ The AI is temporarily unavailable. Please try again later.</p>`;
+      aiOutput.innerHTML = `<p><strong>Þú:</strong> ${userMessage}</p><p><strong>AI:</strong> ⚠️ Gervigreindin er tímabundið óaðgengileg. Vinsamlegast reyndu aftur síðar.</p>`;
     } finally {
       // Re-enable controls
       if (aiInput) {
@@ -352,16 +352,16 @@ document.addEventListener("DOMContentLoaded", () => {
     generateReportBtn.addEventListener("click", async () => {
       console.log("Generating AI report");
       generateReportBtn.disabled = true;
-      aiOutput.innerHTML = "<p>🧠 Asking AI to generate a report...</p>";
+      aiOutput.innerHTML = "<p>🧠 Bið gervigreindina um að búa til skýrslu...</p>";
       
       try {
-        const response = await generateAIResponse("Summarize today's nursing home shift and provide key observations.", "ai_report");
+        const response = await generateAIResponse("Gerðu samantekt á vakt dagsins á hjúkrunarheimilinu og veittu lykilathuganir.", "ai_report");
         aiOutput.innerHTML = `<p>${response}</p>`;
-        showToast("Report generated", "AI shift summary is ready", "success");
+        showToast("Skýrsla tilbúin", "AI samantekt á vaktinni er tilbúin", "success");
       } catch (err) {
         console.error("Error generating report:", err);
-        aiOutput.innerHTML = "<p>⚠️ Failed to generate AI report. Please try again later.</p>";
-        showToast("Report failed", "Unable to generate the AI report", "error");
+        aiOutput.innerHTML = "<p>⚠️ Ekki tókst að búa til AI skýrslu. Vinsamlegast reyndu aftur síðar.</p>";
+        showToast("Skýrslugerð mistókst", "Ekki tókst að búa til AI skýrslu", "error");
       } finally {
         generateReportBtn.disabled = false;
       }
@@ -370,7 +370,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Add initial system welcome message to widget
   if (widgetMessages && widgetMessages.children.length === 0) {
-    addSystemMessage("Hello! I'm your NurseCare AI assistant. How can I help you today?");
+    addSystemMessage(`👋 Halló! Ég er NurseCare gervigreindaraðstoðarmaður.
+Ég get hjálpað með vaktir, lyfjagjafir, skjólstæðingaupplýsingar og annað.
+Spurðu mig t.d.:
+• "Hver er á næturvakt í dag?"
+• "Hvenær fær Jón Baldur næstu lyfjagjöf?"
+• "Búðu til vaktaskýrslu fyrir kvöldvakt"`);
   }
 
   // WIDGET MESSAGING FUNCTIONS
