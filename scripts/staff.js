@@ -1,4 +1,4 @@
-import { checkAuthorization } from './common.js';
+import { checkAuthorization } from '/public/scripts/common.js';
 
 function initializeStaff() {
     setupStaffList();
