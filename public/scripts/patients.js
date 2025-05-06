@@ -356,60 +356,22 @@ async function handleFormSubmit(modalId, form) {
 // API handlers
 async function loadPatients() {
     console.log('Loading patients...');
-    let patientList = document.getElementById('patient-list');
-    const patientTable = document.getElementById('patient-table-body');
+    const patientsGrid = document.getElementById('patients-grid');
+    const patientTable = document.getElementById('patients-table-body');
     
-    // If patient-list doesn't exist, try to create it
-    if (!patientList) {
-        console.warn('Patient list container not found, attempting to create one');
-        
-        // Look for common container elements where we can append our patient list
-        const possibleContainers = [
-            document.querySelector('.main-content'),
-            document.querySelector('.content-container'),
-            document.querySelector('main'),
-            document.querySelector('.patients-container'),
-            document.querySelector('.card-body')
-        ];
-        
-        // Find the first available container
-        const parentContainer = possibleContainers.find(container => container !== null);
-        
-        if (parentContainer) {
-            console.log('Found parent container, creating patient-list');
-            // Create the patient list container
-            patientList = document.createElement('section');
-            patientList.id = 'patient-list';
-            patientList.style.minHeight = '300px';
-            patientList.className = 'patient-cards-grid';
-            
-            // Add a header if needed
-            const header = document.createElement('h3');
-            header.textContent = 'Patients';
-            header.className = 'section-title';
-            
-            // Append to the parent container
-            parentContainer.appendChild(header);
-            parentContainer.appendChild(patientList);
-        }
-    }
-    
-    // Still no patient list and no patient table, can't proceed
-    if (!patientList && !patientTable) {
-        console.error('Patient containers not found and could not be created');
-        showToast('error', 'Could not find or create patient list container');
+    // Try to use the designated containers first
+    if (!patientsGrid && !patientTable) {
+        console.error('Patient containers not found');
+        showToast('error', 'Could not find patient containers');
         return;
     }
     
     // Show loading indicators
-    if (patientList) patientList.innerHTML = '<div class="loading-spinner">Loading patients...</div>';
-    if (patientTable) patientTable.innerHTML = '<tr><td colspan="6" class="loading-cell">Loading patients...</td></tr>';
+    if (patientsGrid) patientsGrid.innerHTML = '<div class="loading-spinner">Loading patients...</div>';
+    if (patientTable) patientTable.innerHTML = '<tr><td colspan="9" class="loading-cell">Loading patients...</td></tr>';
     
     try {
-        // In a real app, this would be an API call like:
-        // const response = await fetch('/api/patients');
-        // const data = await response.json();
-        
+        // In a real app, this would be an API call
         // Simulate API loading time
         await new Promise(resolve => setTimeout(resolve, 800));
         
@@ -418,21 +380,21 @@ async function loadPatients() {
         console.log(`Loaded ${patientData.length} patients`);
         
         if (patientData.length === 0) {
-            if (patientList) patientList.innerHTML = '<div class="no-data">No patients found</div>';
-            if (patientTable) patientTable.innerHTML = '<tr><td colspan="6" class="no-data">No patients found</td></tr>';
+            if (patientsGrid) patientsGrid.innerHTML = '<div class="no-data">No patients found</div>';
+            if (patientTable) patientTable.innerHTML = '<tr><td colspan="9" class="no-data">No patients found</td></tr>';
             return;
         }
         
         // Render patients
-        renderPatients(patientData, patientList, patientTable);
+        renderPatients(patientData, patientsGrid, patientTable);
         
         // After rendering, set up the dynamic buttons again
         setupDynamicButtons();
         
     } catch (error) {
         console.error('Error loading patients:', error);
-        if (patientList) patientList.innerHTML = '<div class="error-message">Failed to load patients</div>';
-        if (patientTable) patientTable.innerHTML = '<tr><td colspan="6" class="error-cell">Failed to load patients</td></tr>';
+        if (patientsGrid) patientsGrid.innerHTML = '<div class="error-message">Failed to load patients</div>';
+        if (patientTable) patientTable.innerHTML = '<tr><td colspan="9" class="error-cell">Failed to load patients</td></tr>';
         showToast('error', 'Error loading patients: ' + (error.message || 'Unknown error'));
     }
 }
