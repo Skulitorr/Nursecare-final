@@ -2182,14 +2182,14 @@ function getAssignmentErrorMessage(staffId, dayIndex, shiftType) {
         const shiftTypeLabel = SHIFT_TYPES[Object.keys(SHIFT_TYPES).find(key => 
             SHIFT_TYPES[key].id === shiftType
         )].label;
-        return `${staff.name getur ekki unnið ${shiftTypeLabel}`;
+        return `${staff.name} getur ekki unnið ${shiftTypeLabel}`;
     }
     
     // Check if staff already has this shift
     const key = `${dayIndex}-${shiftType}`;
     const currentStaff = scheduleData[key] || [];
     if (currentStaff.includes(staffId)) {
-        return `${staff.name er þegar á þessari vakt`;
+        return `${staff.name} er þegar á þessari vakt`;
     }
     
     // Check if staff already has max shifts for this day
@@ -2203,13 +2203,13 @@ function getAssignmentErrorMessage(staffId, dayIndex, shiftType) {
     }
     
     if (shiftsOnDay >= MAX_SHIFTS_PER_DAY) {
-        return `${staff.name er þegar með hámarksvaktir á þessum degi (${MAX_SHIFTS_PER_DAY})`;
+        return `${staff.name} er þegar með hámarksvaktir á þessum degi (${MAX_SHIFTS_PER_DAY})`;
     }
     
     // Check if staff would exceed maximum weekly hours
     const currentHours = calculateStaffHours(staffId);
     if (currentHours + HOURS_PER_SHIFT > MAX_HOURS_PER_WEEK) {
-        return `${staff.name myndi fara yfir hámarksstundir (${MAX_HOURS_PER_WEEK})`;
+        return `${staff.name} myndi fara yfir hámarksstundir (${MAX_HOURS_PER_WEEK})`;
     }
     
     // Check if shift already has maximum staff
