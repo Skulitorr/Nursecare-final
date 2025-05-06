@@ -55,11 +55,8 @@ function initSchedule() {
     // Initialize the staff list
     initStaffList();
     
-    // Initialize the schedule grid
-    initScheduleGrid();
-    
-    // Set up sortable for drag and drop
-    initSortable();
+    // Initialize the WEEKLY schedule grid (staff-based layout)
+    initWeeklyScheduleGrid();
     
     // Set up event listeners
     setupEventListeners();
@@ -80,9 +77,177 @@ function initSchedule() {
     
     // Show welcome message
     showToast("Vaktaáætlun hlaðin", "success");
+}
 
-    // Initialize schedule extensions
-    initializeScheduleExtensions();
+/**
+ * Initialize the weekly schedule grid with staff in rows and days in columns
+ */
+function initWeeklyScheduleGrid() {
+    const scheduleGrid = document.getElementById('schedule-grid');
+    if (!scheduleGrid) {
+        console.error('Schedule grid container not found');
+        return;
+    }
+    
+    // Clear existing content
+    scheduleGrid.innerHTML = '';
+    
+    // Create a table for the schedule
+    const table = document.createElement('table');
+    table.className = 'weekly-schedule-table';
+    
+    // Create header row with days
+    const thead = document.createElement('thead');
+    const headerRow = document.createElement('tr');
+    
+    // Add empty cell for staff names column
+    const emptyHeader = document.createElement('th');
+    emptyHeader.className = 'staff-name-header';
+    emptyHeader.textContent = 'Starfsfólk';
+    headerRow.appendChild(emptyHeader);
+    
+    // Add day headers
+    const today = new Date();
+    const dayOfWeek = today.getDay();
+    const todayIndex = dayOfWeek === 0 ? 6 : dayOfWeek - 1; // Convert Sunday (0) to 6 for our format
+    
+    DAYS_SHORT.forEach((day, index) => {
+        const dayHeader = document.createElement('th');
+        dayHeader.className = 'day-header';
+        if (index === todayIndex) {
+            dayHeader.classList.add('today');
+        }
+        dayHeader.textContent = day;
+        headerRow.appendChild(dayHeader);
+    });
+    
+    thead.appendChild(headerRow);
+    table.appendChild(thead);
+    
+    // Create body with staff rows
+    const tbody = document.createElement('tbody');
+    
+    // Add a row for each staff member
+    staffList.forEach(staff => {
+        const staffRow = document.createElement('tr');
+        
+        // Add staff name cell
+        const staffNameCell = document.createElement('td');
+        staffNameCell.className = 'staff-name-cell';
+        
+        staffNameCell.innerHTML = `
+            <div class="staff-info">
+                <div class="staff-avatar">
+                    <img src="${staff.avatar}" alt="${staff.name}">
+                    <span class="status-indicator ${staff.status}"></span>
+                </div>
+                <div class="staff-details">
+                    <div class="staff-name">${staff.name}</div>
+                    <div class="staff-role">${staff.role}</div>
+                </div>
+            </div>
+        `;
+        
+        staffRow.appendChild(staffNameCell);
+        
+        // Add cells for each day
+        for (let dayIndex = 0; dayIndex < 7; dayIndex++) {
+            const dayCell = document.createElement('td');
+            dayCell.className = 'schedule-day-cell';
+            dayCell.setAttribute('data-staff-id', staff.id);
+            dayCell.setAttribute('data-day-index', dayIndex);
+            
+            if (dayIndex === todayIndex) {
+                dayCell.classList.add('today');
+            }
+            
+            // Create shift container
+            const shiftContainer = document.createElement('div');
+            shiftContainer.className = 'shift-container';
+            
+            dayCell.appendChild(shiftContainer);
+            staffRow.appendChild(dayCell);
+        }
+        
+        tbody.appendChild(staffRow);
+    });
+    
+    table.appendChild(tbody);
+    scheduleGrid.appendChild(table);
+    
+    // After constructing the grid, refresh it with any existing schedule data
+    refreshWeeklySchedule();
+}
+
+/**
+ * Refresh the weekly schedule grid based on current data
+ */
+function refreshWeeklySchedule() {
+    // Clear all shift containers first
+    document.querySelectorAll('.shift-container').forEach(container => {
+        container.innerHTML = '';
+    });
+    
+    // For each schedule entry, add the appropriate shift display
+    Object.entries(scheduleData).forEach(([key, staffIds]) => {
+        const [dayIndex, shiftType] = key.split('-');
+        
+        staffIds.forEach(staffId => {
+            const staff = staffList.find(s => s.id === staffId);
+            if (!staff) return;
+            
+            // Find the appropriate cell
+            const cell = document.querySelector(`.schedule-day-cell[data-staff-id="${staffId}"][data-day-index="${dayIndex}"]`);
+            if (!cell) return;
+            
+            const shiftContainer = cell.querySelector('.shift-container');
+            if (!shiftContainer) return;
+            
+            // Add shift display
+            const shiftDisplay = createShiftDisplay(shiftType);
+            shiftContainer.appendChild(shiftDisplay);
+        });
+    });
+}
+
+/**
+ * Create a visual display for a shift
+ */
+function createShiftDisplay(shiftType) {
+    const shiftTypeObj = Object.values(SHIFT_TYPES).find(t => t.id === shiftType);
+    if (!shiftTypeObj) return null;
+    
+    const shiftDisplay = document.createElement('div');
+    shiftDisplay.className = 'shift-display';
+    shiftDisplay.setAttribute('data-shift-type', shiftType);
+    shiftDisplay.style.backgroundColor = shiftTypeObj.color;
+    
+    // Add shift time
+    const timeDisplay = document.createElement('span');
+    timeDisplay.className = 'shift-time';
+    
+    // Convert shift times to shorter format
+    const timeText = shiftTypeObj.time.replace(':00', '');
+    timeDisplay.textContent = timeText;
+    
+    shiftDisplay.appendChild(timeDisplay);
+    
+    // Make it clickable to show details
+    shiftDisplay.addEventListener('click', () => {
+        // Get staff and day information from parent elements
+        const cell = shiftDisplay.closest('.schedule-day-cell');
+        if (!cell) return;
+        
+        const staffId = cell.getAttribute('data-staff-id');
+        const dayIndex = parseInt(cell.getAttribute('data-day-index'));
+        
+        const staff = staffList.find(s => s.id === staffId);
+        if (!staff) return;
+        
+        showAssignmentDetails(staff, dayIndex, shiftType);
+    });
+    
+    return shiftDisplay;
 }
 
 /**
@@ -108,7 +273,7 @@ function createMockAssignments() {
     });
 
     // Refresh the grid to display the mock assignments
-    refreshScheduleGrid();
+    refreshWeeklySchedule();
     updateScheduleStats();
 }
 
@@ -803,59 +968,42 @@ function getStaffPreferencesHtml(staffId, dayIndex, shiftType) {
 /**
  * Show modal to add staff to shift
  */
-function showAddToShiftModal(dayIndex, shiftType) {
-    // Find eligible staff for this shift
-    const eligibleStaff = staffList.filter(staff => {
-        if (staff.status !== 'available') return false;
-        if (!staff.shifts.includes(shiftType)) return false;
-        
-        // Check if staff is already assigned to this shift
-        const key = `${dayIndex}-${shiftType}`;
-        const currentAssignments = scheduleData[key] || [];
-        if (currentAssignments.includes(staff.id)) return false;
-        
-        return true;
-    });
-    
-    if (eligibleStaff.length === 0) {
-        showToast("No eligible staff available for this shift", "warning");
-        return;
-    }
+function showAddToShiftModal(dayIndex, staffId) {
+    const staff = staffList.find(s => s.id === staffId);
+    if (!staff) return;
     
     // Create modal
     const modal = document.createElement('div');
     modal.className = 'modal';
     modal.id = 'add-to-shift-modal';
     
-    const shiftTypeObj = Object.values(SHIFT_TYPES).find(t => t.id === shiftType);
-    
     modal.innerHTML = `
         <div class="modal-content">
             <div class="modal-header">
                 <h3>
                     <i class="fas fa-plus-circle"></i>
-                    Add Staff to ${DAYS_SHORT[dayIndex]} ${shiftTypeObj.label}
+                    Bæta ${staff.name} við vakt
                 </h3>
                 <button class="close-btn" aria-label="Close">&times;</button>
             </div>
             <div class="modal-body">
                 <form id="add-to-shift-form">
                     <div class="form-group">
-                        <label for="shift-staff">Select Staff Member</label>
-                        <select id="shift-staff" class="form-control" required>
-                            <option value="">Select staff member</option>
-                            ${eligibleStaff.map(staff => `
-                                <option value="${staff.id}">${staff.name} (${staff.role})</option>
-                            `).join('')}
+                        <label for="shift-type">Veldu vakt fyrir ${DAYS_OF_WEEK[dayIndex]}</label>
+                        <select id="shift-type" class="form-control" required>
+                            <option value="">Veldu vakt</option>
+                            ${staff.shifts.map(shiftId => {
+                                const shift = Object.values(SHIFT_TYPES).find(t => t.id === shiftId);
+                                return `<option value="${shiftId}">${shift.label} (${shift.time})</option>`;
+                            }).join('')}
                         </select>
-                        <small class="form-text">You can add more staff members after creating the shift.</small>
                     </div>
                 </form>
             </div>
             <div class="modal-footer">
-                <button class="btn cancel-btn" id="cancel-add-to-shift">Cancel</button>
+                <button class="btn cancel-btn" id="cancel-add-to-shift">Hætta við</button>
                 <button class="btn primary-btn" id="confirm-add-to-shift">
-                    <i class="fas fa-plus"></i> Add to Shift
+                    <i class="fas fa-plus"></i> Bæta við vakt
                 </button>
             </div>
         </div>
@@ -884,15 +1032,12 @@ function showAddToShiftModal(dayIndex, shiftType) {
     });
     
     document.getElementById('confirm-add-to-shift').addEventListener('click', () => {
-        const staffSelect = document.getElementById('shift-staff');
-        const staffId = staffSelect.value;
-        
-        if (!staffId) {
-            showToast("Please select a staff member", "warning");
+        const shiftType = document.getElementById('shift-type').value;
+        if (!shiftType) {
             return;
         }
         
-        // Add staff to shift
+        // Add assignment
         addAssignment(staffId, dayIndex, shiftType);
         
         // Close modal
@@ -1702,37 +1847,6 @@ function findRecommendedStaff(dayIndex, shiftType) {
 }
 
 /**
- * Get recommended staff count for a shift
- * @param {number} dayIndex - Day index
- * @param {string} shiftType - Shift type ID
- * @returns {number} - Recommended staff count
- */
-function getRecommendedStaffCount(dayIndex, shiftType) {
-    // Weekend nights need fewer staff
-    if (dayIndex >= 5 && shiftType === 'night') {
-        return 1;
-    }
-    
-    // Weekday nights need at least 2
-    if (shiftType === 'night') {
-        return 2;
-    }
-    
-    // Weekend days need at least 2
-    if (dayIndex >= 5) {
-        return 2;
-    }
-    
-    // Weekday mornings need at least 3
-    if (shiftType === 'morning') {
-        return 3;
-    }
-    
-    // Weekday evenings need at least 2
-    return 2;
-}
-
-/**
  * Initialize Sortable.js for drag and drop
  */
 function initSortable() {
@@ -2290,20 +2404,37 @@ function calculateStaffHours(staffId) {
  * Update hours worked for all staff
  */
 function updateStaffHours() {
+    // Reset all hours
     staffList.forEach(staff => {
-        const hours = calculateStaffHours(staff.id);
-        staff.hoursWorked = hours;
-        
-        // Update UI
-        const staffEl = document.querySelector(`.staff-item[data-id="${staff.id}"] .staff-hours`);
-        if (staffEl) {
-            staffEl.textContent = `${hours}h`;
-            
-            // Add warning class if approaching max
-            if (hours > MAX_HOURS_PER_WEEK * 0.8) {
-                staffEl.classList.add('hours-warning');
-            } else {
-                staffEl.classList.remove('hours-warning');
+        staff.hoursWorked = 0;
+    });
+
+    // Count all shifts for each staff member
+    for (const key in scheduleData) {
+        const staffIds = scheduleData[key];
+        staffIds.forEach(staffId => {
+            const staff = staffList.find(s => s.id === staffId);
+            if (staff) {
+                staff.hoursWorked += HOURS_PER_SHIFT;
+            }
+        });
+    }
+
+    // Update UI to reflect new hours
+    document.querySelectorAll('.staff-item').forEach(item => {
+        const staffId = item.getAttribute('data-id');
+        const staff = staffList.find(s => s.id === staffId);
+        if (staff) {
+            const hoursElement = item.querySelector('.staff-hours');
+            if (hoursElement) {
+                hoursElement.textContent = `${staff.hoursWorked}h`;
+                
+                // Add warning if hours are close to or exceeding max
+                if (staff.hoursWorked >= MAX_HOURS_PER_WEEK) {
+                    hoursElement.classList.add('hours-warning');
+                } else {
+                    hoursElement.classList.remove('hours-warning');
+                }
             }
         }
     });
@@ -2315,20 +2446,19 @@ function updateStaffHours() {
 function updateScheduleStats() {
     // Count total shifts filled
     let filledShifts = 0;
-    const totalPossibleShifts = DAYS_OF_WEEK.length * Object.keys(SHIFT_TYPES).length;
+    let totalPossibleShifts = staffList.length * 7; // 7 days in a week
     
     for (const key in scheduleData) {
-        if (scheduleData[key] && scheduleData[key].length > 0) {
-            filledShifts++;
-        }
+        filledShifts += scheduleData[key].length;
     }
     
     // Count total staff with assignments
     const staffWithAssignments = new Set();
     
     for (const key in scheduleData) {
-        const staffIds = scheduleData[key] || [];
-        staffIds.forEach(id => staffWithAssignments.add(id));
+        scheduleData[key].forEach(staffId => {
+            staffWithAssignments.add(staffId);
+        });
     }
     
     // Calculate coverage percentage
@@ -2349,9 +2479,8 @@ function updateScheduleStats() {
     if (staffingPercentageEl) {
         staffingPercentageEl.textContent = `${coveragePercentage}%`;
         
-        // Add color class based on percentage
-        staffingPercentageEl.classList.remove('low', 'medium', 'high');
-        
+        // Color coding based on percentage
+        staffingPercentageEl.className = 'stat-value';
         if (coveragePercentage < 50) {
             staffingPercentageEl.classList.add('low');
         } else if (coveragePercentage < 80) {
@@ -3682,7 +3811,7 @@ function setupEditableShifts() {
                 const dayIndex = parseInt(cell.getAttribute('data-day'));
                 const shiftType = cell.getAttribute('data-shift');
                 
-                showAddToShiftModal(dayIndex, shiftType);
+                showAddToShiftModal(dayIndex, shiftType.id);
             }
         });
     });

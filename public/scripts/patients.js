@@ -667,68 +667,125 @@ function resolveAlert(alertCard) {
 function viewPatient(patientId) {
     console.log(`Viewing patient with ID: ${patientId}`);
     const modal = document.getElementById('view-patient-modal');
-    if (modal) {
-        // Populate modal with patient data
-        const patientName = document.querySelector(`[data-patient-id="${patientId}"]`)?.closest('.patient-card')?.querySelector('.patient-name')?.textContent || 'Patient';
-        modal.querySelector('.modal-title').textContent = `Patient: ${patientName}`;
-        
-        // Here you would typically fetch detailed patient data using the patient ID
-        // and populate the modal fields with that data
-        
-        // For now, we'll just set a loading state
+    if (!modal) {
+        console.error('Patient view modal not found');
+        showToast('error', 'Could not load patient view: Modal not found');
+        return;
+    }
+    
+    // Get patient data
+    const patientData = getMockPatientData();
+    const patient = patientData.find(p => p.id === patientId) || 
+                   { id: patientId, name: 'Unknown Patient', status: 'Unknown', room: 'Unknown' };
+    
+    // Safely update modal title if it exists
+    const modalTitle = modal.querySelector('#view-modal-title');
+    if (modalTitle) {
+        modalTitle.textContent = `${patient.name}`;
+    }
+    
+    // Get tab content container
+    const tabOverview = modal.querySelector('#tab-overview');
+    if (!tabOverview) {
+        // If tab overview doesn't exist, use the modal body
         const modalBody = modal.querySelector('.modal-body');
         if (modalBody) {
-            modalBody.innerHTML = '<div class="loading-spinner">Loading patient data...</div>';
+            modalBody.innerHTML = `<div class="loading-spinner">Loading patient data...</div>`;
             
-            // Simulate loading data (replace with actual API call)
+            // Simulate loading data
             setTimeout(() => {
-                // This would be replaced with actual patient data from your API
-                modalBody.innerHTML = `
-                    <div class="patient-details">
-                        <h4>Patient Information</h4>
-                        <p><strong>ID:</strong> ${patientId}</p>
-                        <p><strong>Name:</strong> ${patientName}</p>
-                        <p><strong>Status:</strong> Active</p>
-                        <p><strong>Room:</strong> 203B</p>
-                        
-                        <h4>Medical Information</h4>
-                        <p><strong>Diagnosis:</strong> To be filled in</p>
-                        <p><strong>Allergies:</strong> None reported</p>
-                        
-                        <h4>Latest Vitals</h4>
-                        <div class="vitals-grid">
-                            <div class="vital-item">
-                                <span class="vital-icon"><i class="fas fa-heartbeat"></i></span>
-                                <span class="vital-value">72 bpm</span>
-                                <span class="vital-label">Heart Rate</span>
-                            </div>
-                            <div class="vital-item">
-                                <span class="vital-icon"><i class="fas fa-stethoscope"></i></span>
-                                <span class="vital-value">120/80</span>
-                                <span class="vital-label">Blood Pressure</span>
-                            </div>
-                            <div class="vital-item">
-                                <span class="vital-icon"><i class="fas fa-thermometer-half"></i></span>
-                                <span class="vital-value">36.6°C</span>
-                                <span class="vital-label">Temperature</span>
-                            </div>
-                            <div class="vital-item">
-                                <span class="vital-icon"><i class="fas fa-lungs"></i></span>
-                                <span class="vital-value">16 rpm</span>
-                                <span class="vital-label">Respiratory Rate</span>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }, 1000);
+                modalBody.innerHTML = createPatientViewContent(patient);
+            }, 800);
         }
-        
-        // Show the modal
-        modal.classList.add('show');
     } else {
-        console.error('Patient view modal not found');
-        showToast('error', 'Could not load patient view');
+        // If tab structure exists, update profile information
+        updatePatientProfileData(modal, patient);
     }
+    
+    // Show the modal
+    modal.classList.add('show');
+}
+
+// Helper function to create patient view content
+function createPatientViewContent(patient) {
+    return `
+        <div class="patient-details">
+            <h4>Patient Information</h4>
+            <p><strong>ID:</strong> ${patient.id}</p>
+            <p><strong>Name:</strong> ${patient.name}</p>
+            <p><strong>Status:</strong> ${patient.status}</p>
+            <p><strong>Room:</strong> ${patient.room || 'Not assigned'}</p>
+            
+            <h4>Medical Information</h4>
+            <p><strong>Medical Conditions:</strong> ${patient.medicalConditions ? patient.medicalConditions.join(', ') : 'None reported'}</p>
+            <p><strong>Medications:</strong> ${patient.medications ? patient.medications.join(', ') : 'None'}</p>
+            
+            <h4>Latest Vitals</h4>
+            <div class="vitals-grid">
+                <div class="vital-item">
+                    <span class="vital-icon"><i class="fas fa-heartbeat"></i></span>
+                    <span class="vital-value">${patient.vitals ? patient.vitals.heartRate + ' bpm' : 'Not measured'}</span>
+                    <span class="vital-label">Heart Rate</span>
+                </div>
+                <div class="vital-item">
+                    <span class="vital-icon"><i class="fas fa-stethoscope"></i></span>
+                    <span class="vital-value">${patient.vitals ? patient.vitals.bloodPressure : 'Not measured'}</span>
+                    <span class="vital-label">Blood Pressure</span>
+                </div>
+                <div class="vital-item">
+                    <span class="vital-icon"><i class="fas fa-thermometer-half"></i></span>
+                    <span class="vital-value">${patient.vitals ? patient.vitals.temperature + '°C' : 'Not measured'}</span>
+                    <span class="vital-label">Temperature</span>
+                </div>
+                <div class="vital-item">
+                    <span class="vital-icon"><i class="fas fa-lungs"></i></span>
+                    <span class="vital-value">${patient.vitals ? patient.vitals.respRate + ' rpm' : 'Not measured'}</span>
+                    <span class="vital-label">Respiratory Rate</span>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+// Helper function to update patient profile data in the tabbed modal
+function updatePatientProfileData(modal, patient) {
+    // Update patient profile fields if they exist
+    const updateElement = (id, value) => {
+        const element = modal.querySelector(`#${id}`);
+        if (element) element.textContent = value;
+    };
+    
+    // Update profile image
+    const profileImage = modal.querySelector('#patient-profile-image');
+    if (profileImage) {
+        profileImage.src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${patient.avatar || patient.name}`;
+        profileImage.alt = `Profile image for ${patient.name}`;
+    }
+    
+    // Update text fields
+    updateElement('patient-profile-name', patient.name);
+    updateElement('patient-profile-age', patient.age ? `${patient.age} ára` : 'Aldur óþekktur');
+    updateElement('patient-profile-room', `Herbergi ${patient.room || 'óþekkt'}`);
+    updateElement('patient-profile-department', patient.department || 'Deild óþekkt');
+    
+    // Update status badge
+    const statusBadge = modal.querySelector('#patient-profile-status');
+    if (statusBadge) {
+        const statusClass = getStatusClass(patient.status);
+        statusBadge.className = `status-badge ${statusClass}`;
+        statusBadge.textContent = patient.status;
+    }
+    
+    // Update vitals if they exist
+    if (patient.vitals) {
+        updateElement('patient-bp', patient.vitals.bloodPressure + ' mmHg');
+        updateElement('patient-pulse', patient.vitals.heartRate + ' slög/mín');
+        updateElement('patient-temp', patient.vitals.temperature + '°C');
+        updateElement('patient-o2', (patient.vitals.o2 || '96') + '%');
+    }
+    
+    // Setup tab buttons if they exist
+    setupPatientModalTabs(modal);
 }
 
 function editPatient(patientId) {
@@ -790,24 +847,60 @@ function confirmRemovePatient(patientId) {
     // Find patient information for the confirmation message
     const patientElement = document.querySelector(`[data-patient-id="${patientId}"]`);
     const patientCard = patientElement?.closest('.patient-card');
-    const patientName = patientCard?.querySelector('.patient-name')?.textContent || 'this patient';
+    const patientRow = patientElement?.closest('tr');
+    const patientName = patientCard?.querySelector('.patient-name')?.textContent || 
+                        patientRow?.querySelector('.patient-name')?.textContent ||
+                        'this patient';
     
     // Check if we have a confirm modal
-    const confirmModal = document.getElementById('confirm-modal');
-    if (!confirmModal) {
-        console.error('Confirmation modal not found');
-        
-        // Fallback: use browser confirm dialog if modal not found
-        if (window.confirm(`Are you sure you want to remove ${patientName}?`)) {
-            removePatient(patientId);
-        }
-        return;
-    }
+    let confirmModal = document.getElementById('confirm-modal');
     
-    // Set confirmation message
-    const messageElement = confirmModal.querySelector('.confirm-message');
-    if (messageElement) {
-        messageElement.textContent = `Are you sure you want to remove ${patientName}?`;
+    // If we don't have a confirmation modal, create one
+    if (!confirmModal) {
+        console.log('Confirmation modal not found, creating one');
+        confirmModal = document.createElement('div');
+        confirmModal.id = 'confirm-modal';
+        confirmModal.className = 'modal';
+        confirmModal.innerHTML = `
+            <div class="modal-overlay"></div>
+            <div class="modal-container confirm-container">
+                <div class="modal-header">
+                    <h3><i class="fas fa-exclamation-triangle"></i> Confirm Action</h3>
+                    <button class="close-modal" aria-label="Close modal">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p class="confirm-message">Are you sure you want to remove ${patientName}?</p>
+                    <div class="form-actions">
+                        <button class="btn-outline cancel-btn">Cancel</button>
+                        <button class="btn-danger confirm-btn">Remove</button>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(confirmModal);
+        
+        // Setup the close and cancel buttons
+        const closeBtn = confirmModal.querySelector('.close-modal');
+        if (closeBtn) {
+            closeBtn.addEventListener('click', () => {
+                confirmModal.classList.remove('show');
+            });
+        }
+        
+        const cancelBtn = confirmModal.querySelector('.cancel-btn');
+        if (cancelBtn) {
+            cancelBtn.addEventListener('click', () => {
+                confirmModal.classList.remove('show');
+            });
+        }
+    } else {
+        // Set confirmation message in existing modal
+        const messageElement = confirmModal.querySelector('.confirm-message');
+        if (messageElement) {
+            messageElement.textContent = `Are you sure you want to remove ${patientName}?`;
+        }
     }
     
     // Get the confirm button
@@ -1006,4 +1099,113 @@ function savePatientChanges(patientId) {
     setTimeout(() => {
         loadPatients();
     }, 500);
+}
+
+// Setup the tab navigation in the patient modal
+function setupPatientModalTabs(modal) {
+    const tabButtons = modal.querySelectorAll('.tab-btn');
+    if (!tabButtons.length) return;
+    
+    tabButtons.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const tabId = this.dataset.tab;
+            
+            // Remove active class from all tab buttons and content
+            tabButtons.forEach(b => b.classList.remove('active'));
+            
+            // Add active class to clicked button
+            this.classList.add('active');
+            
+            // Hide all tab content
+            const tabContents = modal.querySelectorAll('.tab-content');
+            tabContents.forEach(tab => tab.classList.remove('active'));
+            
+            // Show the selected tab content
+            const activeContent = modal.querySelector(`#tab-${tabId}`);
+            if (activeContent) {
+                activeContent.classList.add('active');
+            }
+        });
+    });
+}
+
+function confirmRemovePatient(patientId) {
+    console.log(`Confirming removal of patient with ID: ${patientId}`);
+    
+    // Find patient information for the confirmation message
+    const patientElement = document.querySelector(`[data-patient-id="${patientId}"]`);
+    const patientCard = patientElement?.closest('.patient-card');
+    const patientRow = patientElement?.closest('tr');
+    const patientName = patientCard?.querySelector('.patient-name')?.textContent || 
+                        patientRow?.querySelector('.patient-name')?.textContent ||
+                        'this patient';
+    
+    // Check if we have a confirm modal
+    let confirmModal = document.getElementById('confirm-modal');
+    
+    // If we don't have a confirmation modal, create one
+    if (!confirmModal) {
+        console.log('Confirmation modal not found, creating one');
+        confirmModal = document.createElement('div');
+        confirmModal.id = 'confirm-modal';
+        confirmModal.className = 'modal';
+        confirmModal.innerHTML = `
+            <div class="modal-overlay"></div>
+            <div class="modal-container confirm-container">
+                <div class="modal-header">
+                    <h3><i class="fas fa-exclamation-triangle"></i> Confirm Action</h3>
+                    <button class="close-modal" aria-label="Close modal">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p class="confirm-message">Are you sure you want to remove ${patientName}?</p>
+                    <div class="form-actions">
+                        <button class="btn-outline cancel-btn">Cancel</button>
+                        <button class="btn-danger confirm-btn">Remove</button>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(confirmModal);
+        
+        // Setup the close and cancel buttons
+        const closeBtn = confirmModal.querySelector('.close-modal');
+        if (closeBtn) {
+            closeBtn.addEventListener('click', () => {
+                confirmModal.classList.remove('show');
+            });
+        }
+        
+        const cancelBtn = confirmModal.querySelector('.cancel-btn');
+        if (cancelBtn) {
+            cancelBtn.addEventListener('click', () => {
+                confirmModal.classList.remove('show');
+            });
+        }
+    } else {
+        // Set confirmation message in existing modal
+        const messageElement = confirmModal.querySelector('.confirm-message');
+        if (messageElement) {
+            messageElement.textContent = `Are you sure you want to remove ${patientName}?`;
+        }
+    }
+    
+    // Get the confirm button
+    const confirmButton = confirmModal.querySelector('.confirm-btn');
+    if (confirmButton) {
+        // Remove any existing event listeners and create a new button
+        const newConfirmBtn = confirmButton.cloneNode(true);
+        confirmButton.parentNode.replaceChild(newConfirmBtn, confirmButton);
+        
+        // Add event listener to the new button
+        newConfirmBtn.addEventListener('click', () => {
+            console.log(`Removal confirmed for patient ID: ${patientId}`);
+            confirmModal.classList.remove('show');
+            removePatient(patientId);
+        });
+    }
+    
+    // Show the confirm modal
+    confirmModal.classList.add('show');
 }

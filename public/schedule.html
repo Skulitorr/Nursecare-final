@@ -291,7 +291,7 @@
     <!-- Header -->
     <header class="header">
       <div class="logo">
-        <img src="assets/images/logo.svg" alt="NurseCare AI Logo" onerror="this.src='https://placehold.co/40x40?text=NC'">
+        <img src="assets/icons/logo.svg" alt="NurseCare AI Logo" onerror="this.src='https://placehold.co/40x40?text=NC'">
         <h1>NurseCare AI</h1>
       </div>
       <div class="header-actions">
@@ -443,9 +443,31 @@
               <button class="card-action" id="clear-schedule-btn" aria-label="Hreinsa" data-tooltip="Hreinsa">
                 <i class="fas fa-trash"></i>
               </button>
+              <button class="card-action" id="toggle-view-btn" aria-label="Skipta um útlit" data-tooltip="Skipta um útlit">
+                <i class="fas fa-table"></i>
+              </button>
             </div>
           </header>
           <div class="card-body">
+            <!-- Shift legend -->
+            <div class="shift-legend">
+              <h4>Vaktir</h4>
+              <div class="shift-types">
+                <div class="shift-type morning">
+                  <div class="shift-color"></div>
+                  <div class="shift-name">Morgunvakt (07:00-15:00)</div>
+                </div>
+                <div class="shift-type evening">
+                  <div class="shift-color"></div>
+                  <div class="shift-name">Kvöldvakt (15:00-23:00)</div>
+                </div>
+                <div class="shift-type night">
+                  <div class="shift-color"></div>
+                  <div class="shift-name">Næturvakt (23:00-07:00)</div>
+                </div>
+              </div>
+            </div>
+            
             <div id="schedule-grid" class="schedule-grid">
               <!-- Schedule grid will be populated from JavaScript -->
             </div>
