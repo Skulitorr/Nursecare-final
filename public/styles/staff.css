@@ -911,6 +911,7 @@ a:focus, button:focus, input:focus, textarea:focus, select:focus, [tabindex]:foc
 .chart-card .card-body {
     padding: var(--spacing);
     min-height: 300px;
+    max-height: 500px;
 }
 
 .chart-container {
@@ -918,6 +919,8 @@ a:focus, button:focus, input:focus, textarea:focus, select:focus, [tabindex]:foc
     position: relative;
     height: 100%;
     width: 100%;
+    max-width: 100%;
+    overflow: hidden;
 }
 
 /* Staff Table Styles */

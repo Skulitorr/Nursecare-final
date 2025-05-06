@@ -15,8 +15,216 @@
     <!-- Chart.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     
+    <!-- Sortable.js for drag-and-drop functionality -->
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+    
     <!-- Application styles -->
     <link rel="stylesheet" href="../style.css">
+    <style>
+        /* Schedule-specific styles */
+        .schedule-grid {
+            display: grid;
+            grid-template-columns: auto repeat(7, 1fr);
+            width: 100%;
+            border-collapse: collapse;
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            overflow: hidden;
+        }
+
+        .header-row {
+            display: contents;
+        }
+
+        .header-cell {
+            background-color: var(--bg-secondary);
+            padding: 1rem;
+            text-align: center;
+            font-weight: 600;
+            border-bottom: 1px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .shift-row {
+            display: contents;
+        }
+
+        .shift-label {
+            background-color: var(--bg-secondary);
+            padding: 1rem;
+            font-weight: 600;
+            border-right: 1px solid var(--border-color);
+            border-bottom: 1px solid var(--border-color);
+            position: sticky;
+            left: 0;
+            z-index: 9;
+            display: flex;
+            align-items: center;
+            min-width: 150px;
+        }
+
+        .schedule-cell {
+            padding: 0.75rem;
+            border-right: 1px solid var(--border-color);
+            border-bottom: 1px solid var(--border-color);
+            transition: background-color 0.2s;
+            position: relative;
+            min-height: 100px;
+        }
+
+        /* Staff assignment styles */
+        .staff-assignment {
+            background-color: #e6f7ff;
+            border-left: 3px solid #1890ff;
+            border-radius: var(--border-radius-sm);
+            padding: 0.5rem;
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+            cursor: grab;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .staff-assignment:hover {
+            box-shadow: var(--shadow-sm);
+        }
+
+        .staff-assignment.medical {
+            background-color: #e6f7ff;
+            border-left-color: #1890ff;
+        }
+
+        .staff-assignment.surgical {
+            background-color: #f6ffed;
+            border-left-color: #52c41a;
+        }
+
+        .staff-assignment.rehabilitation {
+            background-color: #fff7e6;
+            border-left-color: #fa8c16;
+        }
+        
+        /* Schedule filters */
+        .schedule-filters {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .filter-group {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .filter-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+        
+        /* Schedule analytics */
+        .schedule-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .stat-card {
+            background-color: var(--bg-secondary);
+            border-radius: var(--border-radius);
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin: 0.5rem 0;
+        }
+
+        .stat-label {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+        
+        /* AI suggestions styling */
+        .ai-suggestion {
+            background-color: rgba(64, 158, 255, 0.1);
+            border-left: 3px solid #409eff;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-radius: var(--border-radius-sm);
+            position: relative;
+        }
+
+        .ai-suggestion-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .ai-suggestion-icon {
+            background-color: #409eff;
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+        }
+
+        .ai-suggestion-title {
+            font-weight: 600;
+            flex: 1;
+        }
+
+        .ai-suggestion-content {
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+        
+        .ai-suggestion-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+        
+        /* Cell highlight animation for changes */
+        @keyframes highlight-cell {
+          0% { background-color: rgba(16, 185, 129, 0.3); }
+          70% { background-color: rgba(16, 185, 129, 0.1); }
+          100% { background-color: transparent; }
+        }
+
+        .cell-highlight {
+          animation: highlight-cell 2s ease-out;
+        }
+        
+        /* Today highlight */
+        .today {
+            background-color: rgba(16, 185, 129, 0.05);
+        }
+        
+        .weekend {
+            background-color: rgba(0, 0, 0, 0.02);
+        }
+        
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
 </head>
 <body>
     <div class="app-container">
@@ -94,7 +302,7 @@
                 <div class="welcome-message">
                     <h2>Schedule Management</h2>
                     <div class="date-shift">
-                        <span id="current-date">Wednesday, April 16, 2025</span> | 
+                        <span id="current-date">Wednesday, May 6, 2025</span> | 
                         <span id="current-shift">Morning Shift</span>
                     </div>
                 </div>
@@ -139,7 +347,7 @@
                                 <button class="btn btn-outline" id="prev-month">
                                     <i class="fas fa-chevron-left"></i> Previous
                                 </button>
-                                <h4 id="current-month">April 2025</h4>
+                                <h4 id="current-month">May 2025</h4>
                                 <button class="btn btn-outline" id="next-month">
                                     Next <i class="fas fa-chevron-right"></i>
                                 </button>
@@ -156,6 +364,36 @@
                                 </button>
                             </div>
                         </div>
+                        
+                        <div class="schedule-filters">
+                            <div class="filter-group">
+                                <label for="staff-filter">Staff:</label>
+                                <select id="staff-filter" class="form-control">
+                                    <option value="all">All Staff</option>
+                                    <option value="nurses">Nurses</option>
+                                    <option value="doctors">Doctors</option>
+                                    <option value="assistants">Assistants</option>
+                                </select>
+                            </div>
+                            <div class="filter-group">
+                                <label for="department-filter">Department:</label>
+                                <select id="department-filter" class="form-control">
+                                    <option value="all">All Departments</option>
+                                    <option value="medical">Medical</option>
+                                    <option value="surgical">Surgical</option>
+                                    <option value="rehabilitation">Rehabilitation</option>
+                                </select>
+                            </div>
+                            <div class="filter-group">
+                                <label for="shift-filter">Shift Type:</label>
+                                <select id="shift-filter" class="form-control">
+                                    <option value="all">All Shifts</option>
+                                    <option value="morning">Morning</option>
+                                    <option value="evening">Evening</option>
+                                    <option value="night">Night</option>
+                                </select>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 
@@ -165,26 +403,292 @@
                         <h3>Monthly Schedule</h3>
                     </div>
                     <div class="card-content">
-                        <div class="schedule-calendar">
-                            <div class="calendar-header">
-                                <div class="calendar-day">Monday</div>
-                                <div class="calendar-day">Tuesday</div>
-                                <div class="calendar-day">Wednesday</div>
-                                <div class="calendar-day">Thursday</div>
-                                <div class="calendar-day">Friday</div>
-                                <div class="calendar-day">Saturday</div>
-                                <div class="calendar-day">Sunday</div>
+                        <div id="schedule-container" class="schedule-calendar">
+                            <div id="schedule-grid" class="schedule-grid">
+                                <!-- Header Row -->
+                                <div class="header-cell"></div>
+                                <div class="header-cell">Monday</div>
+                                <div class="header-cell">Tuesday</div>
+                                <div class="header-cell">Wednesday</div>
+                                <div class="header-cell">Thursday</div>
+                                <div class="header-cell">Friday</div>
+                                <div class="header-cell">Saturday</div>
+                                <div class="header-cell">Sunday</div>
+                                
+                                <!-- Morning Shift Row -->
+                                <div class="shift-label">Morning<br><small>07:00 - 15:00</small></div>
+                                <div class="schedule-cell" data-day="1" data-shift="morning"></div>
+                                <div class="schedule-cell" data-day="2" data-shift="morning"></div>
+                                <div class="schedule-cell today" data-day="3" data-shift="morning">
+                                    <div class="staff-assignment medical">
+                                        <span>John Doe (RN)</span>
+                                        <i class="fas fa-grip-lines"></i>
+                                    </div>
+                                    <div class="staff-assignment surgical">
+                                        <span>Mary Smith (MD)</span>
+                                        <i class="fas fa-grip-lines"></i>
+                                    </div>
+                                </div>
+                                <div class="schedule-cell" data-day="4" data-shift="morning"></div>
+                                <div class="schedule-cell" data-day="5" data-shift="morning"></div>
+                                <div class="schedule-cell weekend" data-day="6" data-shift="morning"></div>
+                                <div class="schedule-cell weekend" data-day="7" data-shift="morning"></div>
+                                
+                                <!-- Evening Shift Row -->
+                                <div class="shift-label">Evening<br><small>15:00 - 23:00</small></div>
+                                <div class="schedule-cell" data-day="1" data-shift="evening">
+                                    <div class="staff-assignment rehabilitation">
+                                        <span>Robert Jones (PT)</span>
+                                        <i class="fas fa-grip-lines"></i>
+                                    </div>
+                                </div>
+                                <div class="schedule-cell" data-day="2" data-shift="evening"></div>
+                                <div class="schedule-cell today" data-day="3" data-shift="evening">
+                                    <div class="staff-assignment medical">
+                                        <span>Sarah Johnson (RN)</span>
+                                        <i class="fas fa-grip-lines"></i>
+                                    </div>
+                                </div>
+                                <div class="schedule-cell" data-day="4" data-shift="evening"></div>
+                                <div class="schedule-cell" data-day="5" data-shift="evening"></div>
+                                <div class="schedule-cell weekend" data-day="6" data-shift="evening"></div>
+                                <div class="schedule-cell weekend" data-day="7" data-shift="evening"></div>
+                                
+                                <!-- Night Shift Row -->
+                                <div class="shift-label">Night<br><small>23:00 - 07:00</small></div>
+                                <div class="schedule-cell" data-day="1" data-shift="night"></div>
+                                <div class="schedule-cell" data-day="2" data-shift="night">
+                                    <div class="staff-assignment medical">
+                                        <span>James Wilson (RN)</span>
+                                        <i class="fas fa-grip-lines"></i>
+                                    </div>
+                                </div>
+                                <div class="schedule-cell today" data-day="3" data-shift="night"></div>
+                                <div class="schedule-cell" data-day="4" data-shift="night"></div>
+                                <div class="schedule-cell" data-day="5" data-shift="night"></div>
+                                <div class="schedule-cell weekend" data-day="6" data-shift="night"></div>
+                                <div class="schedule-cell weekend" data-day="7" data-shift="night"></div>
                             </div>
-                            <div class="calendar-body">
-                                <!-- Calendar content will be generated by JavaScript -->
-                                <div class="calendar-message">
-                                    <i class="fas fa-cog fa-spin"></i>
-                                    <p>Loading schedule...</p>
+                        </div>
+                        
+                        <!-- Schedule Stats -->
+                        <div class="schedule-stats">
+                            <div class="stat-card">
+                                <div class="stat-value">24</div>
+                                <div class="stat-label">Total Shifts</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">18/24</div>
+                                <div class="stat-label">Filled Shifts</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">75%</div>
+                                <div class="stat-label">Staffing Rate</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">3</div>
+                                <div class="stat-label">Conflicts</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- AI Recommendations Card -->
+                <div class="dashboard-card">
+                    <div class="card-header">
+                        <h3>AI Recommendations</h3>
+                        <button class="btn btn-sm" id="refresh-recommendations">
+                            <i class="fas fa-sync-alt"></i>
+                        </button>
+                    </div>
+                    <div class="card-content">
+                        <div class="ai-recommendations">
+                            <div class="ai-suggestion">
+                                <div class="ai-suggestion-header">
+                                    <div class="ai-suggestion-icon">
+                                        <i class="fas fa-lightbulb"></i>
+                                    </div>
+                                    <div class="ai-suggestion-title">Schedule Optimization</div>
+                                </div>
+                                <div class="ai-suggestion-content">
+                                    <p>Sarah Johnson has worked 5 nights in a row. Consider giving her a break on Friday night.</p>
+                                </div>
+                                <div class="ai-suggestion-actions">
+                                    <button class="btn btn-sm btn-primary">Apply</button>
+                                    <button class="btn btn-sm btn-outline">Dismiss</button>
+                                </div>
+                            </div>
+                            
+                            <div class="ai-suggestion">
+                                <div class="ai-suggestion-header">
+                                    <div class="ai-suggestion-icon">
+                                        <i class="fas fa-exclamation-triangle"></i>
+                                    </div>
+                                    <div class="ai-suggestion-title">Staffing Alert</div>
+                                </div>
+                                <div class="ai-suggestion-content">
+                                    <p>Thursday night shift is understaffed. You need at least one more nurse to meet minimum requirements.</p>
+                                </div>
+                                <div class="ai-suggestion-actions">
+                                    <button class="btn btn-sm btn-primary">Find Staff</button>
+                                    <button class="btn btn-sm btn-outline">Dismiss</button>
+                                </div>
+                            </div>
+                            
+                            <div class="ai-suggestion">
+                                <div class="ai-suggestion-header">
+                                    <div class="ai-suggestion-icon">
+                                        <i class="fas fa-user-clock"></i>
+                                    </div>
+                                    <div class="ai-suggestion-title">Time-off Request</div>
+                                </div>
+                                <div class="ai-suggestion-content">
+                                    <p>John Doe has requested Saturday and Sunday off. Would you like to approve and find a replacement?</p>
+                                </div>
+                                <div class="ai-suggestion-actions">
+                                    <button class="btn btn-sm btn-primary">Approve & Replace</button>
+                                    <button class="btn btn-sm btn-outline">Review Later</button>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
+                
+                <!-- Staff Availability Card -->
+                <div class="dashboard-card">
+                    <div class="card-header">
+                        <h3>Staff Availability</h3>
+                    </div>
+                    <div class="card-content">
+                        <div class="staff-availability">
+                            <div class="staff-list">
+                                <div class="staff-item">
+                                    <div class="staff-info">
+                                        <div class="staff-avatar">JD</div>
+                                        <div class="staff-details">
+                                            <div class="staff-name">John Doe</div>
+                                            <div class="staff-role">Registered Nurse</div>
+                                        </div>
+                                    </div>
+                                    <div class="staff-status available">
+                                        <i class="fas fa-circle"></i> Available
+                                    </div>
+                                </div>
+                                
+                                <div class="staff-item">
+                                    <div class="staff-info">
+                                        <div class="staff-avatar">MS</div>
+                                        <div class="staff-details">
+                                            <div class="staff-name">Mary Smith</div>
+                                            <div class="staff-role">Doctor</div>
+                                        </div>
+                                    </div>
+                                    <div class="staff-status available">
+                                        <i class="fas fa-circle"></i> Available
+                                    </div>
+                                </div>
+                                
+                                <div class="staff-item">
+                                    <div class="staff-info">
+                                        <div class="staff-avatar">RJ</div>
+                                        <div class="staff-details">
+                                            <div class="staff-name">Robert Jones</div>
+                                            <div class="staff-role">Physical Therapist</div>
+                                        </div>
+                                    </div>
+                                    <div class="staff-status unavailable">
+                                        <i class="fas fa-circle"></i> On Leave
+                                    </div>
+                                </div>
+                                
+                                <div class="staff-item">
+                                    <div class="staff-info">
+                                        <div class="staff-avatar">SJ</div>
+                                        <div class="staff-details">
+                                            <div class="staff-name">Sarah Johnson</div>
+                                            <div class="staff-role">Registered Nurse</div>
+                                        </div>
+                                    </div>
+                                    <div class="staff-status busy">
+                                        <i class="fas fa-circle"></i> On Shift
+                                    </div>
+                                </div>
+                                
+                                <div class="staff-item">
+                                    <div class="staff-info">
+                                        <div class="staff-avatar">JW</div>
+                                        <div class="staff-details">
+                                            <div class="staff-name">James Wilson</div>
+                                            <div class="staff-role">Registered Nurse</div>
+                                        </div>
+                                    </div>
+                                    <div class="staff-status available">
+                                        <i class="fas fa-circle"></i> Available
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Add Shift Modal -->
+    <div class="modal" id="add-shift-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Add New Shift</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="add-shift-form">
+                    <div class="form-group">
+                        <label for="shift-staff">Staff Member</label>
+                        <select id="shift-staff" class="form-control" required>
+                            <option value="">Select Staff Member</option>
+                            <option value="1">John Doe (RN)</option>
+                            <option value="2">Mary Smith (MD)</option>
+                            <option value="3">Robert Jones (PT)</option>
+                            <option value="4">Sarah Johnson (RN)</option>
+                            <option value="5">James Wilson (RN)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="shift-date">Date</label>
+                        <input type="date" id="shift-date" class="form-control" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="shift-type">Shift</label>
+                        <select id="shift-type" class="form-control" required>
+                            <option value="">Select Shift</option>
+                            <option value="morning">Morning (07:00 - 15:00)</option>
+                            <option value="evening">Evening (15:00 - 23:00)</option>
+                            <option value="night">Night (23:00 - 07:00)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="shift-department">Department</label>
+                        <select id="shift-department" class="form-control" required>
+                            <option value="">Select Department</option>
+                            <option value="medical">Medical</option>
+                            <option value="surgical">Surgical</option>
+                            <option value="rehabilitation">Rehabilitation</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="shift-notes">Notes</label>
+                        <textarea id="shift-notes" class="form-control" rows="3"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" id="cancel-add-shift">Cancel</button>
+                <button class="btn btn-primary" id="save-shift">Save Shift</button>
             </div>
         </div>
     </div>
@@ -197,6 +701,7 @@
         document.addEventListener('DOMContentLoaded', function() {
             // Initialize schedule page specific elements
             initializeCalendar();
+            initializeDragAndDrop();
             
             // Set up button handlers
             document.getElementById('prev-month').addEventListener('click', function() {
@@ -210,349 +715,146 @@
             });
             
             document.getElementById('add-shift').addEventListener('click', function() {
-                // In a real app, this would open a modal to add a shift
-                showToast('Information', 'Add shift functionality will be implemented soon', 'info');
+                // Show the add shift modal
+                document.getElementById('add-shift-modal').classList.add('show');
             });
             
             document.getElementById('print-schedule').addEventListener('click', function() {
                 // In a real app, this would print the schedule
-                showToast('Information', 'Print functionality will be implemented soon', 'info');
+                showToast('Information', 'Preparing schedule for printing...', 'info');
+                setTimeout(() => {
+                    window.print();
+                }, 1000);
             });
             
             document.getElementById('export-schedule').addEventListener('click', function() {
                 // In a real app, this would export the schedule
-                showToast('Information', 'Export functionality will be implemented soon', 'info');
+                showToast('Information', 'Schedule exported as CSV', 'success');
+            });
+            
+            // Modal close handlers
+            document.querySelector('.close-modal').addEventListener('click', function() {
+                document.getElementById('add-shift-modal').classList.remove('show');
+            });
+            
+            document.getElementById('cancel-add-shift').addEventListener('click', function() {
+                document.getElementById('add-shift-modal').classList.remove('show');
+            });
+            
+            document.getElementById('save-shift').addEventListener('click', function() {
+                // Validate form
+                const form = document.getElementById('add-shift-form');
+                if (!form.checkValidity()) {
+                    form.reportValidity();
+                    return;
+                }
+                
+                // In a real app, this would save the shift data
+                showToast('Success', 'New shift has been added to the schedule', 'success');
+                document.getElementById('add-shift-modal').classList.remove('show');
+                
+                // Simulate adding a shift to the schedule
+                const staffMember = document.getElementById('shift-staff').options[document.getElementById('shift-staff').selectedIndex].text;
+                const shiftType = document.getElementById('shift-type').value;
+                const department = document.getElementById('shift-department').value;
+                
+                // Find the cell for today's shift of the selected type
+                const cell = document.querySelector(`.schedule-cell[data-day="3"][data-shift="${shiftType}"]`);
+                if (cell) {
+                    const newAssignment = document.createElement('div');
+                    newAssignment.className = `staff-assignment ${department}`;
+                    newAssignment.innerHTML = `<span>${staffMember}</span><i class="fas fa-grip-lines"></i>`;
+                    cell.appendChild(newAssignment);
+                    
+                    // Highlight the changed cell
+                    cell.classList.add('cell-highlight');
+                    setTimeout(() => {
+                        cell.classList.remove('cell-highlight');
+                    }, 2000);
+                }
+                
+                // Update stats
+                document.querySelector('.stat-value:nth-child(1)').textContent = '24';
+                document.querySelector('.stat-value:nth-child(3)').textContent = '19/24';
+                document.querySelector('.stat-value:nth-child(5)').textContent = '79%';
             });
         });
         
         function initializeCalendar() {
-            const calendarBody = document.querySelector('.calendar-body');
-            if (!calendarBody) return;
-            
-            // Remove loading message
-            calendarBody.innerHTML = '';
-            
-            // In a real app, this would be dynamically generated based on the current month
-            // For now, we'll just create a static calendar for April 2025
-            
-            // Create empty cells for days before the first of the month
-            for (let i = 0; i < 1; i++) {
-                const emptyCell = document.createElement('div');
-                emptyCell.className = 'calendar-cell empty';
-                calendarBody.appendChild(emptyCell);
-            }
-            
-            // Create cells for each day of the month
-            for (let day = 1; day <= 30; day++) {
-                const cell = document.createElement('div');
-                cell.className = 'calendar-cell';
-                
-                const dateHeader = document.createElement('div');
-                dateHeader.className = 'cell-date';
-                dateHeader.textContent = day;
-                
-                const cellContent = document.createElement('div');
-                cellContent.className = 'cell-content';
-                
-                // Add some sample shifts for demonstration
-                if (day % 4 === 0) {
-                    const shift = document.createElement('div');
-                    shift.className = 'shift-item morning';
-                    shift.innerHTML = '<span class="shift-time">07:00 - 15:00</span><span class="shift-staff">Anna S.</span>';
-                    cellContent.appendChild(shift);
-                }
-                
-                if (day % 3 === 0) {
-                    const shift = document.createElement('div');
-                    shift.className = 'shift-item evening';
-                    shift.innerHTML = '<span class="shift-time">15:00 - 23:00</span><span class="shift-staff">John D.</span>';
-                    cellContent.appendChild(shift);
-                }
-                
-                if (day % 5 === 0) {
-                    const shift = document.createElement('div');
-                    shift.className = 'shift-item night';
-                    shift.innerHTML = '<span class="shift-time">23:00 - 07:00</span><span class="shift-staff">Mary W.</span>';
-                    cellContent.appendChild(shift);
-                }
-                
-                cell.appendChild(dateHeader);
-                cell.appendChild(cellContent);
-                calendarBody.appendChild(cell);
-                
-                // Highlight the current day
-                if (day === 16) {
-                    cell.classList.add('current-day');
-                }
-            }
+            // In a real app, this would populate the calendar with data from an API
+            console.log('Calendar initialized');
+        }
+        
+        function initializeDragAndDrop() {
+            // Initialize Sortable.js on each schedule cell
+            document.querySelectorAll('.schedule-cell').forEach(cell => {
+                new Sortable(cell, {
+                    group: 'shared',
+                    animation: 150,
+                    onEnd: function(evt) {
+                        // In a real app, this would update the schedule data
+                        showToast('Success', 'Staff assignment updated', 'success');
+                        
+                        // Highlight the target cell
+                        evt.to.classList.add('cell-highlight');
+                        setTimeout(() => {
+                            evt.to.classList.remove('cell-highlight');
+                        }, 2000);
+                    }
+                });
+            });
         }
         
         function showToast(title, message, type = 'info') {
-            const toastContainer = document.querySelector('.toast-container') || createToastContainer();
+            // Create toast container if it doesn't exist
+            let toastContainer = document.querySelector('.toast-container');
+            if (!toastContainer) {
+                toastContainer = document.createElement('div');
+                toastContainer.className = 'toast-container';
+                document.body.appendChild(toastContainer);
+            }
+            
+            // Create toast element
             const toast = document.createElement('div');
-            toast.className = `toast toast-${type}`;
+            toast.className = `toast ${type}`;
+            
+            // Create toast content
+            let icon;
+            if (type === 'success') icon = '<i class="fas fa-check-circle"></i>';
+            else if (type === 'error') icon = '<i class="fas fa-exclamation-circle"></i>';
+            else if (type === 'warning') icon = '<i class="fas fa-exclamation-triangle"></i>';
+            else icon = '<i class="fas fa-info-circle"></i>';
             
             toast.innerHTML = `
-                <div class="toast-icon">
-                    <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'warning' ? 'exclamation-triangle' : 'info-circle'}"></i>
-                </div>
+                <div class="toast-icon">${icon}</div>
                 <div class="toast-content">
-                    <h4 class="toast-title">${title}</h4>
-                    <p class="toast-message">${message}</p>
+                    <div class="toast-title">${title}</div>
+                    <div class="toast-message">${message}</div>
                 </div>
-                <button class="toast-close">&times;</button>
+                <button class="toast-close"><i class="fas fa-times"></i></button>
             `;
             
+            // Add toast to container
             toastContainer.appendChild(toast);
             
-            // Show the toast
-            setTimeout(() => {
-                toast.classList.add('show');
-            }, 10);
-            
-            // Auto close after 5 seconds
-            setTimeout(() => {
-                toast.classList.add('toast-hide');
+            // Add close event
+            toast.querySelector('.toast-close').addEventListener('click', function() {
+                toast.classList.add('toast-hiding');
                 setTimeout(() => {
                     toast.remove();
                 }, 300);
-            }, 5000);
+            });
             
-            // Close button
-            const closeButton = toast.querySelector('.toast-close');
-            if (closeButton) {
-                closeButton.addEventListener('click', () => {
-                    toast.classList.add('toast-hide');
+            // Auto remove after 5 seconds
+            setTimeout(() => {
+                if (toast.parentNode) {
+                    toast.classList.add('toast-hiding');
                     setTimeout(() => {
-                        toast.remove();
+                        if (toast.parentNode) toast.remove();
                     }, 300);
-                });
-            }
-        }
-        
-        function createToastContainer() {
-            const container = document.createElement('div');
-            container.className = 'toast-container';
-            document.body.appendChild(container);
-            return container;
+                }
+            }, 5000);
         }
     </script>
-    
-    <style>
-        /* Schedule-specific styles */
-        .schedule-actions {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 1rem;
-        }
-        
-        .date-navigation {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-        
-        .date-navigation h4 {
-            font-size: 1.25rem;
-            font-weight: 600;
-            margin: 0;
-            min-width: 150px;
-            text-align: center;
-        }
-        
-        .schedule-controls {
-            display: flex;
-            gap: 0.5rem;
-        }
-        
-        .schedule-calendar {
-            background-color: white;
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-        }
-        
-        .calendar-header {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            background-color: var(--primary-color);
-            color: white;
-        }
-        
-        .calendar-day {
-            padding: 10px;
-            text-align: center;
-            font-weight: 600;
-            border-right: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        
-        .calendar-body {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            grid-auto-rows: minmax(120px, auto);
-            background-color: var(--gray-100);
-        }
-        
-        .calendar-cell {
-            min-height: 120px;
-            border-right: 1px solid var(--gray-200);
-            border-bottom: 1px solid var(--gray-200);
-            padding: 5px;
-            background-color: white;
-        }
-        
-        .calendar-cell.empty {
-            background-color: var(--gray-100);
-        }
-        
-        .calendar-cell.current-day {
-            background-color: var(--primary-bg);
-            border: 2px solid var(--primary-color);
-        }
-        
-        .cell-date {
-            text-align: right;
-            font-weight: 600;
-            color: var(--gray-700);
-            margin-bottom: 5px;
-        }
-        
-        .current-day .cell-date {
-            color: var(--primary-color);
-        }
-        
-        .cell-content {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-        }
-        
-        .shift-item {
-            padding: 4px 6px;
-            border-radius: 4px;
-            font-size: 0.75rem;
-            display: flex;
-            flex-direction: column;
-        }
-        
-        .shift-item.morning {
-            background-color: rgba(46, 196, 182, 0.15);
-            border-left: 3px solid #2ec4b6;
-        }
-        
-        .shift-item.evening {
-            background-color: rgba(74, 108, 247, 0.15);
-            border-left: 3px solid #4a6cf7;
-        }
-        
-        .shift-item.night {
-            background-color: rgba(128, 90, 213, 0.15);
-            border-left: 3px solid #805ad5;
-        }
-        
-        .shift-time {
-            font-weight: 600;
-            color: var(--gray-800);
-        }
-        
-        .shift-staff {
-            color: var(--gray-600);
-        }
-        
-        .calendar-message {
-            grid-column: 1 / -1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 2rem;
-            color: var(--gray-600);
-            gap: 1rem;
-        }
-        
-        .calendar-message i {
-            font-size: 2rem;
-            color: var(--primary-color);
-        }
-        
-        /* Dark mode overrides */
-        .dark-mode .schedule-calendar {
-            background-color: #2d303b;
-        }
-        
-        .dark-mode .calendar-cell {
-            background-color: #2d303b;
-            border-color: #444;
-        }
-        
-        .dark-mode .calendar-cell.empty {
-            background-color: #1a1c23;
-        }
-        
-        .dark-mode .cell-date {
-            color: var(--gray-400);
-        }
-        
-        .dark-mode .shift-time {
-            color: var(--gray-300);
-        }
-        
-        .dark-mode .shift-staff {
-            color: var(--gray-500);
-        }
-        
-        /* Responsive adjustments */
-        @media (max-width: 992px) {
-            .schedule-actions {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-            
-            .date-navigation {
-                width: 100%;
-                justify-content: space-between;
-            }
-            
-            .schedule-controls {
-                width: 100%;
-                justify-content: flex-end;
-            }
-        }
-        
-        @media (max-width: 768px) {
-            .calendar-header {
-                display: none;
-            }
-            
-            .calendar-body {
-                display: flex;
-                flex-direction: column;
-            }
-            
-            .calendar-cell {
-                display: flex;
-                align-items: center;
-                border-right: none;
-            }
-            
-            .cell-date {
-                width: 40px;
-                height: 40px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                background-color: var(--primary-bg);
-                border-radius: 50%;
-                margin-right: 10px;
-                margin-bottom: 0;
-            }
-            
-            .cell-content {
-                flex: 1;
-            }
-        }
-    </style>
 </body>
-</html> 
+</html>
