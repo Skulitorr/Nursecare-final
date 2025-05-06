@@ -1,19 +1,516 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="is">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Schedule | NurseCare AI</title>
-  <link rel="stylesheet" href="/styles/styles.css">
-  <link rel="stylesheet" href="/styles/schedule.css">
+  <title>NurseCare AI - Vaktaplan</title>
+  <!-- CSS imports -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+  <link rel="stylesheet" href="css/styles.css">
+  <!-- Include your existing styles.css first -->
+  
+  <style>
+    /* Critical schedule-specific styles that should be inline to ensure they load */
+    .schedule-grid {
+      display: grid;
+      grid-template-columns: auto repeat(7, 1fr);
+      width: 100%;
+      border-collapse: collapse;
+      border: 1px solid var(--border-color);
+      border-radius: var(--border-radius);
+      overflow: hidden;
+    }
+
+    .header-row {
+      display: contents;
+    }
+
+    .header-cell {
+      background-color: var(--bg-secondary);
+      padding: 1rem;
+      text-align: center;
+      font-weight: 600;
+      border-bottom: 1px solid var(--border-color);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .shift-row {
+      display: contents;
+    }
+
+    .shift-label {
+      background-color: var(--bg-secondary);
+      padding: 1rem;
+      font-weight: 600;
+      border-right: 1px solid var(--border-color);
+      border-bottom: 1px solid var(--border-color);
+      position: sticky;
+      left: 0;
+      z-index: 9;
+      display: flex;
+      align-items: center;
+      min-width: 150px;
+    }
+
+    .schedule-cell {
+      padding: 0.75rem;
+      border-right: 1px solid var(--border-color);
+      border-bottom: 1px solid var(--border-color);
+      transition: background-color 0.2s;
+      position: relative;
+      min-height: 100px;
+    }
+
+    /* Cell highlight animation for changes */
+    @keyframes highlight-cell {
+      0% { background-color: rgba(16, 185, 129, 0.3); }
+      70% { background-color: rgba(16, 185, 129, 0.1); }
+      100% { background-color: transparent; }
+    }
+
+    .cell-highlight {
+      animation: highlight-cell 2s ease-out;
+    }
+    
+    /* AI Widget Toggle Button */
+    .ai-toggle-btn {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      width: 3.5rem;
+      height: 3.5rem;
+      border-radius: 50%;
+      background-color: var(--primary-color);
+      color: white;
+      border: none;
+      box-shadow: var(--shadow-lg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      cursor: pointer;
+      z-index: 90;
+      transition: all 0.3s ease;
+    }
+    
+    .ai-toggle-btn:hover {
+      transform: scale(1.1);
+    }
+    
+    /* AI Chat Widget */
+    .ai-chat {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      width: 360px;
+      height: 500px;
+      background-color: var(--card-bg);
+      border-radius: var(--border-radius-lg);
+      box-shadow: var(--shadow-lg);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      z-index: 100;
+      border: 1px solid var(--border-color);
+      transition: all 0.3s ease;
+      transform: translateY(150%);
+      opacity: 0;
+    }
+    
+    .ai-chat.open {
+      transform: translateY(0);
+      opacity: 1;
+    }
+    
+    /* Toast Container */
+    .toast-container {
+      position: fixed;
+      top: 2rem;
+      right: 2rem;
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      pointer-events: none;
+    }
+    
+    .toast {
+      background-color: var(--card-bg);
+      border-radius: var(--border-radius-lg);
+      box-shadow: var(--shadow-lg);
+      padding: 1rem 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      min-width: 300px;
+      max-width: 450px;
+      border-left: 4px solid var(--primary-color);
+      animation: slide-in 0.3s ease;
+      pointer-events: auto;
+    }
+    
+    @keyframes slide-in {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+    
+    /* Confirmation buttons */
+    .confirmation-buttons {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 0.75rem;
+    }
+    
+    .confirm-btn, .reject-btn {
+      padding: 0.5rem 1rem;
+      border-radius: var(--border-radius);
+      font-size: 0.875rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: all 0.2s;
+      border: none;
+    }
+    
+    .confirm-btn {
+      background-color: var(--success-color);
+      color: white;
+    }
+    
+    .reject-btn {
+      background-color: var(--bg-tertiary);
+      color: var(--text-color);
+    }
+  </style>
+  
+  <!-- JavaScript modules - loaded at the end to ensure DOM is ready -->
 </head>
-<body>
-  <header>
-    <h1>Vaktaplan</h1>
-    <a href="/dashboard">Til baka á mælaborð</a>
-  </header>
-  <main>
-    <p>Þessi síða sýnir vaktaplan og vaktaskiptingar. Vefurinn er í vinnslu.</p>
-  </main>
+<body class="light-mode">
+  <div class="app-container">
+    <!-- Sidebar - using the existing structure -->
+    <div class="sidebar">
+      <div class="sidebar-header">
+        <h1>
+          <img src="assets/images/logo.svg" alt="NurseCare AI" height="30">
+          <span>NurseCare AI</span>
+        </h1>
+        <button id="toggle-sidebar" class="toggle-btn">
+          <i class="fas fa-bars"></i>
+        </button>
+      </div>
+      
+      <ul class="sidebar-menu">
+        <li class="nav-item">
+          <a href="dashboard.html">
+            <i class="fas fa-home"></i>
+            <span>Yfirlit</span>
+          </a>
+        </li>
+        
+        <li class="nav-item">
+          <a href="schedule.html" class="active">
+            <i class="fas fa-calendar-alt"></i>
+            <span>Vaktaplan</span>
+          </a>
+        </li>
+        
+        <li class="nav-item">
+          <a href="staff.html">
+            <i class="fas fa-users"></i>
+            <span>Starfsfólk</span>
+          </a>
+        </li>
+        
+        <li class="nav-item">
+          <a href="medications.html">
+            <i class="fas fa-pills"></i>
+            <span>Lyfjagjöf</span>
+          </a>
+        </li>
+        
+        <li class="nav-item">
+          <a href="patients.html">
+            <i class="fas fa-user-injured"></i>
+            <span>Skjólstæðingar</span>
+          </a>
+        </li>
+        
+        <div class="menu-section">Stjórnun</div>
+        
+        <li class="nav-item">
+          <a href="reports.html">
+            <i class="fas fa-chart-bar"></i>
+            <span>Skýrslur</span>
+          </a>
+        </li>
+        
+        <li class="nav-item">
+          <a href="inventory.html">
+            <i class="fas fa-box"></i>
+            <span>Birgðir</span>
+          </a>
+        </li>
+        
+        <li class="nav-item">
+          <a href="settings.html">
+            <i class="fas fa-cog"></i>
+            <span>Stillingar</span>
+          </a>
+        </li>
+        
+        <li class="nav-item">
+          <a href="chatbot.html">
+            <i class="fas fa-robot"></i>
+            <span>AI Aðstoðarmaður</span>
+          </a>
+        </li>
+      </ul>
+      
+      <div class="sidebar-footer">
+        <button id="theme-toggle" class="theme-toggle">
+          <i class="fas fa-moon"></i>
+        </button>
+        <div class="version">v1.0.0</div>
+      </div>
+    </div>
+    
+    <!-- Main Content -->
+    <div class="main-content">
+      <div class="top-nav">
+        <div class="welcome-message">
+          <h2>Vaktaplan</h2>
+          <div class="date-shift" id="current-date"></div>
+        </div>
+        
+        <div class="top-actions">
+          <div class="language-toggle">
+            <button class="language-btn active" data-lang="is">IS</button>
+            <button class="language-btn" data-lang="en">EN</button>
+          </div>
+          
+          <button id="notifications-btn" class="notification-btn">
+            <i class="fas fa-bell"></i>
+            <span class="notification-count">3</span>
+          </button>
+          
+          <div id="notifications-menu" class="dropdown-menu notifications-menu">
+            <div class="dropdown-header">
+              <h4>Tilkynningar</h4>
+              <button class="clear-all">Hreinsa allt</button>
+            </div>
+            <div class="dropdown-body">
+              <a href="#" class="notification-item unread">
+                <div class="notification-icon"><i class="fas fa-user-nurse"></i></div>
+                <div class="notification-content">
+                  <div class="notification-text">Anna Jónsdóttir hefur skráð sig veika í dag.</div>
+                  <div class="notification-time">10:23</div>
+                </div>
+              </a>
+              <a href="#" class="notification-item unread">
+                <div class="notification-icon"><i class="fas fa-pills"></i></div>
+                <div class="notification-content">
+                  <div class="notification-text">Lyfjagjöf fyrir Björn Ólafsson er á eftir áætlun.</div>
+                  <div class="notification-time">09:45</div>
+                </div>
+              </a>
+              <a href="#" class="notification-item unread">
+                <div class="notification-icon"><i class="fas fa-exclamation-triangle"></i></div>
+                <div class="notification-content">
+                  <div class="notification-text">Lágt birgðastig: Hanskar (15%)</div>
+                  <div class="notification-time">Í gær</div>
+                </div>
+              </a>
+            </div>
+            <div class="dropdown-footer">
+              <a href="notifications.html">Sjá allar tilkynningar</a>
+            </div>
+          </div>
+          
+          <div class="user-info" id="profile-btn">
+            <div class="user-avatar">GS</div>
+            <div class="user-details">
+              <div class="user-name">Guðrún Sigurðardóttir</div>
+              <div class="user-role">Deildarstjóri</div>
+            </div>
+          </div>
+          
+          <div id="profile-menu" class="dropdown-menu profile-menu">
+            <a href="profile.html" class="dropdown-item">
+              <i class="fas fa-user"></i> Mínar síður
+            </a>
+            <a href="settings.html" class="dropdown-item">
+              <i class="fas fa-cog"></i> Stillingar
+            </a>
+            <div class="dropdown-divider"></div>
+            <a href="#" class="dropdown-item" id="logoutBtn">
+              <i class="fas fa-sign-out-alt"></i> Útskrá
+            </a>
+          </div>
+        </div>
+      </div>
+      
+      <div class="dashboard-grid">
+        <!-- Staff panel -->
+        <div class="dashboard-card">
+          <div class="card-header">
+            <h3><i class="fas fa-users"></i> Starfsfólk á vakt</h3>
+            <div class="card-actions">
+              <button class="btn btn-sm" id="refresh-stats-btn">
+                <i class="fas fa-sync-alt"></i> Uppfæra
+              </button>
+            </div>
+          </div>
+          <div class="card-content">
+            <div class="schedule-filters">
+              <div class="filter-group">
+                <label for="staff-filter">Starfsfólk:</label>
+                <select id="staff-filter" class="form-control">
+                  <option value="all">Allir</option>
+                  <!-- Options will be populated from JavaScript -->
+                </select>
+              </div>
+              <div class="filter-group">
+                <label for="department-filter">Deild:</label>
+                <select id="department-filter" class="form-control">
+                  <option value="all">Allar deildir</option>
+                  <option value="Medical">Hjúkrun</option>
+                  <option value="Surgical">Skurðdeild</option>
+                  <option value="Rehabilitation">Endurhæfing</option>
+                </select>
+              </div>
+            </div>
+            
+            <div class="stats-container">
+              <div class="stat-row">
+                <div class="stat-label">Heildarfjöldi vakta:</div>
+                <div class="stat-value" id="total-shifts">0</div>
+              </div>
+              <div class="stat-row">
+                <div class="stat-label">Starfsfólk á vakt:</div>
+                <div class="stat-value" id="staff-on-shift">0/0</div>
+              </div>
+              <div class="stat-row">
+                <div class="stat-label">Mönnun:</div>
+                <div class="stat-value" id="staffing-percentage">0%</div>
+              </div>
+            </div>
+            
+            <div class="staff-list-container">
+              <h4>Starfsfólk</h4>
+              <div id="staff-list" class="staff-list">
+                <!-- Staff items will be populated from JavaScript -->
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Schedule panel -->
+        <div class="dashboard-card schedule-panel">
+          <div class="card-header">
+            <h3><i class="fas fa-calendar-alt"></i> Vaktaáætlun vikunnar</h3>
+            <div class="card-actions">
+              <button class="btn btn-sm btn-primary" id="recurring-shift-btn">
+                <i class="fas fa-sync"></i> Endurteknar vaktir
+              </button>
+              <button class="btn btn-sm btn-secondary" id="print-schedule-btn">
+                <i class="fas fa-print"></i> Prenta
+              </button>
+              <button class="btn btn-sm btn-danger" id="clear-schedule-btn">
+                <i class="fas fa-trash"></i> Hreinsa
+              </button>
+            </div>
+          </div>
+          <div class="card-content">
+            <div id="schedule-grid" class="schedule-container">
+              <!-- Schedule grid will be populated from JavaScript -->
+            </div>
+          </div>
+        </div>
+        
+        <!-- AI suggestions panel -->
+        <div class="dashboard-card">
+          <div class="card-header">
+            <h3><i class="fas fa-robot"></i> Gervigreind ráðleggingar</h3>
+            <div class="card-actions">
+              <button class="btn btn-sm" id="refresh-suggestions-btn">
+                <i class="fas fa-sync-alt"></i> Uppfæra
+              </button>
+            </div>
+          </div>
+          <div class="card-content">
+            <div id="ai-suggestions-content" class="ai-suggestions">
+              <div class="ai-greeting">
+                <div class="ai-avatar">
+                  <i class="fas fa-robot"></i>
+                </div>
+                <div class="ai-message">
+                  <p>Velkomin(n) í NurseCare hjúkrunarheimilið! Ég get aðstoðað þig við að skipuleggja vaktir, finna staðgengla fyrir veikt starfsfólk og besta mönnun.</p>
+                  <p>Prófaðu að spyrja t.d. "Jón er veikur á miðvikudagsmorgun, hver getur tekið hans vakt?"</p>
+                </div>
+              </div>
+              <div id="ai-recommendations" class="ai-recommendations">
+                <!-- AI recommendations will be populated from JavaScript -->
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- AI Chat Widget -->
+    <div id="ai-widget-container" class="ai-chat">
+      <div class="chat-header">
+        <div class="chat-title">
+          <i class="fas fa-robot"></i>
+          <span>NurseCare Aðstoðarmaður</span>
+        </div>
+        <div class="chat-actions">
+          <button id="ai-minimize-btn" class="minimize-chat" aria-label="Minimize chat">
+            <i class="fas fa-minus"></i>
+          </button>
+          <button id="ai-clear-btn" class="chat-action" aria-label="Clear chat">
+            <i class="fas fa-trash"></i>
+          </button>
+        </div>
+      </div>
+      <div id="ai-widget-messages" class="chat-messages">
+        <!-- Messages will be populated by JavaScript -->
+      </div>
+      <div class="chat-input-container">
+        <form id="chat-form">
+          <textarea 
+            id="ai-widget-input" 
+            class="chat-input" 
+            placeholder="Spyrja gervigreind um vaktir..." 
+            rows="1"
+          ></textarea>
+          <button id="ai-widget-send" class="chat-send" disabled>
+            <i class="fas fa-paper-plane"></i>
+          </button>
+        </form>
+      </div>
+    </div>
+    
+    <!-- AI Widget Toggle Button -->
+    <button id="ai-widget-toggle" class="ai-toggle-btn">
+      <i class="fas fa-robot"></i>
+    </button>
+    
+    <!-- Toast Container -->
+    <div id="toast-container" class="toast-container">
+      <!-- Toasts will be added here dynamically -->
+    </div>
+  </div>
+
+  <!-- Load JavaScript modules -->
+  <script type="module" src="js/common.js"></script>
+  <script type="module" src="js/schedule.js"></script>
+  <script type="module" src="js/ai-widget.js"></script>
+
+  <!-- Optional: Sortable.js for drag-and-drop -->
+  <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 </body>
 </html>

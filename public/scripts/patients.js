@@ -28,7 +28,6 @@ function setupButtons() {
         'view-all-patients-btn': viewAllPatients,
         'add-patient-btn': showAddPatientModal,
         'reset-filters': resetFilters,
-        'update-patient-btn': updatePatient,
         'add-vitals-btn': showAddVitalsModal,
         'add-note-btn': showAddNoteModal,
         'add-medication-btn': showAddMedicationModal

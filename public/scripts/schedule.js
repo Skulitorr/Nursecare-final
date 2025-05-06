@@ -80,6 +80,9 @@ function initSchedule() {
     
     // Show welcome message
     showToast("Vaktaáætlun hlaðin", "success");
+
+    // Initialize schedule extensions
+    initializeScheduleExtensions();
 }
 
 /**
@@ -1017,660 +1020,716 @@ function showSwapShiftModal(staffId, dayIndex, shiftType) {
  * Add AI suggestions section
  */
 function addAISuggestionsSection() {
-    const scheduleGrid = document.getElementById('schedule-grid');
-    if (!scheduleGrid) return;
+    console.log("Adding AI suggestions section...");
     
-    // Check if suggestions container already exists
-    let suggestionsContainer = document.getElementById('ai-suggestions-container');
-    if (!suggestionsContainer) {
-        suggestionsContainer = document.createElement('div');
-        suggestionsContainer.id = 'ai-suggestions-container';
-        suggestionsContainer.className = 'ai-suggestions-container';
-        
-        suggestionsContainer.innerHTML = `
-            <div class="ai-suggestions-header">
-                <h3><i class="fas fa-robot"></i> AI Ráðleggingar</h3>
-                <div class="ai-suggestions-controls">
-                    <button class="toggle-suggestions-btn" title="Toggle suggestions">
-                        <i class="fas fa-chevron-up"></i>
-                    </button>
-                    <button class="refresh-suggestions-btn" title="Refresh suggestions">
-                        <i class="fas fa-sync-alt"></i>
-                    </button>
-                </div>
-            </div>
-            <div class="ai-suggestions-content" id="ai-suggestions-content">
-                <div class="ai-loading">
-                    <div class="ai-spinner"></div>
-                    <p>Greini vaktaáætlun...</p>
-                </div>
-            </div>
-        `;
-        
-        // Add event listeners
-        suggestionsContainer.querySelector('.refresh-suggestions-btn').addEventListener('click', generateAISuggestions);
-        suggestionsContainer.querySelector('.toggle-suggestions-btn').addEventListener('click', () => {
-            const content = suggestionsContainer.querySelector('.ai-suggestions-content');
-            const icon = suggestionsContainer.querySelector('.toggle-suggestions-btn i');
-            if (content.style.display === 'none') {
-                content.style.display = 'block';
-                icon.classList.remove('fa-chevron-down');
-                icon.classList.add('fa-chevron-up');
-            } else {
-                content.style.display = 'none';
-                icon.classList.remove('fa-chevron-up');
-                icon.classList.add('fa-chevron-down');
-            }
-        });
-        
-        // Position and style the container
-        suggestionsContainer.style.position = 'fixed';
-        suggestionsContainer.style.bottom = '20px';
-        suggestionsContainer.style.right = '20px';
-        suggestionsContainer.style.width = '350px';
-        suggestionsContainer.style.maxHeight = '500px';
-        suggestionsContainer.style.zIndex = '1000';
-        suggestionsContainer.style.backgroundColor = 'var(--bg-color)';
-        suggestionsContainer.style.borderRadius = '12px';
-        suggestionsContainer.style.boxShadow = '0 4px 20px rgba(0,0,0,0.15)';
-        suggestionsContainer.style.border = '1px solid var(--border-color)';
-        
-        // Add styles for the content
-        const style = document.createElement('style');
-        style.textContent = `
-            .ai-suggestions-header {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                padding: 1rem;
-                border-bottom: 1px solid var(--border-color);
-                background-color: var(--bg-secondary);
-                border-radius: 12px 12px 0 0;
-            }
-            
-            .ai-suggestions-header h3 {
-                margin: 0;
-                font-size: 1.1rem;
-                display: flex;
-                align-items: center;
-                gap: 0.5rem;
-                color: var(--text-primary);
-            }
-            
-            .ai-suggestions-controls {
-                display: flex;
-                gap: 0.5rem;
-            }
-            
-            .ai-suggestions-controls button {
-                background: none;
-                border: none;
-                padding: 0.5rem;
-                cursor: pointer;
-                color: var(--text-secondary);
-                border-radius: 6px;
-                transition: all 0.2s ease;
-            }
-            
-            .ai-suggestions-controls button:hover {
-                background-color: var(--bg-hover);
-                color: var(--text-primary);
-            }
-            
-            .ai-suggestions-content {
-                padding: 1rem;
-                overflow-y: auto;
-                max-height: 400px;
-            }
-            
-            .ai-suggestion-item {
-                display: flex;
-                gap: 1rem;
-                padding: 1rem;
-                margin-bottom: 0.75rem;
-                background-color: var(--bg-secondary);
-                border-radius: 8px;
-                border-left: 4px solid var(--border-color);
-                transition: all 0.2s ease;
-            }
-            
-            .ai-suggestion-item:hover {
-                transform: translateX(4px);
-                box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            }
-            
-            .ai-suggestion-item.warning {
-                border-left-color: #FFC107;
-            }
-            
-            .ai-suggestion-item.info {
-                border-left-color: #2196F3;
-            }
-            
-            .ai-suggestion-item.error {
-                border-left-color: #F44336;
-            }
-            
-            .suggestion-icon {
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                width: 32px;
-                height: 32px;
-                border-radius: 50%;
-                background-color: var(--bg-hover);
-                color: var(--text-secondary);
-            }
-            
-            .suggestion-content {
-                flex: 1;
-            }
-            
-            .suggestion-content p {
-                margin: 0 0 0.5rem 0;
-                color: var(--text-primary);
-                font-size: 0.95rem;
-                line-height: 1.4;
-            }
-            
-            .suggestion-action-btn {
-                display: inline-flex;
-                align-items: center;
-                gap: 0.5rem;
-                padding: 0.5rem 0.75rem;
-                background-color: var(--bg-hover);
-                border: none;
-                border-radius: 6px;
-                color: var(--text-primary);
-                font-size: 0.9rem;
-                cursor: pointer;
-                transition: all 0.2s ease;
-            }
-            
-            .suggestion-action-btn:hover {
-                background-color: var(--bg-active);
-                transform: translateY(-1px);
-            }
-            
-            .ai-loading {
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                gap: 1rem;
-                padding: 2rem;
-            }
-            
-            .ai-spinner {
-                width: 40px;
-                height: 40px;
-                border: 3px solid var(--border-color);
-                border-top-color: var(--primary-color);
-                border-radius: 50%;
-                animation: spin 1s linear infinite;
-            }
-            
-            @keyframes spin {
-                to { transform: rotate(360deg); }
-            }
-        `;
-        document.head.appendChild(style);
-        
-        document.body.appendChild(suggestionsContainer);
-    }
-}
-
-/**
- * Generate AI suggestions for the current schedule
- */
-function generateAISuggestions() {
-    const suggestionsContent = document.getElementById('ai-suggestions-content');
-    if (!suggestionsContent) return;
+    const scheduleContainer = document.querySelector('.schedule-container');
+    if (!scheduleContainer) return;
     
-    // Show loading
-    suggestionsContent.innerHTML = `
-        <div class="ai-loading">
-            <div class="ai-spinner"></div>
-            <p>Greini vaktaáætlun...</p>
+    // Create the suggestions container
+    const suggestionsContainer = document.createElement('div');
+    suggestionsContainer.className = 'ai-suggestions-container';
+    suggestionsContainer.innerHTML = `
+        <div class="ai-suggestions-header">
+            <div class="ai-suggestions-title">
+                <i class="fas fa-lightbulb"></i>
+                <h3>AI Suggestions</h3>
+            </div>
+            <div class="ai-suggestions-actions">
+                <button class="btn btn-sm btn-outline refresh-suggestions">
+                    <i class="fas fa-sync-alt"></i> Refresh
+                </button>
+                <button class="btn btn-sm btn-outline collapse-suggestions">
+                    <i class="fas fa-chevron-up"></i>
+                </button>
+            </div>
+        </div>
+        <div class="ai-suggestions-content">
+            <div class="suggestions-loading">
+                <i class="fas fa-circle-notch fa-spin"></i>
+                <span>Generating suggestions...</span>
+            </div>
+            <div class="suggestions-list" style="display: none;"></div>
         </div>
     `;
     
-    // Generate suggestions
-    setTimeout(() => {
-        const suggestions = generateScheduleSuggestions();
-        
-        if (suggestions.length === 0) {
-            suggestionsContent.innerHTML = `
-                <div class="ai-no-suggestions">
-                    <i class="fas fa-check-circle"></i>
-                    <p>Vaktaáætlunin lítur vel út!</p>
-                </div>
-            `;
-            return;
+    // Add styles
+    const styles = document.createElement('style');
+    styles.textContent = `
+        .ai-suggestions-container {
+            margin-top: 2rem;
+            background-color: var(--bg-card, white);
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            border: 1px solid var(--border-color, #e0e0e0);
+            overflow: hidden;
+            animation: fadeIn 0.4s ease-out;
         }
         
-        suggestionsContent.innerHTML = `
-            <div class="ai-suggestions-list">
-                ${suggestions.map((suggestion, index) => `
-                    <div class="ai-suggestion-item ${suggestion.type}">
-                        <div class="suggestion-icon">
-                            <i class="fas fa-${getSuggestionIcon(suggestion.type)}"></i>
-                        </div>
-                        <div class="suggestion-content">
-                            <p>${suggestion.message}</p>
-                            ${suggestion.action ? `
-                                <button class="suggestion-action-btn" data-action="${suggestion.action}" data-index="${index}">
-                                    <i class="fas fa-${getSuggestionActionIcon(suggestion.action)}"></i>
-                                    ${getSuggestionActionText(suggestion.action)}
-                                </button>
-                            ` : ''}
-                        </div>
-                    </div>
-                `).join('')}
-            </div>
-        `;
+        .ai-suggestions-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--border-color, #e0e0e0);
+            background-color: var(--bg-secondary, #f5f5f5);
+        }
         
-        // Add event listeners to action buttons
-        document.querySelectorAll('.suggestion-action-btn').forEach(button => {
-            button.addEventListener('click', handleSuggestionAction);
-        });
+        .ai-suggestions-title {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .ai-suggestions-title i {
+            color: #FFC107;
+            font-size: 1.25rem;
+        }
+        
+        .ai-suggestions-title h3 {
+            margin: 0;
+            font-size: 1.125rem;
+        }
+        
+        .ai-suggestions-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .ai-suggestions-content {
+            padding: 1.5rem;
+        }
+        
+        .suggestions-loading {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+            padding: 2rem;
+        }
+        
+        .suggestions-loading i {
+            font-size: 2rem;
+            color: var(--primary-color, #4CAF50);
+        }
+        
+        .suggestions-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .suggestion-item {
+            display: flex;
+            gap: 1rem;
+            padding: 1rem;
+            background-color: var(--bg-secondary-light, #f8f9fa);
+            border-radius: 8px;
+            border-left: 4px solid;
+        }
+        
+        .suggestion-icon {
+            font-size: 1.25rem;
+            width: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .suggestion-content {
+            flex: 1;
+        }
+        
+        .suggestion-title {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        
+        .suggestion-text {
+            margin-bottom: 0.75rem;
+        }
+        
+        .suggestion-actions {
+            display: flex;
+            gap: 0.75rem;
+        }
+        
+        .suggestion-item.insight {
+            border-left-color: #2196F3;
+        }
+        
+        .suggestion-item.insight .suggestion-icon {
+            color: #2196F3;
+        }
+        
+        .suggestion-item.warning {
+            border-left-color: #FFC107;
+        }
+        
+        .suggestion-item.warning .suggestion-icon {
+            color: #FFC107;
+        }
+        
+        .suggestion-item.critical {
+            border-left-color: #F44336;
+        }
+        
+        .suggestion-item.critical .suggestion-icon {
+            color: #F44336;
+        }
+        
+        .suggestion-item.success {
+            border-left-color: #4CAF50;
+        }
+        
+        .suggestion-item.success .suggestion-icon {
+            color: #4CAF50;
+        }
+        
+        .collapsed .ai-suggestions-content {
+            display: none;
+        }
+        
+        .collapsed .collapse-suggestions i {
+            transform: rotate(180deg);
+        }
+    `;
+    document.head.appendChild(styles);
+    
+    // Insert the container after the stats section
+    const statsSection = document.querySelector('.schedule-stats');
+    if (statsSection) {
+        statsSection.after(suggestionsContainer);
+    } else {
+        // If no stats section, insert at the beginning
+        scheduleContainer.prepend(suggestionsContainer);
+    }
+    
+    // Add event listeners
+    suggestionsContainer.querySelector('.collapse-suggestions').addEventListener('click', () => {
+        suggestionsContainer.classList.toggle('collapsed');
+        const icon = suggestionsContainer.querySelector('.collapse-suggestions i');
+        if (suggestionsContainer.classList.contains('collapsed')) {
+            icon.classList.remove('fa-chevron-up');
+            icon.classList.add('fa-chevron-down');
+        } else {
+            icon.classList.remove('fa-chevron-down');
+            icon.classList.add('fa-chevron-up');
+        }
+    });
+    
+    suggestionsContainer.querySelector('.refresh-suggestions').addEventListener('click', () => {
+        // Show loading state
+        suggestionsContainer.querySelector('.suggestions-list').style.display = 'none';
+        suggestionsContainer.querySelector('.suggestions-loading').style.display = 'flex';
+        
+        // Generate new suggestions
+        setTimeout(() => {
+            generateAISuggestions();
+        }, 500);
+    });
+    
+    // Generate initial suggestions
+    setTimeout(() => {
+        generateAISuggestions();
     }, 1500);
 }
 
 /**
- * Generate schedule suggestions
+ * Generate AI suggestions based on current schedule
  */
-function generateScheduleSuggestions() {
-    const suggestions = [];
+function generateAISuggestions() {
+    console.log("Generating AI suggestions...");
     
-    // Check for unfilled shifts
-    for (let dayIndex = 0; dayIndex < DAYS_OF_WEEK.length; dayIndex++) {
-        for (const shiftType of Object.values(SHIFT_TYPES).map(t => t.id)) {
-            const key = `${dayIndex}-${shiftType}`;
-            const staffIds = scheduleData[key] || [];
-            
-            if (staffIds.length === 0) {
-                // Create suggestion for unfilled shift
-                const shiftTypeObj = Object.values(SHIFT_TYPES).find(t => t.id === shiftType);
-                
-                // Find a recommended staff for this shift
-                const recommendedStaff = findRecommendedStaff(dayIndex, shiftType);
-                
-                if (recommendedStaff) {
-                    suggestions.push({
-                        type: 'warning',
-                        message: `${DAYS_OF_WEEK[dayIndex]} ${shiftTypeObj.label} er ómönnuð. Við mælum með ${recommendedStaff.name}.`,
-                        action: 'assign',
-                        data: {
-                            dayIndex,
-                            shiftType,
-                            staffId: recommendedStaff.id
-                        }
-                    });
-                } else {
-                    suggestions.push({
-                        type: 'warning',
-                        message: `${DAYS_OF_WEEK[dayIndex]} ${shiftTypeObj.label} er ómönnuð.`,
-                        action: 'fill_shift',
-                        data: {
-                            dayIndex,
-                            shiftType
-                        }
-                    });
-                }
-            }
+    const suggestionsContainer = document.querySelector('.ai-suggestions-container');
+    if (!suggestionsContainer) return;
+    
+    const suggestionsList = suggestionsContainer.querySelector('.suggestions-list');
+    const loadingIndicator = suggestionsContainer.querySelector('.suggestions-loading');
+    
+    // In a real app, this would call an AI service
+    // For now, we'll simulate suggestions based on the current schedule state
+    
+    // Sample suggestions
+    const suggestions = [
+        {
+            type: 'critical',
+            icon: 'exclamation-triangle',
+            title: 'Double Booking Detected',
+            text: 'Guðrún Einarsdóttir is scheduled for two shifts on Tuesday. This may lead to fatigue and could violate work regulations.',
+            actions: [
+                { label: 'Fix Automatically', action: 'fix-double-booking', data: { staffId: '3', dayIndex: 1 } },
+                { label: 'View Details', action: 'view-conflict', data: { staffId: '3', dayIndex: 1 } }
+            ]
+        },
+        {
+            type: 'warning',
+            icon: 'exclamation-circle',
+            title: 'Understaffed Night Shifts',
+            text: 'Thursday night shift is currently understaffed. Consider adding at least one more staff member to ensure proper coverage.',
+            actions: [
+                { label: 'Add Staff', action: 'add-staff', data: { dayIndex: 3, shiftType: 'night' } },
+                { label: 'Suggest Suitable Staff', action: 'suggest-staff', data: { dayIndex: 3, shiftType: 'night' } }
+            ]
+        },
+        {
+            type: 'insight',
+            icon: 'info-circle',
+            title: 'Workload Imbalance',
+            text: 'Anna Jónsdóttir has 40 hours while Sigríður Björnsdóttir has only 16 hours. Consider redistributing shifts for better balance.',
+            actions: [
+                { label: 'Balance Workload', action: 'balance', data: { staffIds: ['1', '5'] } }
+            ]
+        },
+        {
+            type: 'success',
+            icon: 'check-circle',
+            title: 'Weekend Coverage Optimized',
+            text: 'Weekend shifts are well distributed among staff members, ensuring fair rotation.',
+            actions: []
         }
-    }
+    ];
     
-    // Check for staff preferences
-    for (const key in scheduleData) {
-        const [dayIndex, shiftType] = key.split('-');
-        const staffIds = scheduleData[key] || [];
+    // Build the suggestions UI
+    suggestionsList.innerHTML = '';
+    suggestions.forEach(suggestion => {
+        const suggestionEl = document.createElement('div');
+        suggestionEl.className = `suggestion-item ${suggestion.type}`;
         
-        staffIds.forEach(staffId => {
-            const preferences = staffPreferences[staffId];
-            if (preferences) {
-                const staff = staffList.find(s => s.id === staffId);
-                if (!staff) return;
+        suggestionEl.innerHTML = `
+            <div class="suggestion-icon">
+                <i class="fas fa-${suggestion.icon}"></i>
+            </div>
+            <div class="suggestion-content">
+                <div class="suggestion-title">${suggestion.title}</div>
+                <div class="suggestion-text">${suggestion.text}</div>
+                <div class="suggestion-actions">
+                    ${suggestion.actions.map(action => `
+                        <button class="btn btn-sm btn-outline suggestion-action" 
+                                data-action="${action.action}" 
+                                data-payload='${JSON.stringify(action.data)}'>
+                            ${action.label}
+                        </button>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+        
+        // Add event listeners to action buttons
+        suggestionEl.querySelectorAll('.suggestion-action').forEach(button => {
+            button.addEventListener('click', () => {
+                const action = button.getAttribute('data-action');
+                const payload = JSON.parse(button.getAttribute('data-payload'));
                 
-                if (preferences.avoidDays && preferences.avoidDays.includes(parseInt(dayIndex))) {
-                    // Staff is assigned to a day they prefer to avoid
-                    suggestions.push({
-                        type: 'info',
-                        message: `${staff.name} er á vakt á ${DAYS_OF_WEEK[dayIndex]} en kýs venjulega að vinna ekki þann dag.`,
-                        action: 'swap',
-                        data: {
-                            staffId,
-                            dayIndex: parseInt(dayIndex),
-                            shiftType
-                        }
-                    });
-                } else if (preferences.avoidShifts && preferences.avoidShifts.includes(shiftType)) {
-                    // Staff is assigned to a shift type they prefer to avoid
-                    const shiftTypeObj = Object.values(SHIFT_TYPES).find(t => t.id === shiftType);
-                    suggestions.push({
-                        type: 'info',
-                        message: `${staff.name} er á ${shiftTypeObj.label} en kýs venjulega ekki þá vakt.`,
-                        action: 'swap',
-                        data: {
-                            staffId,
-                            dayIndex: parseInt(dayIndex),
-                            shiftType
-                        }
-                    });
-                }
-            }
-        });
-    }
-    
-    // Check for staff with too many shifts
-    staffList.forEach(staff => {
-        const hours = calculateStaffHours(staff.id);
-        if (hours > MAX_HOURS_PER_WEEK * 0.8) {
-            // Staff is approaching max hours
-            suggestions.push({
-                type: hours > MAX_HOURS_PER_WEEK ? 'error' : 'warning',
-                message: `${staff.name} er með ${hours} klst af ${MAX_HOURS_PER_WEEK} hámarki.`,
-                action: hours > MAX_HOURS_PER_WEEK ? 'reduce_hours' : null,
-                data: {
-                    staffId: staff.id,
-                    hours
-                }
+                handleSuggestionAction(action, payload);
             });
-        }
+        });
+        
+        suggestionsList.appendChild(suggestionEl);
     });
     
-    return suggestions;
+    // Show suggestions and hide loading indicator
+    loadingIndicator.style.display = 'none';
+    suggestionsList.style.display = 'flex';
+}
+
+/**
+ * Handle suggestion action clicks
+ * @param {string} action - The action to perform
+ * @param {Object} payload - Data needed for the action
+ */
+function handleSuggestionAction(action, payload) {
+    console.log(`Handling suggestion action: ${action}`, payload);
+    
+    switch (action) {
+        case 'fix-double-booking':
+            // Find and fix double booking
+            if (payload.staffId && payload.dayIndex !== undefined) {
+                const staffId = payload.staffId;
+                const dayIndex = payload.dayIndex;
+                
+                // Find shifts this staff is assigned to on this day
+                const conflictShifts = [];
+                
+                for (const shiftType of Object.values(SHIFT_TYPES).map(t => t.id)) {
+                    const key = `${dayIndex}-${shiftType}`;
+                    if (scheduleData[key] && scheduleData[key].includes(staffId)) {
+                        conflictShifts.push(shiftType);
+                    }
+                }
+                
+                if (conflictShifts.length > 1) {
+                    // Remove from all but the first shift
+                    for (let i = 1; i < conflictShifts.length; i++) {
+                        removeAssignment(staffId, dayIndex, conflictShifts[i]);
+                    }
+                    
+                    showToast('Double booking resolved', 'success');
+                    
+                    // Update UI
+                    refreshScheduleGrid();
+                    updateStaffHours();
+                    updateScheduleStats();
+                    generateAISuggestions();
+                }
+            }
+            break;
+            
+        case 'view-conflict':
+            // Show conflict details
+            if (payload.staffId && payload.dayIndex !== undefined) {
+                const staff = staffList.find(s => s.id === payload.staffId);
+                const conflicts = [];
+                
+                for (const shiftType of Object.values(SHIFT_TYPES).map(t => t.id)) {
+                    const key = `${payload.dayIndex}-${shiftType}`;
+                    if (scheduleData[key] && scheduleData[key].includes(payload.staffId)) {
+                        conflicts.push(shiftType);
+                    }
+                }
+                
+                if (staff && conflicts.length > 0) {
+                    const modal = document.createElement('div');
+                    modal.className = 'modal';
+                    modal.id = 'conflict-modal';
+                    
+                    modal.innerHTML = `
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h3>
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                    Scheduling Conflict
+                                </h3>
+                                <button class="close-btn" aria-label="Close">&times;</button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="conflict-details">
+                                    <p><strong>${staff.name}</strong> is assigned to multiple shifts on <strong>${DAYS_OF_WEEK[payload.dayIndex]}</strong>:</p>
+                                    <ul>
+                                        ${conflicts.map(shiftType => {
+                                            const shift = Object.values(SHIFT_TYPES).find(t => t.id === shiftType);
+                                            return `<li>${shift.label} (${shift.time})</li>`;
+                                        }).join('')}
+                                    </ul>
+                                    <p>Working multiple shifts in succession may lead to fatigue and could violate labor regulations.</p>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button class="btn cancel-btn" id="close-conflict">Close</button>
+                                <button class="btn primary-btn" id="fix-conflict">
+                                    <i class="fas fa-magic"></i> Fix Conflict
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                    
+                    document.body.appendChild(modal);
+                    
+                    // Show the modal
+                    setTimeout(() => {
+                        modal.classList.add('active');
+                    }, 10);
+                    
+                    // Add event listeners
+                    modal.querySelector('.close-btn').addEventListener('click', () => {
+                        modal.classList.remove('active');
+                        setTimeout(() => {
+                            modal.remove();
+                        }, 300);
+                    });
+                    
+                    document.getElementById('close-conflict').addEventListener('click', () => {
+                        modal.classList.remove('active');
+                        setTimeout(() => {
+                            modal.remove();
+                        }, 300);
+                    });
+                    
+                    document.getElementById('fix-conflict').addEventListener('click', () => {
+                        // Remove from all but the first shift
+                        for (let i = 1; i < conflicts.length; i++) {
+                            removeAssignment(payload.staffId, payload.dayIndex, conflicts[i]);
+                        }
+                        
+                        showToast('Conflict resolved', 'success');
+                        
+                        // Update UI
+                        refreshScheduleGrid();
+                        updateStaffHours();
+                        updateScheduleStats();
+                        generateAISuggestions();
+                        
+                        // Close modal
+                        modal.classList.remove('active');
+                        setTimeout(() => {
+                            modal.remove();
+                        }, 300);
+                    });
+                }
+            }
+            break;
+            
+        case 'add-staff':
+            // Show dialog to add staff to shift
+            if (payload.dayIndex !== undefined && payload.shiftType) {
+                showAddToShiftModal(payload.dayIndex, payload.shiftType);
+            }
+            break;
+            
+        case 'suggest-staff':
+            // Suggest staff for a specific shift
+            if (payload.dayIndex !== undefined && payload.shiftType) {
+                const dayIndex = payload.dayIndex;
+                const shiftType = payload.shiftType;
+                
+                // Find suitable staff
+                const suitableStaff = staffList.filter(staff => {
+                    return isValidAssignment(staff.id, dayIndex, shiftType);
+                }).sort((a, b) => {
+                    // Sort by preference and workload
+                    const aHasPreference = staff.preferences && staff.preferences.some(p => 
+                        p.day === dayIndex && p.shift === shiftType
+                    );
+                    
+                    const bHasPreference = staff.preferences && staff.preferences.some(p => 
+                        p.day === dayIndex && p.shift === shiftType
+                    );
+                    
+                    if (aHasPreference && !bHasPreference) return -1;
+                    if (!aHasPreference && bHasPreference) return 1;
+                    
+                    return a.hoursWorked - b.hoursWorked;
+                });
+                
+                if (suitableStaff.length > 0) {
+                    const modal = document.createElement('div');
+                    modal.className = 'modal';
+                    modal.id = 'staff-suggestions-modal';
+                    
+                    const shiftTypeObj = Object.values(SHIFT_TYPES).find(t => t.id === shiftType);
+                    
+                    modal.innerHTML = `
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h3>
+                                    <i class="fas fa-lightbulb"></i>
+                                    Suggested Staff
+                                </h3>
+                                <button class="close-btn" aria-label="Close">&times;</button>
+                            </div>
+                            <div class="modal-body">
+                                <p>AI recommended staff for <strong>${DAYS_OF_WEEK[dayIndex]}</strong> <strong>${shiftTypeObj.label}</strong>:</p>
+                                
+                                <div class="staff-suggestions">
+                                    ${suitableStaff.slice(0, 5).map((staff, index) => `
+                                        <div class="suggested-staff" data-staff-id="${staff.id}">
+                                            <div class="suggested-rank">${index + 1}</div>
+                                            <div class="suggested-avatar">
+                                                <img src="${staff.avatar}" alt="${staff.name}">
+                                            </div>
+                                            <div class="suggested-info">
+                                                <div class="suggested-name">${staff.name}</div>
+                                                <div class="suggested-role">${staff.role}</div>
+                                                <div class="suggested-hours">${staff.hoursWorked} hours scheduled</div>
+                                            </div>
+                                            <button class="btn btn-sm primary-btn assign-suggested-btn" data-staff-id="${staff.id}">
+                                                <i class="fas fa-plus"></i> Assign
+                                            </button>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button class="btn cancel-btn" id="close-suggestions">Close</button>
+                                <button class="btn primary-btn" id="assign-all-suggested">
+                                    <i class="fas fa-user-plus"></i> Assign Top 2
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                    
+                    // Add styles
+                    const styles = document.createElement('style');
+                    styles.textContent = `
+                        .staff-suggestions {
+                            margin-top: 1rem;
+                            display: flex;
+                            flex-direction: column;
+                            gap: 0.75rem;
+                        }
+                        
+                        .suggested-staff {
+                            display: flex;
+                            align-items: center;
+                            gap: 1rem;
+                            padding: 0.75rem;
+                            background-color: var(--bg-secondary-light, #f8f9fa);
+                            border-radius: 8px;
+                            border: 1px solid var(--border-color, #e0e0e0);
+                        }
+                        
+                        .suggested-rank {
+                            width: 24px;
+                            height: 24px;
+                            background-color: var(--primary-color, #4CAF50);
+                            color: white;
+                            border-radius: 50%;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            font-weight: 600;
+                        }
+                        
+                        .suggested-avatar img {
+                            width: 40px;
+                            height: 40px;
+                            border-radius: 50%;
+                            object-fit: cover;
+                        }
+                        
+                        .suggested-info {
+                            flex: 1;
+                        }
+                        
+                        .suggested-name {
+                            font-weight: 600;
+                            margin-bottom: 2px;
+                        }
+                        
+                        .suggested-role {
+                            font-size: 0.875rem;
+                            color: var(--text-secondary, #777);
+                            margin-bottom: 2px;
+                        }
+                        
+                        .suggested-hours {
+                            font-size: 0.8125rem;
+                            color: var(--text-secondary, #777);
+                        }
+                        
+                        .assign-suggested-btn {
+                            min-width: 80px;
+                        }
+                        
+                        .suggested-staff.assigned {
+                            background-color: rgba(76, 175, 80, 0.1);
+                        }
+                        
+                        .suggested-staff.assigned .assign-suggested-btn {
+                            background-color: #4CAF50;
+                            color: white;
+                        }
+                    `;
+                    document.head.appendChild(styles);
+                    
+                    document.body.appendChild(modal);
+                    
+                    // Show the modal
+                    setTimeout(() => {
+                        modal.classList.add('active');
+                    }, 10);
+                    
+                    // Add event listeners
+                    modal.querySelector('.close-btn').addEventListener('click', () => {
+                        modal.classList.remove('active');
+                        setTimeout(() => {
+                            modal.remove();
+                            styles.remove();
+                        }, 300);
+                    });
+                    
+                    document.getElementById('close-suggestions').addEventListener('click', () => {
+                        modal.classList.remove('active');
+                        setTimeout(() => {
+                            modal.remove();
+                            styles.remove();
+                        }, 300);
+                    });
+                    
+                    document.getElementById('assign-all-suggested').addEventListener('click', () => {
+                        // Assign top 2 staff
+                        for (let i = 0; i < Math.min(2, suitableStaff.length); i++) {
+                            addAssignment(suitableStaff[i].id, dayIndex, shiftType);
+                        }
+                        
+                        showToast(`${Math.min(2, suitableStaff.length)} staff members assigned`, 'success');
+                        
+                        // Close modal
+                        modal.classList.remove('active');
+                        setTimeout(() => {
+                            modal.remove();
+                            styles.remove();
+                        }, 300);
+                    });
+                    
+                    // Add event listeners to assign buttons
+                    modal.querySelectorAll('.assign-suggested-btn').forEach(button => {
+                        button.addEventListener('click', () => {
+                            const staffId = button.getAttribute('data-staff-id');
+                            const staffItem = button.closest('.suggested-staff');
+                            
+                            // Add assignment
+                            addAssignment(staffId, dayIndex, shiftType);
+                            
+                            // Update button
+                            button.innerHTML = '<i class="fas fa-check"></i> Assigned';
+                            staffItem.classList.add('assigned');
+                        });
+                    });
+                }
+            }
+            break;
+            
+        case 'balance':
+            // Balance workload between staff
+            balanceWorkload();
+            break;
+    }
 }
 
 /**
  * Find recommended staff for a shift
+ * @param {number} dayIndex - Day index
+ * @param {string} shiftType - Shift type ID
+ * @returns {Object|null} - Staff object or null if none found
  */
 function findRecommendedStaff(dayIndex, shiftType) {
-    // Find staff who can work this shift
-    const eligibleStaff = staffList.filter(staff => {
-        if (staff.status !== 'available') return false;
-        if (!staff.shifts.includes(shiftType)) return false;
-        
-        // Check if staff already has too many shifts
-        const hours = calculateStaffHours(staff.id);
-        if (hours + HOURS_PER_SHIFT > MAX_HOURS_PER_WEEK) return false;
-        
-        // Check if staff already has a shift on this day
-        const key = `${dayIndex}-${shiftType}`;
-        const staffIds = scheduleData[key] || [];
-        for (const type of Object.values(SHIFT_TYPES).map(t => t.id)) {
-            const dayKey = `${dayIndex}-${type}`;
-            const dayStaffIds = scheduleData[dayKey] || [];
-            if (dayStaffIds.includes(staff.id)) return false;
-        }
-        
-        return true;
-    });
+    // Sort staff by hours worked (ascending)
+    const sortedStaff = [...staffList]
+        .filter(staff => isValidAssignment(staff.id, dayIndex, shiftType))
+        .sort((a, b) => a.hoursWorked - b.hoursWorked);
     
-    if (eligibleStaff.length === 0) return null;
-    
-    // Score each eligible staff
-    const scoredStaff = eligibleStaff.map(staff => {
-        let score = 0;
-        
-        // Prefer staff with fewer hours
-        const hours = calculateStaffHours(staff.id);
-        score += (MAX_HOURS_PER_WEEK - hours) / 8;
-        
-        // Check staff preferences
-        const preferences = staffPreferences[staff.id];
-        if (preferences) {
-            if (preferences.preferredDays && preferences.preferredDays.includes(dayIndex)) {
-                score += 5; // Bonus for preferred day
-            }
-            if (preferences.preferredShifts && preferences.preferredShifts.includes(shiftType)) {
-                score += 5; // Bonus for preferred shift
-            }
-            if (preferences.avoidDays && preferences.avoidDays.includes(dayIndex)) {
-                score -= 10; // Penalty for avoided day
-            }
-            if (preferences.avoidShifts && preferences.avoidShifts.includes(shiftType)) {
-                score -= 10; // Penalty for avoided shift
-            }
-        }
-        
-        return { staff, score };
-    });
-    
-    // Sort by score and return the best match
-    scoredStaff.sort((a, b) => b.score - a.score);
-    return scoredStaff[0]?.staff;
+    return sortedStaff.length > 0 ? sortedStaff[0] : null;
 }
 
 /**
- * Get icon for suggestion type
+ * Get recommended staff count for a shift
+ * @param {number} dayIndex - Day index
+ * @param {string} shiftType - Shift type ID
+ * @returns {number} - Recommended staff count
  */
-function getSuggestionIcon(type) {
-    switch (type) {
-        case 'error': return 'exclamation-circle';
-        case 'warning': return 'exclamation-triangle';
-        case 'info': return 'info-circle';
-        case 'success': return 'check-circle';
-        default: return 'lightbulb';
-    }
-}
-
-/**
- * Get icon for suggestion action
- */
-function getSuggestionActionIcon(action) {
-    switch (action) {
-        case 'assign': return 'user-plus';
-        case 'fill_shift': return 'plus-circle';
-        case 'swap': return 'exchange-alt';
-        case 'reduce_hours': return 'user-minus';
-        default: return 'magic';
-    }
-}
-
-/**
- * Get text for suggestion action
- */
-function getSuggestionActionText(action) {
-    switch (action) {
-        case 'assign': return 'Setja á vakt';
-        case 'fill_shift': return 'Fylla vakt';
-        case 'swap': return 'Skipta vakt';
-        case 'reduce_hours': return 'Minnka vaktir';
-        default: return 'Framkvæma';
-    }
-}
-
-/**
- * Handle suggestion action
- */
-function handleSuggestionAction(e) {
-    const button = e.currentTarget;
-    const action = button.getAttribute('data-action');
-    const index = parseInt(button.getAttribute('data-index'));
-    
-    // Get suggestion data
-    const suggestionsContent = document.getElementById('ai-suggestions-content');
-    if (!suggestionsContent) return;
-    
-    const suggestions = generateScheduleSuggestions();
-    if (index >= suggestions.length) return;
-    
-    const suggestion = suggestions[index];
-    const data = suggestion.data;
-    
-    switch (action) {
-        case 'assign':
-            if (data.staffId && data.dayIndex !== undefined && data.shiftType) {
-                addAssignment(data.staffId, data.dayIndex, data.shiftType);
-            }
-            break;
-            
-        case 'fill_shift':
-            if (data.dayIndex !== undefined && data.shiftType) {
-                showAddToShiftModal(data.dayIndex, data.shiftType);
-            }
-            break;
-            
-        case 'swap':
-            if (data.staffId && data.dayIndex !== undefined && data.shiftType) {
-                showSwapShiftModal(data.staffId, data.dayIndex, data.shiftType);
-            }
-            break;
-            
-        case 'reduce_hours':
-            if (data.staffId) {
-                showReduceHoursModal(data.staffId);
-            }
-            break;
+function getRecommendedStaffCount(dayIndex, shiftType) {
+    // Weekend nights need fewer staff
+    if (dayIndex >= 5 && shiftType === 'night') {
+        return 1;
     }
     
-    // Regenerate suggestions after action
-    setTimeout(generateAISuggestions, 500);
-}
-
-/**
- * Show modal to reduce staff hours
- */
-function showReduceHoursModal(staffId) {
-    const staff = staffList.find(s => s.id === staffId);
-    if (!staff) return;
-    
-    // Get all shifts assigned to this staff
-    const assignments = [];
-    
-    for (const key in scheduleData) {
-        const [dayIndex, shiftType] = key.split('-');
-        const staffIds = scheduleData[key] || [];
-        
-        if (staffIds.includes(staffId)) {
-            const shiftTypeObj = Object.values(SHIFT_TYPES).find(t => t.id === shiftType);
-            assignments.push({
-                dayIndex: parseInt(dayIndex),
-                shiftType,
-                day: DAYS_OF_WEEK[dayIndex],
-                shift: shiftTypeObj.label
-            });
-        }
+    // Weekday nights need at least 2
+    if (shiftType === 'night') {
+        return 2;
     }
     
-    if (assignments.length === 0) {
-        showToast(`${staff.name} has no assignments to remove`, "warning");
-        return;
+    // Weekend days need at least 2
+    if (dayIndex >= 5) {
+        return 2;
     }
     
-    // Create modal
-    const modal = document.createElement('div');
-    modal.className = 'modal';
-    modal.id = 'reduce-hours-modal';
+    // Weekday mornings need at least 3
+    if (shiftType === 'morning') {
+        return 3;
+    }
     
-    modal.innerHTML = `
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>
-                    <i class="fas fa-user-minus"></i>
-                    Reduce Hours for ${staff.name}
-                </h3>
-                <button class="close-btn" aria-label="Close">&times;</button>
-            </div>
-            <div class="modal-body">
-                <p>Select a shift to remove:</p>
-                <div class="assignments-list">
-                    ${assignments.map((assignment, index) => `
-                        <div class="assignment-option">
-                            <input type="radio" name="assignment" id="assignment-${index}" value="${index}" ${index === 0 ? 'checked' : ''}>
-                            <label for="assignment-${index}">
-                                ${assignment.day} ${assignment.shift}
-                            </label>
-                        </div>
-                    `).join('')}
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn cancel-btn" id="cancel-reduce">Cancel</button>
-                <button class="btn danger-btn" id="confirm-reduce">
-                    <i class="fas fa-trash"></i> Remove Shift
-                </button>
-            </div>
-        </div>
-    `;
-    
-    document.body.appendChild(modal);
-    
-    // Add styles
-    const style = document.createElement('style');
-    style.textContent = `
-        .assignments-list {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-            margin: 1rem 0;
-        }
-        
-        .assignment-option {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.5rem;
-            border-radius: 4px;
-            background-color: var(--bg-secondary);
-        }
-        
-        .assignment-option input[type="radio"] {
-            margin: 0;
-        }
-        
-        .assignment-option label {
-            margin: 0;
-            cursor: pointer;
-            flex: 1;
-        }
-    `;
-    document.head.appendChild(style);
-    
-    // Show the modal
-    setTimeout(() => {
-        modal.classList.add('active');
-    }, 10);
-    
-    // Add event listeners
-    modal.querySelector('.close-btn').addEventListener('click', () => {
-        modal.classList.remove('active');
-        setTimeout(() => {
-            modal.remove();
-            style.remove();
-        }, 300);
-    });
-    
-    document.getElementById('cancel-reduce').addEventListener('click', () => {
-        modal.classList.remove('active');
-        setTimeout(() => {
-            modal.remove();
-            style.remove();
-        }, 300);
-    });
-    
-    document.getElementById('confirm-reduce').addEventListener('click', () => {
-        // Get selected assignment
-        const selectedRadio = document.querySelector('input[name="assignment"]:checked');
-        if (!selectedRadio) {
-            showToast("Please select a shift to remove", "warning");
-            return;
-        }
-        
-        const index = parseInt(selectedRadio.value);
-        const assignment = assignments[index];
-        
-        // Remove assignment
-        removeAssignment(staffId, assignment.dayIndex, assignment.shiftType);
-        
-        // Close modal
-        modal.classList.remove('active');
-        setTimeout(() => {
-            modal.remove();
-            style.remove();
-        }, 300);
-    });
+    // Weekday evenings need at least 2
+    return 2;
 }
 
 /**
@@ -2009,14 +2068,14 @@ function getAssignmentErrorMessage(staffId, dayIndex, shiftType) {
         const shiftTypeLabel = SHIFT_TYPES[Object.keys(SHIFT_TYPES).find(key => 
             SHIFT_TYPES[key].id === shiftType
         )].label;
-        return `${staff.name} getur ekki unnið ${shiftTypeLabel}`;
+        return `${staff.name getur ekki unnið ${shiftTypeLabel}`;
     }
     
     // Check if staff already has this shift
     const key = `${dayIndex}-${shiftType}`;
     const currentStaff = scheduleData[key] || [];
     if (currentStaff.includes(staffId)) {
-        return `${staff.name} er þegar á þessari vakt`;
+        return `${staff.name er þegar á þessari vakt`;
     }
     
     // Check if staff already has max shifts for this day
@@ -2030,13 +2089,13 @@ function getAssignmentErrorMessage(staffId, dayIndex, shiftType) {
     }
     
     if (shiftsOnDay >= MAX_SHIFTS_PER_DAY) {
-        return `${staff.name} er þegar með hámarksvaktir á þessum degi (${MAX_SHIFTS_PER_DAY})`;
+        return `${staff.name er þegar með hámarksvaktir á þessum degi (${MAX_SHIFTS_PER_DAY})`;
     }
     
     // Check if staff would exceed maximum weekly hours
     const currentHours = calculateStaffHours(staffId);
     if (currentHours + HOURS_PER_SHIFT > MAX_HOURS_PER_WEEK) {
-        return `${staff.name} myndi fara yfir hámarksstundir (${MAX_HOURS_PER_WEEK})`;
+        return `${staff.name myndi fara yfir hámarksstundir (${MAX_HOURS_PER_WEEK})`;
     }
     
     // Check if shift already has maximum staff
@@ -2976,6 +3035,14 @@ function setupEventListeners() {
             showAddShiftModal(date);
         });
     });
+
+    // Add recurring shift button event listener
+    const recurringShiftBtn = document.getElementById('recurring-shift-btn');
+    if (recurringShiftBtn) {
+        recurringShiftBtn.addEventListener('click', () => {
+            showRecurringShiftModal();
+        });
+    }
 }
 
 /**
@@ -3461,4 +3528,2386 @@ function updateShiftInCache(shift) {
             }
         }
     }
+}
+
+/**
+ * Initialize schedule extensions with enhanced functionality
+ */
+function initializeScheduleExtensions() {
+    console.log("Initializing schedule extensions...");
+    
+    // Setup the enhanced grid layout
+    setupEnhancedGridLayout();
+    
+    // Setup editable shift functionality
+    setupEditableShifts();
+    
+    // Setup AI integration
+    setupAIIntegration();
+    
+    // Add the AI suggestions section
+    addAISuggestionsSection();
+    
+    console.log("Schedule extensions initialized");
+}
+
+/**
+ * Setup enhanced grid layout with responsive design
+ */
+function setupEnhancedGridLayout() {
+    console.log("Setting up enhanced grid layout...");
+    
+    // Add column highlighting on hover
+    const dayCells = document.querySelectorAll('.schedule-grid .schedule-cell');
+    dayCells.forEach(cell => {
+        // Get the column index
+        const columnIndex = Array.from(cell.parentNode.children).indexOf(cell);
+        
+        cell.addEventListener('mouseenter', () => {
+            // Highlight all cells in the same column
+            document.querySelectorAll(`.schedule-cell:nth-child(${columnIndex})`).forEach(col => {
+                col.classList.add('column-highlight');
+            });
+        });
+        
+        cell.addEventListener('mouseleave', () => {
+            // Remove highlight from all cells
+            document.querySelectorAll('.column-highlight').forEach(col => {
+                col.classList.remove('column-highlight');
+            });
+        });
+    });
+    
+    // Add staff count badges to cells
+    document.querySelectorAll('.assignments-container').forEach(container => {
+        updateStaffCountBadge(container);
+    });
+    
+    // Enable compact/expanded view toggle
+    const viewToggleBtn = document.getElementById('toggle-view-btn');
+    if (viewToggleBtn) {
+        viewToggleBtn.addEventListener('click', () => {
+            document.querySelector('.schedule-grid').classList.toggle('compact-view');
+            
+            // Update button text
+            const isCompact = document.querySelector('.schedule-grid').classList.contains('compact-view');
+            viewToggleBtn.innerHTML = isCompact ? 
+                '<i class="fas fa-expand-alt"></i> Expanded View' : 
+                '<i class="fas fa-compress-alt"></i> Compact View';
+            
+            // Save preference
+            localStorage.setItem('schedule-view-compact', isCompact);
+        });
+        
+        // Apply saved preference
+        const savedCompact = localStorage.getItem('schedule-view-compact');
+        if (savedCompact === 'true') {
+            document.querySelector('.schedule-grid').classList.add('compact-view');
+            viewToggleBtn.innerHTML = '<i class="fas fa-expand-alt"></i> Expanded View';
+        }
+    }
+}
+
+/**
+ * Update the staff count badge for a cell
+ * @param {HTMLElement} container - The assignments container
+ */
+function updateStaffCountBadge(container) {
+    const cell = container.closest('.schedule-cell');
+    if (!cell) return;
+    
+    // Get existing badge or create a new one
+    let badge = cell.querySelector('.staff-count-badge');
+    const count = container.children.length;
+    
+    if (count === 0) {
+        // Remove badge if no staff
+        if (badge) badge.remove();
+        cell.classList.remove('has-assignments', 'understaffed', 'overstaffed', 'well-staffed');
+        return;
+    }
+    
+    // Add has-assignments class
+    cell.classList.add('has-assignments');
+    
+    // Create badge if it doesn't exist
+    if (!badge) {
+        badge = document.createElement('div');
+        badge.className = 'staff-count-badge';
+        cell.appendChild(badge);
+    }
+    
+    // Update badge count
+    badge.textContent = count;
+    
+    // Apply staffing status classes
+    const dayIndex = parseInt(cell.dataset.day);
+    const shiftType = cell.dataset.shift;
+    const recommendedCount = getRecommendedStaffCount(dayIndex, shiftType);
+    
+    cell.classList.remove('understaffed', 'overstaffed', 'well-staffed');
+    
+    if (count < recommendedCount) {
+        cell.classList.add('understaffed');
+    } else if (count > recommendedCount + 1) {
+        cell.classList.add('overstaffed');
+    } else {
+        cell.classList.add('well-staffed');
+    }
+}
+
+/**
+ * Setup editable shift functionality
+ */
+function setupEditableShifts() {
+    console.log("Setting up editable shifts functionality...");
+    
+    // Add double-click to edit for assignments
+    document.querySelectorAll('.assignments-container').forEach(container => {
+        container.addEventListener('dblclick', (e) => {
+            // Check if we clicked on an assignment or empty space
+            const assignmentEl = e.target.closest('.staff-assignment');
+            
+            if (assignmentEl) {
+                // If clicked on an assignment, edit it
+                const staffId = assignmentEl.getAttribute('data-staff-id');
+                const cell = container.closest('.schedule-cell');
+                const dayIndex = parseInt(cell.getAttribute('data-day'));
+                const shiftType = cell.getAttribute('data-shift');
+                
+                showEditAssignmentModal(staffId, dayIndex, shiftType);
+            } else {
+                // If clicked on empty space, show add staff modal
+                const cell = container.closest('.schedule-cell');
+                const dayIndex = parseInt(cell.getAttribute('data-day'));
+                const shiftType = cell.getAttribute('data-shift');
+                
+                showAddToShiftModal(dayIndex, shiftType);
+            }
+        });
+    });
+    
+    // Add inline edit for assignments on right-click
+    document.addEventListener('contextmenu', (e) => {
+        const assignmentEl = e.target.closest('.staff-assignment');
+        if (assignmentEl) {
+            e.preventDefault(); // Prevent default context menu
+            
+            const staffId = assignmentEl.getAttribute('data-staff-id');
+            const cell = assignmentEl.closest('.schedule-cell');
+            const dayIndex = parseInt(cell.getAttribute('data-day'));
+            const shiftType = cell.getAttribute('data-shift');
+            
+            showQuickActionMenu(e.pageX, e.pageY, staffId, dayIndex, shiftType);
+        }
+    });
+    
+    // Setup the shift editor component
+    setupShiftEditor();
+}
+
+/**
+ * Show a quick action menu for shift assignments
+ */
+function showQuickActionMenu(x, y, staffId, dayIndex, shiftType) {
+    // Remove any existing menus
+    const existingMenu = document.getElementById('quick-action-menu');
+    if (existingMenu) {
+        existingMenu.remove();
+    }
+    
+    const staff = staffList.find(s => s.id === staffId);
+    if (!staff) return;
+    
+    // Create menu element
+    const menu = document.createElement('div');
+    menu.id = 'quick-action-menu';
+    menu.className = 'quick-action-menu';
+    menu.style.position = 'absolute';
+    menu.style.left = `${x}px`;
+    menu.style.top = `${y}px`;
+    
+    // Add menu items
+    menu.innerHTML = `
+        <div class="menu-header">
+            <span>${staff.name}</span>
+        </div>
+        <div class="menu-items">
+            <button class="menu-item" data-action="edit">
+                <i class="fas fa-edit"></i> Breyta vakt
+            </button>
+            <button class="menu-item" data-action="swap">
+                <i class="fas fa-exchange-alt"></i> Skipta vakt
+            </button>
+            <button class="menu-item" data-action="notes">
+                <i class="fas fa-sticky-note"></i> Bæta við athugasemd
+            </button>
+            <button class="menu-item danger" data-action="remove">
+                <i class="fas fa-trash"></i> Fjarlægja af vakt
+            </button>
+        </div>
+    `;
+    
+    // Add styles
+    const styles = `
+        .quick-action-menu {
+            background-color: var(--bg-card, white);
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+            z-index: 1000;
+            min-width: 200px;
+            animation: fadeIn 0.15s ease-out;
+            border: 1px solid var(--border-color, #e0e0e0);
+            overflow: hidden;
+        }
+        
+        .menu-header {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid var(--border-color, #e0e0e0);
+            font-weight: 600;
+            color: var(--text-primary, #333);
+            background-color: var(--bg-secondary, #f5f5f5);
+        }
+        
+        .menu-items {
+            padding: 0.5rem;
+        }
+        
+        .menu-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            width: 100%;
+            text-align: left;
+            background: none;
+            border: none;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: all 0.15s ease;
+            color: var(--text-primary, #333);
+        }
+        
+        .menu-item:hover {
+            background-color: var(--bg-secondary, #f5f5f5);
+        }
+        
+        .menu-item.danger {
+            color: var(--danger-color, #F44336);
+        }
+        
+        .menu-item.danger:hover {
+            background-color: rgba(244, 67, 54, 0.1);
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    `;
+    
+    // Add style element
+    const styleEl = document.createElement('style');
+    styleEl.id = 'quick-menu-styles';
+    styleEl.textContent = styles;
+    
+    // Add to document
+    document.body.appendChild(styleEl);
+    document.body.appendChild(menu);
+    
+    // Add event listeners to menu items
+    menu.querySelector('[data-action="edit"]').addEventListener('click', () => {
+        showEditAssignmentModal(staffId, dayIndex, shiftType);
+        removeMenu();
+    });
+    
+    menu.querySelector('[data-action="swap"]').addEventListener('click', () => {
+        showSwapShiftModal(staffId, dayIndex, shiftType);
+        removeMenu();
+    });
+    
+    menu.querySelector('[data-action="notes"]').addEventListener('click', () => {
+        showAddNotesModal(staffId, dayIndex, shiftType);
+        removeMenu();
+    });
+    
+    menu.querySelector('[data-action="remove"]').addEventListener('click', () => {
+        removeAssignment(staffId, dayIndex, shiftType);
+        removeMenu();
+    });
+    
+    // Remove menu when clicking outside
+    document.addEventListener('click', removeMenu);
+    
+    function removeMenu() {
+        menu.remove();
+        styleEl.remove();
+        document.removeEventListener('click', removeMenu);
+    }
+}
+
+/**
+ * Show modal to add notes to assignment
+ */
+function showAddNotesModal(staffId, dayIndex, shiftType) {
+    const staff = staffList.find(s => s.id === staffId);
+    if (!staff) return;
+    
+    // Create modal
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.id = 'add-notes-modal';
+    
+    const shiftTypeObj = Object.values(SHIFT_TYPES).find(t => t.id === shiftType);
+    
+    // Get existing notes
+    const key = `${dayIndex}-${shiftType}`;
+    const assignmentNotes = localStorage.getItem(`notes-${staffId}-${key}`) || '';
+    
+    modal.innerHTML = `
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>
+                    <i class="fas fa-sticky-note"></i>
+                    Add Notes for ${staff.name}
+                </h3>
+                <button class="close-btn" aria-label="Close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>Adding notes for ${DAYS_OF_WEEK[dayIndex]} ${shiftTypeObj.label}</p>
+                
+                <div class="form-group">
+                    <label for="staff-notes">Notes:</label>
+                    <textarea id="staff-notes" class="form-control" rows="4" placeholder="Add any important notes for this shift...">${assignmentNotes}</textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn cancel-btn" id="cancel-notes">Cancel</button>
+                <button class="btn primary-btn" id="save-notes">
+                    <i class="fas fa-save"></i> Save Notes
+                </button>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    // Show the modal
+    setTimeout(() => {
+        modal.classList.add('active');
+    }, 10);
+    
+    // Add event listeners
+    modal.querySelector('.close-btn').addEventListener('click', () => {
+        modal.classList.remove('active');
+        setTimeout(() => {
+            modal.remove();
+        }, 300);
+    });
+    
+    document.getElementById('cancel-notes').addEventListener('click', () => {
+        modal.classList.remove('active');
+        setTimeout(() => {
+            modal.remove();
+        }, 300);
+    });
+    
+    document.getElementById('save-notes').addEventListener('click', () => {
+        const notes = document.getElementById('staff-notes').value;
+        
+        // Save notes to localStorage (could be saved to backend in real app)
+        localStorage.setItem(`notes-${staffId}-${key}`, notes);
+        
+        // Close modal
+        modal.classList.remove('active');
+        setTimeout(() => {
+            modal.remove();
+        }, 300);
+        
+        // Show confirmation
+        showToast(`Notes saved for ${staff.name}`, "success");
+        
+        // Update UI to show note indicator
+        const cell = document.querySelector(`.schedule-cell[data-day="${dayIndex}"][data-shift="${shiftType}"]`);
+        if (cell) {
+            const assignment = cell.querySelector(`.staff-assignment[data-staff-id="${staffId}"]`);
+            if (assignment) {
+                // Add or update note indicator
+                let noteIndicator = assignment.querySelector('.note-indicator');
+                
+                if (notes.trim()) {
+                    if (!noteIndicator) {
+                        noteIndicator = document.createElement('span');
+                        noteIndicator.className = 'note-indicator';
+                        noteIndicator.innerHTML = '<i class="fas fa-sticky-note" title="Has notes"></i>';
+                        assignment.appendChild(noteIndicator);
+                    }
+                } else if (noteIndicator) {
+                    noteIndicator.remove();
+                }
+            }
+        }
+    });
+}
+
+/**
+ * Show the edit assignment modal
+ */
+function showEditAssignmentModal(staffId, dayIndex, shiftType) {
+    const staff = staffList.find(s => s.id === staffId);
+    if (!staff) return;
+    
+    // Create modal
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.id = 'edit-assignment-modal';
+    
+    const shiftTypeObj = Object.values(SHIFT_TYPES).find(t => t.id === shiftType);
+    
+    modal.innerHTML = `
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>
+                    <i class="fas fa-edit"></i>
+                    Edit Assignment: ${staff.name}
+                </h3>
+                <button class="close-btn" aria-label="Close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="assignment-edit-header">
+                    <div class="staff-avatar large">
+                        <img src="${staff.avatar}" alt="${staff.name}">
+                        <span class="status-indicator ${staff.status}"></span>
+                    </div>
+                    <div class="assignment-edit-info">
+                        <h4>${staff.name}</h4>
+                        <p>${staff.role}</p>
+                        <p><i class="fas fa-calendar-day"></i> ${DAYS_OF_WEEK[dayIndex]}</p>
+                        <p><i class="fas fa-${shiftTypeObj.icon}"></i> ${shiftTypeObj.label} (${shiftTypeObj.time})</p>
+                    </div>
+                </div>
+                
+                <form id="edit-assignment-form">
+                    <div class="form-group">
+                        <label for="shift-role">Role for this shift:</label>
+                        <select id="shift-role" class="form-control">
+                            <option value="primary" selected>Primary Staff</option>
+                            <option value="secondary">Secondary Staff</option>
+                            <option value="support">Support Staff</option>
+                            <option value="training">Training</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="shift-notes">Notes:</label>
+                        <textarea id="shift-notes" class="form-control" rows="3" placeholder="Add any important notes for this shift..."></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Shift Options:</label>
+                        <div class="checkbox-group">
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="shift-lead" name="shift-options">
+                                <label for="shift-lead">Shift Lead</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="shift-trainer" name="shift-options">
+                                <label for="shift-trainer">Trainer</label>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn danger-btn" id="remove-assignment-btn">
+                    <i class="fas fa-trash"></i> Remove
+                </button>
+                <button class="btn cancel-btn" id="cancel-edit-assignment">Cancel</button>
+                <button class="btn primary-btn" id="save-assignment">
+                    <i class="fas fa-save"></i> Save Changes
+                </button>
+            </div>
+        </div>
+    `;
+    
+    // Add styles
+    const style = document.createElement('style');
+    style.textContent = `
+        .assignment-edit-header {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .staff-avatar.large img {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+        }
+        
+        .assignment-edit-info h4 {
+            margin: 0 0 0.5rem 0;
+        }
+        
+        .assignment-edit-info p {
+            margin: 0 0 0.25rem 0;
+            color: var(--text-secondary);
+        }
+    `;
+    document.head.appendChild(style);
+    
+    document.body.appendChild(modal);
+    
+    // Show the modal
+    setTimeout(() => {
+        modal.classList.add('active');
+    }, 10);
+    
+    // Add event listeners
+    modal.querySelector('.close-btn').addEventListener('click', () => {
+        modal.classList.remove('active');
+        setTimeout(() => {
+            modal.remove();
+            style.remove();
+        }, 300);
+    });
+    
+    document.getElementById('cancel-edit-assignment').addEventListener('click', () => {
+        modal.classList.remove('active');
+        setTimeout(() => {
+            modal.remove();
+            style.remove();
+        }, 300);
+    });
+    
+    document.getElementById('save-assignment').addEventListener('click', () => {
+        // Get form values
+        const role = document.getElementById('shift-role').value;
+        const notes = document.getElementById('shift-notes').value;
+        const isLead = document.getElementById('shift-lead').checked;
+        const isTrainer = document.getElementById('shift-trainer').checked;
+        
+        // In a real application, save these values to the backend
+        console.log('Saving assignment details:', { role, notes, isLead, isTrainer });
+        
+        // For demo, we'll just save notes to localStorage
+        const key = `${dayIndex}-${shiftType}`;
+        localStorage.setItem(`notes-${staffId}-${key}`, notes);
+        localStorage.setItem(`role-${staffId}-${key}`, role);
+        
+        // Update UI as needed
+        updateAssignmentUI(staffId, dayIndex, shiftType, { role, notes, isLead, isTrainer });
+        
+        // Close modal
+        modal.classList.remove('active');
+        setTimeout(() => {
+            modal.remove();
+            style.remove();
+        }, 300);
+        
+        showToast(`${staff.name}'s assignment updated`, "success");
+    });
+    
+    document.getElementById('remove-assignment-btn').addEventListener('click', () => {
+        removeAssignment(staffId, dayIndex, shiftType);
+        modal.classList.remove('active');
+        setTimeout(() => {
+            modal.remove();
+            style.remove();
+        }, 300);
+    });
+    
+    // Load existing data if available
+    const key = `${dayIndex}-${shiftType}`;
+    const existingNotes = localStorage.getItem(`notes-${staffId}-${key}`);
+    const existingRole = localStorage.getItem(`role-${staffId}-${key}`);
+    
+    if (existingNotes) {
+        document.getElementById('shift-notes').value = existingNotes;
+    }
+    
+    if (existingRole) {
+        document.getElementById('shift-role').value = existingRole;
+    }
+}
+
+/**
+ * Update assignment UI with new details
+ */
+function updateAssignmentUI(staffId, dayIndex, shiftType, details) {
+    const cell = document.querySelector(`.schedule-cell[data-day="${dayIndex}"][data-shift="${shiftType}"]`);
+    if (!cell) return;
+    
+    const assignment = cell.querySelector(`.staff-assignment[data-staff-id="${staffId}"]`);
+    if (!assignment) return;
+    
+    // Update role if provided
+    if (details.role) {
+        let roleEl = assignment.querySelector('.assignment-role');
+        if (roleEl) {
+            const staff = staffList.find(s => s.id === staffId);
+            if (staff) {
+                roleEl.textContent = `${staff.role} (${details.role})`;
+            }
+        }
+    }
+    
+    // Update notes indicator
+    if (details.notes !== undefined) {
+        let noteIndicator = assignment.querySelector('.note-indicator');
+        
+        if (details.notes.trim()) {
+            if (!noteIndicator) {
+                noteIndicator = document.createElement('span');
+                noteIndicator.className = 'note-indicator';
+                noteIndicator.innerHTML = '<i class="fas fa-sticky-note" title="Has notes"></i>';
+                assignment.appendChild(noteIndicator);
+            }
+        } else if (noteIndicator) {
+            noteIndicator.remove();
+        }
+    }
+    
+    // Update shift lead indicator
+    if (details.isLead !== undefined) {
+        let leadIndicator = assignment.querySelector('.lead-indicator');
+        
+        if (details.isLead) {
+            if (!leadIndicator) {
+                leadIndicator = document.createElement('span');
+                leadIndicator.className = 'lead-indicator';
+                leadIndicator.innerHTML = '<i class="fas fa-star" title="Shift Lead"></i>';
+                assignment.appendChild(leadIndicator);
+            }
+        } else if (leadIndicator) {
+            leadIndicator.remove();
+        }
+    }
+    
+    // Update trainer indicator
+    if (details.isTrainer !== undefined) {
+        let trainerIndicator = assignment.querySelector('.trainer-indicator');
+        
+        if (details.isTrainer) {
+            if (!trainerIndicator) {
+                trainerIndicator = document.createElement('span');
+                trainerIndicator.className = 'trainer-indicator';
+                trainerIndicator.innerHTML = '<i class="fas fa-graduation-cap" title="Trainer"></i>';
+                assignment.appendChild(trainerIndicator);
+            }
+        } else if (trainerIndicator) {
+            trainerIndicator.remove();
+        }
+    }
+}
+
+/**
+ * Setup the shift editor component
+ */
+function setupShiftEditor() {
+    const scheduleContainer = document.querySelector('.schedule-container');
+    if (!scheduleContainer) return;
+    
+    // Create editor element
+    const editor = document.createElement('div');
+    editor.className = 'shift-editor';
+    editor.id = 'shift-editor';
+    editor.innerHTML = `
+        <div class="shift-editor-header">
+            <h3>Shift Editor</h3>
+            <button class="close-editor-btn">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="shift-editor-content">
+            <div id="editor-loading" class="editor-loading">
+                <i class="fas fa-circle-notch fa-spin"></i>
+                <span>Loading...</span>
+            </div>
+            <div id="editor-form" class="editor-form" style="display: none;">
+                <div class="form-group">
+                    <label>Day & Shift</label>
+                    <div class="editor-shift-info">
+                        <span id="editor-day-name">Monday</span>
+                        <span id="editor-shift-name">Morning Shift</span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="editor-staff-select">Assigned Staff</label>
+                    <select id="editor-staff-select" multiple class="form-control">
+                        <!-- Will be populated dynamically -->
+                    </select>
+                    <button id="add-staff-btn" class="btn btn-sm outline-btn">
+                        <i class="fas fa-plus"></i> Add Staff
+                    </button>
+                </div>
+                <div class="form-group">
+                    <label for="editor-notes">Shift Notes</label>
+                    <textarea id="editor-notes" class="form-control" rows="3"></textarea>
+                </div>
+            </div>
+        </div>
+        <div class="shift-editor-footer">
+            <button id="editor-cancel-btn" class="btn cancel-btn">Cancel</button>
+            <button id="editor-save-btn" class="btn primary-btn">Save Changes</button>
+        </div>
+    `;
+    
+    // Add styles
+    const style = document.createElement('style');
+    style.textContent = `
+        .shift-editor {
+            position: fixed;
+            right: 20px;
+            top: 80px;
+            width: 320px;
+            background-color: var(--bg-card, white);
+            border-radius: 12px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
+            z-index: 100;
+            display: none;
+            flex-direction: column;
+            border: 1px solid var(--border-color, #e0e0e0);
+            max-height: calc(100vh - 100px);
+            transition: all 0.3s ease;
+            transform: translateX(400px);
+            opacity: 0;
+        }
+        
+        .shift-editor.active {
+            display: flex;
+            transform: translateX(0);
+            opacity: 1;
+        }
+        
+        .shift-editor-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            border-bottom: 1px solid var(--border-color, #e0e0e0);
+        }
+        
+        .shift-editor-header h3 {
+            margin: 0;
+            font-size: 1.1rem;
+        }
+        
+        .close-editor-btn {
+            background: none;
+            border: none;
+            font-size: 1.25rem;
+            color: var(--text-secondary, #777);
+            cursor: pointer;
+        }
+        
+        .shift-editor-content {
+            padding: 1rem;
+            flex: 1;
+            overflow-y: auto;
+        }
+        
+        .editor-loading {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            padding: 2rem;
+        }
+        
+        .editor-loading i {
+            font-size: 2rem;
+            color: var(--primary-color, #4CAF50);
+        }
+        
+        .editor-shift-info {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            background-color: var(--bg-secondary, #f5f5f5);
+            padding: 0.75rem;
+            border-radius: 6px;
+            margin-bottom: 1rem;
+        }
+        
+        .editor-shift-info #editor-shift-name {
+            font-weight: 600;
+            color: var(--primary-color, #4CAF50);
+        }
+        
+        .shift-editor-footer {
+            padding: 1rem;
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.5rem;
+            border-top: 1px solid var(--border-color, #e0e0e0);
+        }
+    `;
+    document.head.appendChild(style);
+    
+    // Add to document but initially hidden
+    scheduleContainer.appendChild(editor);
+    
+    // Add event listeners
+    editor.querySelector('.close-editor-btn').addEventListener('click', () => {
+        hideEditor();
+    });
+    
+    document.getElementById('editor-cancel-btn').addEventListener('click', () => {
+        hideEditor();
+    });
+    
+    document.getElementById('editor-save-btn').addEventListener('click', () => {
+        saveEditorChanges();
+    });
+    
+    document.getElementById('add-staff-btn').addEventListener('click', () => {
+        // Get current cell being edited
+        const dayIndex = parseInt(editor.getAttribute('data-day'));
+        const shiftType = editor.getAttribute('data-shift');
+        
+        if (dayIndex !== undefined && shiftType) {
+            showAddToShiftModal(dayIndex, shiftType);
+        }
+    });
+    
+    // Global function to show the editor
+    window.showShiftEditor = function(dayIndex, shiftType) {
+        const shiftTypeObj = Object.values(SHIFT_TYPES).find(t => t.id === shiftType);
+        if (!shiftTypeObj) return;
+        
+        // Save cell info in data attributes
+        editor.setAttribute('data-day', dayIndex);
+        editor.setAttribute('data-shift', shiftType);
+        
+        // Show loading state
+        document.getElementById('editor-loading').style.display = 'flex';
+        document.getElementById('editor-form').style.display = 'none';
+        
+        // Show the editor
+        editor.classList.add('active');
+        
+        // Load shift data
+        setTimeout(() => {
+            // Update editor header
+            document.getElementById('editor-day-name').textContent = DAYS_OF_WEEK[dayIndex];
+            document.getElementById('editor-shift-name').textContent = shiftTypeObj.label;
+            
+            // Load assigned staff
+            populateEditorStaffList(dayIndex, shiftType);
+            
+            // Load shift notes
+            const key = `shift-notes-${dayIndex}-${shiftType}`;
+            const shiftNotes = localStorage.getItem(key) || '';
+            document.getElementById('editor-notes').value = shiftNotes;
+            
+            // Hide loading, show form
+            document.getElementById('editor-loading').style.display = 'none';
+            document.getElementById('editor-form').style.display = 'block';
+        }, 500); // Simulate loading
+    };
+    
+    // Hide editor function
+    function hideEditor() {
+        editor.classList.remove('active');
+    }
+    
+    // Save editor changes
+    function saveEditorChanges() {
+        const dayIndex = parseInt(editor.getAttribute('data-day'));
+        const shiftType = editor.getAttribute('data-shift');
+        
+        if (dayIndex === undefined || !shiftType) return;
+        
+        // Save shift notes
+        const notes = document.getElementById('editor-notes').value;
+        const notesKey = `shift-notes-${dayIndex}-${shiftType}`;
+        localStorage.setItem(notesKey, notes);
+        
+        // In a real app, would save other changes to backend
+        
+        // Show success message
+        showToast("Changes saved", "success");
+        
+        // Hide editor
+        hideEditor();
+    }
+    
+    // Populate staff list in editor
+    function populateEditorStaffList(dayIndex, shiftType) {
+        const staffSelect = document.getElementById('editor-staff-select');
+        if (!staffSelect) return;
+        
+        // Clear existing options
+        staffSelect.innerHTML = '';
+        
+        // Get assigned staff
+        const key = `${dayIndex}-${shiftType}`;
+        const assignedStaff = scheduleData[key] || [];
+        
+        // Add each assigned staff member
+        assignedStaff.forEach(staffId => {
+            const staff = staffList.find(s => s.id === staffId);
+            if (staff) {
+                const option = document.createElement('option');
+                option.value = staffId;
+                option.textContent = `${staff.name} - ${staff.role}`;
+                option.selected = true;
+                staffSelect.appendChild(option);
+            }
+        });
+    }
+}
+
+/**
+ * Setup AI integration for scheduling assistance
+ */
+function setupAIIntegration() {
+    console.log("Setting up AI integration...");
+    
+    // Add AI assistant button to the toolbar
+    const actionButtons = document.querySelector('.action-buttons');
+    if (actionButtons) {
+        const aiButton = document.createElement('button');
+        aiButton.className = 'btn btn-primary';
+        aiButton.id = 'ai-schedule-assistant';
+        aiButton.innerHTML = '<i class="fas fa-brain"></i> AI Assistant';
+        aiButton.title = 'Get AI suggestions for scheduling';
+        
+        aiButton.addEventListener('click', () => {
+            showAIAssistantModal();
+        });
+        
+        actionButtons.appendChild(aiButton);
+    }
+    
+    // Add event listener for automatic scheduling
+    const autoScheduleBtn = document.getElementById('auto-schedule-btn');
+    if (autoScheduleBtn) {
+        autoScheduleBtn.addEventListener('click', () => {
+            generateAISchedule();
+        });
+    }
+}
+
+/**
+ * Show AI assistant modal
+ */
+function showAIAssistantModal() {
+    // Create modal
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.id = 'ai-assistant-modal';
+    
+    modal.innerHTML = `
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>
+                    <i class="fas fa-brain"></i>
+                    AI Scheduling Assistant
+                </h3>
+                <button class="close-btn" aria-label="Close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="ai-assistant-info">
+                    <p>AI Scheduling Assistant can help you with various scheduling tasks:</p>
+                    <ul>
+                        <li>Generate optimized schedules based on staff preferences</li>
+                        <li>Analyze current schedule for issues and conflicts</li>
+                        <li>Balance workload across staff members</li>
+                        <li>Fill open shifts with recommended staff</li>
+                        <li>Provide insights on scheduling patterns</li>
+                    </ul>
+                </div>
+                
+                <div class="ai-assistant-form">
+                    <div class="form-group">
+                        <label for="ai-action">Select Action:</label>
+                        <select id="ai-action" class="form-control">
+                            <option value="analyze">Analyze Current Schedule</option>
+                            <option value="optimize">Optimize Current Schedule</option>
+                            <option value="generate">Generate New Schedule</option>
+                            <option value="fill">Fill Open Shifts</option>
+                            <option value="balance">Balance Workload</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group" id="ai-parameters-container">
+                        <!-- Dynamic parameters will be added here based on action -->
+                        <div id="analyze-params" class="ai-params">
+                            <label class="ai-param-label">Include:</label>
+                            <div class="checkbox-group">
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="analyze-conflicts" name="analyze-params" checked>
+                                    <label for="analyze-conflicts">Conflicts</label>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="analyze-workload" name="analyze-params" checked>
+                                    <label for="analyze-workload">Workload Balance</label>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="analyze-preferences" name="analyze-params" checked>
+                                    <label for="analyze-preferences">Staff Preferences</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="ai-instructions">Additional Instructions:</label>
+                        <textarea id="ai-instructions" class="form-control" rows="3" 
+                            placeholder="Add any specific requirements or constraints..."></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <div class="ai-credits-info">
+                    <i class="fas fa-info-circle"></i>
+                    <span>AI usage: <strong>4</strong> credits remaining</span>
+                </div>
+                <div class="modal-actions">
+                    <button class="btn cancel-btn" id="cancel-ai">Cancel</button>
+                    <button class="btn primary-btn" id="run-ai-action">
+                        <i class="fas fa-brain"></i> Run AI Assistant
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Add styles
+    const style = document.createElement('style');
+    style.textContent = `
+        .ai-assistant-info {
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            background-color: rgba(33, 150, 243, 0.05);
+            border-left: 3px solid var(--info-color, #2196F3);
+            border-radius: 4px;
+        }
+        
+        .ai-assistant-info p {
+            margin-top: 0;
+        }
+        
+        .ai-assistant-info ul {
+            margin-bottom: 0;
+            padding-left: 1.5rem;
+        }
+        
+        .ai-assistant-info li {
+            margin-bottom: 0.5rem;
+        }
+        
+        .ai-params {
+            margin-top: 1rem;
+        }
+        
+        .ai-param-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+        
+        .modal-footer {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            align-items: center;
+        }
+        
+        .ai-credits-info {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .modal-actions {
+            display: flex;
+            gap: 0.75rem;
+        }
+        
+        /* Specific parameters styling */
+        .ai-params {
+            display: none;
+        }
+        
+        .ai-params.active {
+            display: block;
+        }
+    `;
+    document.head.appendChild(style);
+    
+    document.body.appendChild(modal);
+    
+    // Show the modal
+    setTimeout(() => {
+        modal.classList.add('active');
+    }, 10);
+    
+    // Add event listeners
+    modal.querySelector('.close-btn').addEventListener('click', () => {
+        modal.classList.remove('active');
+        setTimeout(() => {
+            modal.remove();
+            style.remove();
+        }, 300);
+    });
+    
+    document.getElementById('cancel-ai').addEventListener('click', () => {
+        modal.classList.remove('active');
+        setTimeout(() => {
+            modal.remove();
+            style.remove();
+        }, 300);
+    });
+    
+    // Show appropriate parameters based on selected action
+    const aiAction = document.getElementById('ai-action');
+    if (aiAction) {
+        aiAction.addEventListener('change', () => {
+            const action = aiAction.value;
+            
+            // Hide all parameter sections
+            document.querySelectorAll('.ai-params').forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            // Show selected action's parameters
+            const paramsSection = document.getElementById(`${action}-params`);
+            if (paramsSection) {
+                paramsSection.classList.add('active');
+            }
+        });
+    }
+    
+    // Run AI action
+    document.getElementById('run-ai-action').addEventListener('click', () => {
+        const action = document.getElementById('ai-action').value;
+        const instructions = document.getElementById('ai-instructions').value;
+        
+        // Display processing screen
+        showAIProcessing();
+        
+        // Run selected AI action
+        setTimeout(() => {
+            switch (action) {
+                case 'analyze':
+                    analyzeCurrentSchedule(instructions);
+                    break;
+                case 'optimize':
+                    optimizeCurrentSchedule(instructions);
+                    break;
+                case 'generate':
+                    generateAISchedule(instructions);
+                    break;
+                case 'fill':
+                    fillOpenShifts(instructions);
+                    break;
+                case 'balance':
+                    balanceWorkload(instructions);
+                    break;
+            }
+            
+            // Close the modal
+            modal.classList.remove('active');
+            setTimeout(() => {
+                modal.remove();
+                style.remove();
+            }, 300);
+        }, 1500);
+    });
+    
+    // Show analyze parameters by default
+    document.getElementById('analyze-params').classList.add('active');
+}
+
+/**
+ * Show AI processing screen
+ */
+function showAIProcessing() {
+    const processingEl = document.createElement('div');
+    processingEl.className = 'ai-processing';
+    processingEl.innerHTML = `
+        <div class="ai-processing-content">
+            <div class="ai-processing-icon">
+                <i class="fas fa-brain"></i>
+                <div class="ai-pulse"></div>
+            </div>
+            <h3>AI Assistant Processing</h3>
+            <div class="ai-processing-status">Analyzing schedule data...</div>
+            <div class="ai-processing-progress">
+                <div class="ai-progress-bar"><div class="ai-progress"></div></div>
+            </div>
+        </div>
+    `;
+    
+    // Add styles
+    const style = document.createElement('style');
+    style.textContent = `
+        .ai-processing {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 2000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(3px);
+        }
+        
+        .ai-processing-content {
+            background-color: var(--bg-card);
+            border-radius: 12px;
+            padding: 2rem;
+            text-align: center;
+            max-width: 90%;
+            width: 400px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            animation: ai-slide-up 0.3s ease-out forwards;
+        }
+        
+        @keyframes ai-slide-up {
+            from { transform: translateY(30px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
+        .ai-processing-icon {
+            position: relative;
+            margin: 0 auto 1.5rem;
+            width: 80px;
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .ai-processing-icon i {
+            font-size: 3rem;
+            color: var(--primary-color);
+            z-index: 1;
+        }
+        
+        .ai-pulse {
+            position: absolute;
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background-color: rgba(76, 175, 80, 0.15);
+            animation: ai-pulse 2s infinite;
+        }
+        
+        @keyframes ai-pulse {
+            0% { transform: scale(0.8); opacity: 0.8; }
+            50% { transform: scale(1.2); opacity: 0.4; }
+            100% { transform: scale(0.8); opacity: 0.8; }
+        }
+        
+        .ai-processing h3 {
+            margin: 0 0 1rem 0;
+        }
+        
+        .ai-processing-status {
+            margin-bottom: 1rem;
+            color: var(--text-secondary);
+        }
+        
+        .ai-progress-bar {
+            height: 6px;
+            background-color: var(--bg-secondary);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        
+        .ai-progress {
+            height: 100%;
+            background-color: var(--primary-color);
+            border-radius: 3px;
+            width: 0%;
+            animation: ai-progress 2s ease-in-out forwards;
+        }
+        
+        @keyframes ai-progress {
+            0% { width: 0%; }
+            20% { width: 20%; }
+            50% { width: 60%; }
+            80% { width: 85%; }
+            100% { width: 100%; }
+        }
+    `;
+    document.head.appendChild(style);
+    document.body.appendChild(processingEl);
+    
+    // Update status messages
+    const statusEl = processingEl.querySelector('.ai-processing-status');
+    const messages = [
+        'Analyzing schedule data...',
+        'Checking staff preferences...',
+        'Identifying patterns...',
+        'Generating recommendations...',
+        'Finalizing results...'
+    ];
+    
+    messages.forEach((message, index) => {
+        setTimeout(() => {
+            if (statusEl) statusEl.textContent = message;
+        }, index * 500);
+    });
+    
+    // Remove after animation completes
+    setTimeout(() => {
+        processingEl.style.animation = 'fade-out 0.3s forwards';
+        setTimeout(() => {
+            processingEl.remove();
+            style.remove();
+        }, 300);
+    }, 3000);
+}
+
+/**
+ * Analyze current schedule with AI
+ */
+function analyzeCurrentSchedule(instructions = '') {
+    console.log("Analyzing schedule with AI...", instructions);
+    
+    // In a real app, this would call an AI service
+    // For now, we'll simulate the analysis
+    
+    const analysisResults = {
+        conflicts: [
+            {
+                type: 'double-booking',
+                staffId: '3',
+                staffName: 'Guðrún Einarsdóttir',
+                dayIndex: 1,
+                shifts: ['evening', 'night'],
+                recommendation: 'Remove from night shift and assign another qualified staff.'
+            },
+            {
+                type: 'preference-violation',
+                staffId: '2',
+                staffName: 'Björn Sigurðsson',
+                dayIndex: 6,
+                shifts: ['morning'],
+                recommendation: 'Björn prefers not to work on Sundays.'
+            }
+        ],
+        workload: {
+            imbalance: true,
+            overworked: [
+                { staffId: '1', staffName: 'Anna Jónsdóttir', hours: 40 }
+            ],
+            underworked: [
+                { staffId: '5', staffName: 'Sigríður Björnsdóttir', hours: 16 }
+            ],
+            recommendation: 'Reduce Anna\'s hours and increase Sigríður\'s hours.'
+        },
+        coverage: {
+            understaffed: [
+                { dayIndex: 3, shiftType: 'night', current: 0, recommended: 2 }
+            ],
+            recommendation: 'Add staff to Thursday night shift.'
+        }
+    };
+    
+    // Display results in an AI insight panel
+    showAIInsightsPanel('Schedule Analysis Results', analysisResults, 'analysis');
+}
+
+/**
+ * Optimize current schedule with AI
+ */
+function optimizeCurrentSchedule(instructions = '') {
+    console.log("Optimizing schedule with AI...", instructions);
+    
+    // In a real app, this would call an AI service
+    // For now, we'll simulate the optimization
+    
+    const optimizationResults = {
+        changes: [
+            {
+                type: 'move',
+                staffId: '3',
+                staffName: 'Guðrún Einarsdóttir',
+                fromDay: 1,
+                fromShift: 'night',
+                toDay: 3,
+                toShift: 'night',
+                reason: 'Resolves double booking and fills understaffed shift'
+            },
+            {
+                type: 'swap',
+                staff1: { id: '1', name: 'Anna Jónsdóttir' },
+                staff2: { id: '5', name: 'Sigríður Björnsdóttir' },
+                day: 4,
+                shift: 'evening',
+                reason: 'Balances workload between staff'
+            },
+            {
+                type: 'remove',
+                staffId: '2',
+                staffName: 'Björn Sigurðsson',
+                day: 6,
+                shift: 'morning',
+                reason: 'Respects staff preference to avoid Sundays'
+            }
+        ],
+        benefits: {
+            workloadBalance: 'Improved by 35%',
+            preferenceAlignment: 'Improved by 20%',
+            coverage: 'Improved by 15%'
+        }
+    };
+    
+    // Display results in an AI insight panel
+    showAIInsightsPanel('Schedule Optimization Results', optimizationResults, 'optimization');
+}
+
+/**
+ * Generate a complete schedule using AI
+ */
+function generateAISchedule(instructions = '') {
+    console.log("Generating AI schedule...", instructions);
+    
+    // In a real app, this would call an AI service
+    // For now, we'll simulate a new schedule generation
+    
+    // Clear current schedule
+    clearSchedule();
+    
+    // Generate new schedule data
+    const aiGeneratedSchedule = {
+        '0-morning': ['1', '5'],
+        '0-evening': ['3', '4'],
+        '0-night': ['2'],
+        '1-morning': ['5', '4'],
+        '1-evening': ['1', '3'],
+        '1-night': ['2'],
+        '2-morning': ['1', '5'],
+        '2-evening': ['3', '4'],
+        '2-night': ['2'],
+        '3-morning': ['4', '5'],
+        '3-evening': ['1'],
+        '3-night': ['3'],
+        '4-morning': ['1', '2'],
+        '4-evening': ['5'],
+        '4-night': ['3'],
+        '5-morning': ['4', '5'],
+        '5-evening': ['3', '1'],
+        '5-night': ['2'],
+        '6-evening': ['3', '4'],
+        '6-night': ['1']
+    };
+    
+    // Apply the generated schedule
+    scheduleData = aiGeneratedSchedule;
+    
+    // Update UI
+    refreshScheduleGrid();
+    updateStaffHours();
+    updateScheduleStats();
+    generateAISuggestions();
+    
+    // Show success message
+    showToast('AI schedule bættist við', 'success');
+    
+    // Show schedule generation report
+    const generationReport = {
+        coverage: '92% (23/25 shifts filled)',
+        balancedWorkload: 'All staff assigned 32-40 hours',
+        staffPreferences: '85% of preferences honored',
+        keyFeatures: [
+            'All night shifts covered',
+            'No double bookings',
+            'Weekends distributed fairly',
+            'Required skill mix maintained on all shifts'
+        ]
+    };
+    
+    // Display results in an AI insight panel
+    showAIInsightsPanel('AI Schedule Generation Report', generationReport, 'generation');
+}
+
+/**
+ * Fill open shifts with AI recommendations
+ */
+function fillOpenShifts(instructions = '') {
+    console.log("Filling open shifts with AI...", instructions);
+    
+    // Find all empty shifts
+    const emptyShifts = [];
+    
+    for (let dayIndex = 0; dayIndex < DAYS_OF_WEEK.length; dayIndex++) {
+        for (const shiftType of Object.values(SHIFT_TYPES).map(t => t.id)) {
+            const key = `${dayIndex}-${shiftType}`;
+            if (!scheduleData[key] || scheduleData[key].length === 0) {
+                emptyShifts.push({ dayIndex, shiftType });
+            }
+        }
+    }
+    
+    if (emptyShifts.length === 0) {
+        showToast('No empty shifts found', 'info');
+        return;
+    }
+    
+    // Fill some of the empty shifts with recommended staff
+    let filledCount = 0;
+    
+    emptyShifts.forEach(shift => {
+        const { dayIndex, shiftType } = shift;
+        
+        // Find a suitable staff member
+        const recommendedStaff = findRecommendedStaff(dayIndex, shiftType);
+        
+        if (recommendedStaff && isValidAssignment(recommendedStaff.id, dayIndex, shiftType)) {
+            addAssignment(recommendedStaff.id, dayIndex, shiftType, false);
+            filledCount++;
+        }
+    });
+    
+    // Update UI
+    refreshScheduleGrid();
+    updateStaffHours();
+    updateScheduleStats();
+    generateAISuggestions();
+    
+    // Show success message
+    showToast(`${filledCount} tómar vaktir fylltar af AI`, 'success');
+    
+    // Show fill report
+    const fillReport = {
+        totalEmptyShifts: emptyShifts.length,
+        shiftsFilled: filledCount,
+        remainingEmpty: emptyShifts.length - filledCount,
+        staffUtilization: 'Optimized based on preferences and hours'
+    };
+    
+    // Display results in an AI insight panel
+    showAIInsightsPanel('AI Shift Fill Report', fillReport, 'fill');
+}
+
+/**
+ * Balance workload across staff with AI
+ */
+function balanceWorkload(instructions = '') {
+    console.log("Balancing workload with AI...", instructions);
+    
+    // Calculate current hours
+    updateStaffHours();
+    
+    // Find overworked and underworked staff
+    const overworked = staffList.filter(staff => staff.hoursWorked > 40);
+    const underworked = staffList.filter(staff => staff.hoursWorked < 32);
+    
+    if (overworked.length === 0 && underworked.length === 0) {
+        showToast('Workload is already well balanced', 'info');
+        return;
+    }
+    
+    // Make changes to balance workload
+    let changesCount = 0;
+    
+    // For each overworked staff, remove one shift and assign to underworked
+    overworked.forEach(staff => {
+        if (underworked.length === 0) return;
+        
+        // Find a shift to reassign
+        for (const key in scheduleData) {
+            const [dayIndex, shiftType] = key.split('-');
+            
+            if (scheduleData[key] && scheduleData[key].includes(staff.id)) {
+                // Find an underworked staff who can take this shift
+                const suitableStaff = underworked.find(s => 
+                    s.shifts.includes(shiftType) && 
+                    isValidAssignment(s.id, parseInt(dayIndex), shiftType)
+                );
+                
+                if (suitableStaff) {
+                    // Remove overworked staff from shift
+                    removeAssignment(staff.id, parseInt(dayIndex), shiftType, false);
+                    
+                    // Add underworked staff to shift
+                    addAssignment(suitableStaff.id, parseInt(dayIndex), shiftType, false);
+                    
+                    changesCount++;
+                    
+                    // Update hours to reflect changes
+                    staff.hoursWorked -= HOURS_PER_SHIFT;
+                    suitableStaff.hoursWorked += HOURS_PER_SHIFT;
+                    
+                    // Break after one change per overworked staff
+                    break;
+                }
+            }
+        }
+    });
+    
+    // Update UI
+    refreshScheduleGrid();
+    updateStaffHours();
+    updateScheduleStats();
+    generateAISuggestions();
+    
+    // Show success message
+    showToast(`${changesCount} vaktabreytingar til að jafna álag`, 'success');
+    
+    // Show balance report
+    const balanceReport = {
+        changesMade: changesCount,
+        beforeBalance: {
+            maxHours: Math.max(...staffList.map(s => s.hoursWorked + (overworked.includes(s) ? HOURS_PER_SHIFT : 0))),
+            minHours: Math.min(...staffList.map(s => s.hoursWorked - (underworked.includes(s) ? HOURS_PER_SHIFT : 0))),
+            averageHours: staffList.reduce((sum, s) => sum + s.hoursWorked, 0) / staffList.length
+        },
+        afterBalance: {
+            maxHours: Math.max(...staffList.map(s => s.hoursWorked)),
+            minHours: Math.min(...staffList.map(s => s.hoursWorked)),
+            averageHours: staffList.reduce((sum, s) => sum + s.hoursWorked, 0) / staffList.length
+        }
+    };
+    
+    // Display results in an AI insight panel
+    showAIInsightsPanel('Workload Balancing Report', balanceReport, 'balance');
+}
+
+/**
+ * Show AI insights panel with results
+ */
+function showAIInsightsPanel(title, data, type) {
+    // Remove any existing insight panels
+    const existingPanel = document.getElementById('ai-insights-panel');
+    if (existingPanel) {
+        existingPanel.remove();
+    }
+    
+    // Create insight panel element
+    const panel = document.createElement('div');
+    panel.className = 'ai-insights-panel';
+    panel.id = 'ai-insights-panel';
+    
+    // Generate panel content based on type and data
+    let content = '';
+    
+    switch (type) {
+        case 'analysis':
+            content = generateAnalysisContent(data);
+            break;
+        case 'optimization':
+            content = generateOptimizationContent(data);
+            break;
+        case 'generation':
+            content = generateGenerationContent(data);
+            break;
+        case 'fill':
+            content = generateFillContent(data);
+            break;
+        case 'balance':
+            content = generateBalanceContent(data);
+            break;
+        default:
+            content = `<p>No insights available for this action.</p>`;
+    }
+    
+    panel.innerHTML = `
+        <div class="insights-header">
+            <div class="insights-title">
+                <i class="fas fa-lightbulb"></i>
+                <h3>${title}</h3>
+            </div>
+            <div class="insights-actions">
+                <button class="insights-action" data-action="save" title="Save insights">
+                    <i class="fas fa-save"></i>
+                </button>
+                <button class="insights-action" data-action="print" title="Print insights">
+                    <i class="fas fa-print"></i>
+                </button>
+                <button class="insights-action" data-action="close" title="Close panel">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+        <div class="insights-body">
+            <div class="ai-timestamp">
+                <i class="fas fa-clock"></i> 
+                Generated on ${new Date().toLocaleString('is-IS')}
+            </div>
+            ${content}
+        </div>
+    `;
+    
+    // Add styles
+    const style = document.createElement('style');
+    style.textContent = `
+        .ai-insights-panel {
+            position: fixed;
+            right: 20px;
+            top: 80px;
+            width: 400px;
+            max-width: 90vw;
+            background-color: var(--bg-card);
+            border-radius: 12px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            border: 1px solid var(--border-color);
+            max-height: calc(100vh - 100px);
+            animation: slide-in-right 0.3s ease-out forwards;
+            overflow: hidden;
+        }
+        
+        @keyframes slide-in-right {
+            from { transform: translateX(400px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        .insights-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            border-bottom: 1px solid var(--border-color);
+            background-color: var(--bg-secondary);
+        }
+        
+        .insights-title {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .insights-title i {
+            font-size: 1.25rem;
+            color: #FFC107;
+        }
+        
+        .insights-title h3 {
+            margin: 0;
+            font-size: 1.1rem;
+        }
+        
+        .insights-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .insights-action {
+            background: none;
+            border: none;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: var(--text-secondary);
+            transition: all 0.2s ease;
+        }
+        
+        .insights-action:hover {
+            background-color: var(--bg-primary);
+            color: var(--primary-color);
+        }
+        
+        .insights-body {
+            padding: 1rem;
+            overflow-y: auto;
+        }
+        
+        .ai-timestamp {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .ai-insight-section {
+            margin-bottom: 1.5rem;
+        }
+        
+        .ai-insight-section h4 {
+            margin: 0 0 0.75rem 0;
+            font-size: 1rem;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .ai-insight-item {
+            padding: 0.75rem;
+            background-color: var(--bg-secondary);
+            border-radius: 8px;
+            margin-bottom: 0.75rem;
+        }
+        
+        .ai-insight-item:last-child {
+            margin-bottom: 0;
+        }
+        
+        .ai-insight-label {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+        
+        .ai-stat-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+        
+        .ai-stat {
+            padding: 0.75rem;
+            background-color: var(--bg-secondary);
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .ai-stat-value {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+        
+        .ai-stat-label {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+        
+        .ai-key-feature {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .ai-key-feature i {
+            color: var(--success-color);
+        }
+        
+        .conflict-item {
+            border-left: 3px solid var(--danger-color);
+        }
+        
+        .workload-item {
+            border-left: 3px solid var(--warning-color);
+        }
+        
+        .coverage-item {
+            border-left: 3px solid var(--info-color);
+        }
+        
+        .change-move {
+            border-left: 3px solid var(--info-color);
+        }
+        
+        .change-swap {
+            border-left: 3px solid var(--warning-color);
+        }
+        
+        .change-remove {
+            border-left: 3px solid var(--danger-color);
+        }
+    `;
+    document.head.appendChild(style);
+    
+    // Add to document
+    document.body.appendChild(panel);
+    
+    // Add event listeners
+    panel.querySelector('[data-action="close"]').addEventListener('click', () => {
+        panel.style.animation = 'slide-out-right 0.3s ease-out forwards';
+        
+        setTimeout(() => {
+            panel.remove();
+            style.remove();
+        }, 300);
+    });
+    
+    panel.querySelector('[data-action="save"]').addEventListener('click', () => {
+        showToast('Insights saved', 'success');
+    });
+    
+    panel.querySelector('[data-action="print"]').addEventListener('click', () => {
+        showToast('Preparing to print...', 'info');
+    });
+    
+    // Add @keyframes for slide-out animation
+    const slideOutKeyframes = document.createElement('style');
+    slideOutKeyframes.textContent = `
+        @keyframes slide-out-right {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(400px); opacity: 0; }
+        }
+    `;
+    document.head.appendChild(slideOutKeyframes);
+}
+
+/**
+ * Generate content for analysis insights
+ */
+function generateAnalysisContent(data) {
+    let content = '';
+    
+    if (data.conflicts && data.conflicts.length > 0) {
+        content += `
+            <div class="ai-insight-section">
+                <h4><i class="fas fa-exclamation-triangle"></i> Conflicts</h4>
+                ${data.conflicts.map(conflict => `
+                    <div class="ai-insight-item conflict-item">
+                        <div class="ai-insight-label">${conflict.staffName} - ${DAYS_OF_WEEK[conflict.dayIndex]}</div>
+                        <div class="ai-insight-text">
+                            ${conflict.shifts.map(shift => {
+                                const shiftType = Object.values(SHIFT_TYPES).find(t => t.id === shift);
+                                return `${shiftType.label} (${shiftType.time})`;
+                            }).join(', ')}
+                        </div>
+                        <div class="ai-insight-recommendation">
+                            <strong>Recommendation:</strong> ${conflict.recommendation}
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+    }
+    
+    if (data.workload) {
+        content += `
+            <div class="ai-insight-section">
+                <h4><i class="fas fa-balance-scale"></i> Workload</h4>
+                <div class="ai-insight-item workload-item">
+                    <div class="ai-insight-label">Imbalance Detected</div>
+                    <div class="ai-insight-text">
+                        ${data.workload.overworked.map(staff => `${staff.staffName} (${staff.hours} hours)`).join(', ')} are overworked.
+                        ${data.workload.underworked.map(staff => `${staff.staffName} (${staff.hours} hours)`).join(', ')} are underworked.
+                    </div>
+                    <div class="ai-insight-recommendation">
+                        <strong>Recommendation:</strong> ${data.workload.recommendation}
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    
+    if (data.coverage) {
+        content += `
+            <div class="ai-insight-section">
+                <h4><i class="fas fa-users"></i> Coverage</h4>
+                <div class="ai-insight-item coverage-item">
+                    <div class="ai-insight-label">Understaffed Shifts</div>
+                    <div class="ai-insight-text">
+                        ${data.coverage.understaffed.map(shift => {
+                            const shiftType = Object.values(SHIFT_TYPES).find(t => t.id === shift.shiftType);
+                            return `${DAYS_OF_WEEK[shift.dayIndex]} ${shiftType.label} (Current: ${shift.current}, Recommended: ${shift.recommended})`;
+                        }).join(', ')}
+                    </div>
+                    <div class="ai-insight-recommendation">
+                        <strong>Recommendation:</strong> ${data.coverage.recommendation}
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    
+    return content;
+}
+
+/**
+ * Generate content for optimization insights
+ */
+function generateOptimizationContent(data) {
+    let content = '';
+    
+    if (data.changes && data.changes.length > 0) {
+        content += `
+            <div class="ai-insight-section">
+                <h4><i class="fas fa-sync-alt"></i> Changes</h4>
+                ${data.changes.map(change => `
+                    <div class="ai-insight-item change-${change.type}">
+                        <div class="ai-insight-label">${change.staffName || `${change.staff1.name} & ${change.staff2.name}`}</div>
+                        <div class="ai-insight-text">
+                            ${change.type === 'move' ? `Move from ${DAYS_OF_WEEK[change.fromDay]} ${change.fromShift} to ${DAYS_OF_WEEK[change.toDay]} ${change.toShift}` : ''}
+                            ${change.type === 'swap' ? `Swap ${DAYS_OF_WEEK[change.day]} ${change.shift}` : ''}
+                            ${change.type === 'remove' ? `Remove from ${DAYS_OF_WEEK[change.day]} ${change.shift}` : ''}
+                        </div>
+                        <div class="ai-insight-recommendation">
+                            <strong>Reason:</strong> ${change.reason}
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+    }
+    
+    if (data.benefits) {
+        content += `
+            <div class="ai-insight-section">
+                <h4><i class="fas fa-chart-line"></i> Benefits</h4>
+                <div class="ai-stat-grid">
+                    <div class="ai-stat">
+                        <div class="ai-stat-value">${data.benefits.workloadBalance}</div>
+                        <div class="ai-stat-label">Workload Balance</div>
+                    </div>
+                    <div class="ai-stat">
+                        <div class="ai-stat-value">${data.benefits.preferenceAlignment}</div>
+                        <div class="ai-stat-label">Preference Alignment</div>
+                    </div>
+                    <div class="ai-stat">
+                        <div class="ai-stat-value">${data.benefits.coverage}</div>
+                        <div class="ai-stat-label">Coverage</div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    
+    return content;
+}
+
+/**
+ * Generate content for generation insights
+ */
+function generateGenerationContent(data) {
+    let content = '';
+    
+    content += `
+        <div class="ai-insight-section">
+            <h4><i class="fas fa-calendar-alt"></i> Schedule Summary</h4>
+            <div class="ai-stat-grid">
+                <div class="ai-stat">
+                    <div class="ai-stat-value">${data.coverage}</div>
+                    <div class="ai-stat-label">Coverage</div>
+                </div>
+                <div class="ai-stat">
+                    <div class="ai-stat-value">${data.balancedWorkload}</div>
+                    <div class="ai-stat-label">Balanced Workload</div>
+                </div>
+                <div class="ai-stat">
+                    <div class="ai-stat-value">${data.staffPreferences}</div>
+                    <div class="ai-stat-label">Staff Preferences</div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    if (data.keyFeatures && data.keyFeatures.length > 0) {
+        content += `
+            <div class="ai-insight-section">
+                <h4><i class="fas fa-star"></i> Key Features</h4>
+                ${data.keyFeatures.map(feature => `
+                    <div class="ai-key-feature">
+                        <i class="fas fa-check-circle"></i>
+                        <span>${feature}</span>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+    }
+    
+    return content;
+}
+
+/**
+ * Generate content for fill insights
+ */
+function generateFillContent(data) {
+    let content = '';
+    
+    content += `
+        <div class="ai-insight-section">
+            <h4><i class="fas fa-user-plus"></i> Fill Report</h4>
+            <div class="ai-stat-grid">
+                <div class="ai-stat">
+                    <div class="ai-stat-value">${data.totalEmptyShifts}</div>
+                    <div class="ai-stat-label">Total Empty Shifts</div>
+                </div>
+                <div class="ai-stat">
+                    <div class="ai-stat-value">${data.shiftsFilled}</div>
+                    <div class="ai-stat-label">Shifts Filled</div>
+                </div>
+                <div class="ai-stat">
+                    <div class="ai-stat-value">${data.remainingEmpty}</div>
+                    <div class="ai-stat-label">Remaining Empty</div>
+                </div>
+                <div class="ai-stat">
+                    <div class="ai-stat-value">${data.staffUtilization}</div>
+                    <div class="ai-stat-label">Staff Utilization</div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    return content;
+}
+
+/**
+ * Generate content for balance insights
+ */
+function generateBalanceContent(data) {
+    let content = '';
+    
+    content += `
+        <div class="ai-insight-section">
+            <h4><i class="fas fa-balance-scale"></i> Balance Report</h4>
+            <div class="ai-stat-grid">
+                <div class="ai-stat">
+                    <div class="ai-stat-value">${data.changesMade}</div>
+                    <div class="ai-stat-label">Changes Made</div>
+                </div>
+                <div class="ai-stat">
+                    <div class="ai-stat-value">${data.beforeBalance.maxHours}</div>
+                    <div class="ai-stat-label">Max Hours (Before)</div>
+                </div>
+                <div class="ai-stat">
+                    <div class="ai-stat-value">${data.beforeBalance.minHours}</div>
+                    <div class="ai-stat-label">Min Hours (Before)</div>
+                </div>
+                <div class="ai-stat">
+                    <div class="ai-stat-value">${data.beforeBalance.averageHours}</div>
+                    <div class="ai-stat-label">Average Hours (Before)</div>
+                </div>
+                <div class="ai-stat">
+                    <div class="ai-stat-value">${data.afterBalance.maxHours}</div>
+                    <div class="ai-stat-label">Max Hours (After)</div>
+                </div>
+                <div class="ai-stat">
+                    <div class="ai-stat-value">${data.afterBalance.minHours}</div>
+                    <div class="ai-stat-label">Min Hours (After)</div>
+                </div>
+                <div class="ai-stat">
+                    <div class="ai-stat-value">${data.afterBalance.averageHours}</div>
+                    <div class="ai-stat-label">Average Hours (After)</div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    return content;
+}
+
+/**
+ * Show modal to create a recurring shift pattern
+ */
+function showRecurringShiftModal() {
+    // Create modal
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.id = 'recurring-shift-modal';
+    
+    modal.innerHTML = `
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>
+                    <i class="fas fa-repeat"></i>
+                    Create Recurring Shift Pattern
+                </h3>
+                <button class="close-btn" aria-label="Close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="recurring-shift-form">
+                    <div class="form-group">
+                        <label for="recurring-staff">Staff Member</label>
+                        <select id="recurring-staff" class="form-control" required>
+                            <option value="">Select staff member</option>
+                            ${staffList.map(s => `
+                                <option value="${s.id}">${s.name} (${s.role})</option>
+                            `).join('')}
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="recurring-shift-type">Shift Type</label>
+                        <select id="recurring-shift-type" class="form-control" required>
+                            <option value="">Select shift type</option>
+                            ${Object.values(SHIFT_TYPES).map(type => `
+                                <option value="${type.id}">${type.label}</option>
+                            `).join('')}
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Days of Week</label>
+                        <div class="day-checkboxes">
+                            ${DAYS_OF_WEEK.map((day, index) => `
+                                <div class="checkbox-wrap">
+                                    <input type="checkbox" id="day-${index}" value="${index}">
+                                    <label for="day-${index}">${day}</label>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group half">
+                            <label for="start-date">Start Date</label>
+                            <input type="date" id="start-date" class="form-control" required>
+                        </div>
+                        <div class="form-group half">
+                            <label for="end-date">End Date</label>
+                            <input type="date" id="end-date" class="form-control" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="recurring-notes">Notes</label>
+                        <textarea id="recurring-notes" class="form-control" rows="3"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn cancel-btn" id="cancel-recurring">Cancel</button>
+                <button class="btn primary-btn" id="create-recurring">
+                    <i class="fas fa-save"></i> Create Recurring Shifts
+                </button>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    // Set default dates
+    const today = new Date();
+    const nextMonth = new Date();
+    nextMonth.setMonth(today.getMonth() + 1);
+    
+    document.getElementById('start-date').valueAsDate = today;
+    document.getElementById('end-date').valueAsDate = nextMonth;
+    
+    // Show the modal
+    setTimeout(() => {
+        modal.classList.add('active');
+    }, 10);
+    
+    // Add event listeners
+    modal.querySelector('.close-btn').addEventListener('click', () => {
+        modal.classList.remove('active');
+        setTimeout(() => {
+            modal.remove();
+        }, 300);
+    });
+    
+    document.getElementById('cancel-recurring').addEventListener('click', () => {
+        modal.classList.remove('active');
+        setTimeout(() => {
+            modal.remove();
+        }, 300);
+    });
+    
+    document.getElementById('create-recurring').addEventListener('click', () => {
+        createRecurringShifts();
+    });
+}
+
+/**
+ * Create recurring shifts based on the selected pattern
+ */
+function createRecurringShifts() {
+    // Get form inputs
+    const staffId = document.getElementById('recurring-staff').value;
+    const shiftType = document.getElementById('recurring-shift-type').value;
+    const startDate = new Date(document.getElementById('start-date').value);
+    const endDate = new Date(document.getElementById('end-date').value);
+    const notes = document.getElementById('recurring-notes').value;
+    
+    // Get selected days
+    const selectedDays = [];
+    DAYS_OF_WEEK.forEach((day, index) => {
+        if (document.getElementById(`day-${index}`).checked) {
+            selectedDays.push(index);
+        }
+    });
+    
+    // Validate inputs
+    if (!staffId) {
+        showToast("Please select a staff member", "warning");
+        return;
+    }
+    
+    if (!shiftType) {
+        showToast("Please select a shift type", "warning");
+        return;
+    }
+    
+    if (selectedDays.length === 0) {
+        showToast("Please select at least one day of the week", "warning");
+        return;
+    }
+    
+    if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+        showToast("Please enter valid dates", "warning");
+        return;
+    }
+    
+    if (startDate > endDate) {
+        showToast("Start date must be before end date", "warning");
+        return;
+    }
+    
+    // Find the staff member
+    const staff = staffList.find(s => s.id === staffId);
+    if (!staff) {
+        showToast("Staff member not found", "error");
+        return;
+    }
+    
+    // Show processing message
+    showToast("Creating recurring shifts...", "info");
+    
+    // Create shifts
+    let shiftsCreated = 0;
+    let currentDate = new Date(startDate);
+    
+    while (currentDate <= endDate) {
+        const dayOfWeek = currentDate.getDay();
+        const adjustedDayOfWeek = (dayOfWeek === 0) ? 6 : dayOfWeek - 1; // Adjust to make Monday = 0
+        
+        if (selectedDays.includes(adjustedDayOfWeek)) {
+            // Format date as YYYY-MM-DD
+            const dateStr = currentDate.toISOString().substring(0, 10);
+            
+            // Add assignment
+            const key = `${adjustedDayOfWeek}-${shiftType}`;
+            
+            // Check if this staff already has this shift
+            const assignedStaff = scheduleData[key] || [];
+            if (!assignedStaff.includes(staffId)) {
+                // Add staff to shift
+                addAssignment(staffId, adjustedDayOfWeek, shiftType);
+                
+                // Add notes if provided
+                if (notes) {
+                    const notesKey = `shift-notes-${adjustedDayOfWeek}-${shiftType}-${staffId}`;
+                    localStorage.setItem(notesKey, notes);
+                }
+                
+                shiftsCreated++;
+            }
+        }
+        
+        // Move to next day
+        currentDate.setDate(currentDate.getDate() + 1);
+    }
+    
+    // Close modal
+    const modal = document.getElementById('recurring-shift-modal');
+    modal.classList.remove('active');
+    setTimeout(() => {
+        modal.remove();
+    }, 300);
+    
+    // Show success message
+    showToast(`Created ${shiftsCreated} recurring shifts for ${staff.name}`, "success");
+    
+    // Refresh the calendar
+    refreshCalendar();
 }
