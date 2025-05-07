@@ -4,118 +4,47 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Vaktaplan - NurseCare AI</title>
-  <link rel="stylesheet" href="styles/main.css">
-  <link rel="stylesheet" href="styles/schedule.css">
-  <!-- Font Awesome for icons -->
+  <link rel="stylesheet" href="/styles/main.css">
+  <link rel="stylesheet" href="/styles/schedule.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
-  <!-- Header Navigation -->
-  <header class="header">
-    <div class="header-left">
-      <button class="menu-toggle" id="menu-toggle">
-        <i class="fas fa-bars"></i>
-      </button>
-      <div class="logo">
-        <img src="assets/icons/logo.svg" alt="NurseCare AI Logo">
-        <h1>NurseCare AI</h1>
+  <header class="site-header">
+    <div class="header-container">
+      <div class="logo-container">
+        <img src="/assets/icons/logo.svg" alt="NurseCare AI Logo" class="logo">
       </div>
-    </div>
-    <div class="header-actions">
-      <button class="theme-toggle" id="theme-toggle" title="Skipta um þema">
-        <i class="fas fa-moon"></i>
-      </button>
-      <div class="notifications" id="notifications-dropdown">
-        <button class="notifications-btn" id="notifications-btn">
-          <i class="fas fa-bell"></i>
-          <span class="badge">3</span>
+      <nav class="main-nav">
+        <ul>
+          <li><a href="/dashboard.html">Yfirlitsvalmynd</a></li>
+          <li><a href="/patients.html">Sjúklingar</a></li>
+          <li><a href="/staff.html">Starfsfólk</a></li>
+          <li><a href="/schedule.html" class="active">Vaktaplan</a></li>
+          <li><a href="/inventory.html">Birgðir</a></li>
+          <li><a href="/reports.html">Skýrslur</a></li>
+        </ul>
+      </nav>
+      <div class="user-controls">
+        <button class="theme-toggle">
+          <i class="fas fa-moon"></i>
         </button>
-      </div>
-      <div class="profile" id="profile-dropdown">
-        <button class="profile-btn" id="profile-btn">
-          <img src="assets/icons/avatar.svg" alt="User Profile">
-        </button>
+        <div class="user-profile">
+          <img src="/assets/icons/avatar.svg" alt="User Avatar">
+        </div>
       </div>
     </div>
   </header>
 
-  <!-- Main Container -->
-  <div class="app-container">
-    <!-- Sidebar Navigation -->
-    <nav class="sidebar" id="sidebar">
-      <button class="toggle-btn" id="sidebar-toggle">
-        <i class="fas fa-chevron-right"></i>
-      </button>
-      <div class="sidebar-nav">
-        <ul>
-          <li class="nav-item">
-            <a href="dashboard.html">
-              <i class="fas fa-tachometer-alt"></i>
-              <span>Yfirlitsvalmynd</span>
-            </a>
-          </li>
-          <li class="nav-item">
-            <a href="patients.html">
-              <i class="fas fa-user-injured"></i>
-              <span>Sjúklingar</span>
-            </a>
-          </li>
-          <li class="nav-item">
-            <a href="staff.html">
-              <i class="fas fa-user-nurse"></i>
-              <span>Starfsfólk</span>
-            </a>
-          </li>
-          <li class="nav-item active">
-            <a href="schedule.html">
-              <i class="fas fa-calendar-alt"></i>
-              <span>Vaktaplan</span>
-            </a>
-          </li>
-          <li class="nav-item">
-            <a href="inventory.html">
-              <i class="fas fa-boxes"></i>
-              <span>Birgðir</span>
-            </a>
-          </li>
-          <li class="nav-item">
-            <a href="reports.html">
-              <i class="fas fa-chart-bar"></i>
-              <span>Skýrslur</span>
-            </a>
-          </li>
-          <li class="nav-item">
-            <a href="settings.html">
-              <i class="fas fa-cog"></i>
-              <span>Stillingar</span>
-            </a>
-          </li>
-          <li class="nav-item">
-            <a href="chatbot.html">
-              <i class="fas fa-robot"></i>
-              <span>Gervigreindar aðstoð</span>
-            </a>
-          </li>
-        </ul>
+  <main class="main-content">
+    <div class="page-header">
+      <div class="container">
+        <h1>Vaktaplan</h1>
+        <p class="subtitle">Vaktaplan fyrir vikuna</p>
       </div>
-    </nav>
+    </div>
 
-    <!-- Main Content -->
-    <main class="main-content">
-      <div class="page-header">
-        <h2><i class="fas fa-calendar-alt"></i> Vaktaplan</h2>
-        <div class="page-info">
-          <div class="current-date">
-            <i class="fas fa-calendar"></i> <span id="current-date"></span>
-          </div>
-          <div class="last-updated">
-            <i class="fas fa-sync-alt"></i> Síðast uppfært: <span id="last-updated-time">Rétt í þessu</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Schedule Actions -->
-      <div class="schedule-actions">
+    <div class="container">
+      <div class="schedule-controls">
         <div class="date-controls">
           <button class="btn btn-outline" id="prev-week">
             <i class="fas fa-chevron-left"></i> Fyrri vika
@@ -125,97 +54,57 @@
             Næsta vika <i class="fas fa-chevron-right"></i>
           </button>
         </div>
-        <div class="action-buttons">
-          <button class="btn btn-primary" id="optimize-schedule">
-            <i class="fas fa-magic"></i> Biðja gervigreind um að betrumbæta vaktir
-          </button>
-          <button class="btn btn-outline" id="export-schedule">
-            <i class="fas fa-download"></i> Flytja út
-          </button>
-        </div>
+        
+        <button id="ai-optimize-btn" class="btn btn-primary">
+          🧠 Biðja gervigreind um að betrumbæta vaktir
+        </button>
       </div>
 
-      <!-- Shift Legend -->
       <div class="schedule-legend">
         <h3>Skýringar á vöktum</h3>
         <div class="legend-items">
-          <div class="legend-item morning" data-shift-type="morning">
+          <div class="legend-item morning">
             <div class="legend-color"></div>
             <div class="legend-label">Morgunvakt (08–16)</div>
           </div>
-          <div class="legend-item evening" data-shift-type="evening">
+          <div class="legend-item evening">
             <div class="legend-color"></div>
             <div class="legend-label">Dagvakt (13–21)</div>
           </div>
-          <div class="legend-item night" data-shift-type="night">
+          <div class="legend-item night">
             <div class="legend-color"></div>
             <div class="legend-label">Næturvakt (21–08)</div>
           </div>
-          <div class="legend-item holiday" data-shift-type="hl">
+          <div class="legend-item holiday">
             <div class="legend-color"></div>
             <div class="legend-label">Helgidagur (HL)</div>
           </div>
-          <div class="legend-item sick" data-shift-type="veikur">
+          <div class="legend-item sick">
             <div class="legend-color"></div>
             <div class="legend-label">Veikindi (Veikur)</div>
           </div>
         </div>
       </div>
 
-      <!-- Schedule Container -->
-      <div class="schedule-panel">
-        <div class="card">
-          <div class="card-header">
-            <h3><i class="fas fa-calendar-week"></i> Vikuleg vaktaskrá</h3>
-            <div class="card-actions">
-              <button class="card-action" id="refresh-schedule" title="Uppfæra vaktaskrá">
-                <i class="fas fa-sync"></i>
-              </button>
-              <button class="card-action" id="print-schedule" title="Prenta vaktaskrá">
-                <i class="fas fa-print"></i>
-              </button>
-            </div>
-          </div>
-          <div class="card-body">
-            <!-- Schedule will be rendered here -->
-            <div id="schedule-container"></div>
-          </div>
-        </div>
+      <div class="schedule-wrapper">
+        <div id="schedule-container"></div>
       </div>
-    </main>
-  </div>
+    </div>
+  </main>
 
-  <!-- AI Chat Widget -->
+  <!-- AI Widget container -->
   <div class="ai-widget" id="ai-widget">
-    <button class="ai-widget-button" id="ai-widget-toggle">
+    <button class="ai-widget-toggle" id="ai-widget-toggle">
       <i class="fas fa-robot"></i>
     </button>
     <div class="ai-widget-container" id="ai-widget-container">
-      <div class="ai-widget-header">
-        <div class="ai-widget-title">
-          <i class="fas fa-robot"></i> NurseCare Gervigreind
-        </div>
-        <div class="ai-widget-actions">
-          <button class="ai-widget-action" id="ai-widget-minimize">
-            <i class="fas fa-minus"></i>
-          </button>
-        </div>
-      </div>
-      <div class="ai-widget-body" id="ai-widget-body">
-        <!-- AI chat messages will appear here -->
-      </div>
-      <div class="ai-widget-footer">
-        <textarea class="ai-widget-input" id="ai-widget-input" placeholder="Spyrðu mig um vaktaskráningu..."></textarea>
-        <button class="ai-widget-send" id="ai-widget-send">
-          <i class="fas fa-paper-plane"></i>
-        </button>
-      </div>
+      <!-- AI widget content will be loaded here -->
     </div>
   </div>
 
-  <!-- Load JavaScript modules -->
-  <script src="scripts/main.js" type="module"></script>
-  <script src="scripts/ai-widget.js" type="module"></script>
-  <script src="scripts/schedule.js" type="module"></script>
+  <!-- Scripts -->
+  <script src="/scripts/main.js" type="module"></script>
+  <script src="/scripts/ai-widget.js" type="module"></script>
+  <script src="/scripts/schedule.js" type="module"></script>
 </body>
 </html>
