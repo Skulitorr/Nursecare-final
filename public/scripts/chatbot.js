@@ -14,7 +14,7 @@ const config = {
 };
 
 // Chatbot/AI functionality module
-import { showToast } from './utils.js';
+// import { showToast } from './utils.js';
 
 class ChatbotAI {
     static instance = null;

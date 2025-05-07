@@ -1,7 +1,8 @@
 import OpenAI from 'openai';
 import express from 'express';
 import rateLimit from 'express-rate-limit';
-import { validateSession } from '../scripts/auth.js';
+import { parseToken, validateTokenData } from '../shared/session.js';
+
 
 console.log('OpenAI Proxy Module Loaded');
 
@@ -22,9 +23,20 @@ router.use(limiter);
 
 // Middleware to validate user session
 router.use((req, res, next) => {
-    if (!validateSession(req)) {
-        return res.status(401).json({ error: 'Unauthorized' });
+    const rawToken = req.headers.authorization?.replace('Bearer ', '');
+
+    if (!rawToken) {
+        return res.status(401).json({ error: 'Missing token' });
     }
+
+    const tokenData = parseToken(rawToken);
+    const isValid = validateTokenData(tokenData);
+
+    if (!isValid) {
+        return res.status(401).json({ error: 'Invalid or expired token' });
+    }
+
+    req.user = tokenData;
     next();
 });
 
