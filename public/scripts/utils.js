@@ -43,6 +43,47 @@ export function slugify(str) {
         .replace(/^-+|-+$/g, '');
 }
 
+// Toast and Loading UI utilities
+export function showToast(type, message, duration = 3000) {
+    const toast = createElement('div', `toast toast-${type}`);
+    toast.textContent = message;
+    document.body.appendChild(toast);
+    
+    setTimeout(() => {
+        fadeOut(toast).then(() => {
+            removeElement(toast);
+        });
+    }, duration);
+    
+    return toast;
+}
+
+export function showLoading(message = 'Loading...') {
+    const loadingId = 'loading-' + Math.random().toString(36).substring(2);
+    const loadingOverlay = createElement('div', 'loading-overlay', { id: loadingId });
+    
+    const loadingContainer = createElement('div', 'loading-container');
+    const spinner = createElement('div', 'loading-spinner');
+    const loadingMessage = createElement('div', 'loading-message');
+    loadingMessage.textContent = message;
+    
+    loadingContainer.appendChild(spinner);
+    loadingContainer.appendChild(loadingMessage);
+    loadingOverlay.appendChild(loadingContainer);
+    document.body.appendChild(loadingOverlay);
+    
+    return loadingId;
+}
+
+export function hideLoading(loadingId) {
+    const loadingElement = document.getElementById(loadingId);
+    if (loadingElement) {
+        fadeOut(loadingElement).then(() => {
+            removeElement(loadingElement);
+        });
+    }
+}
+
 // DOM utilities
 export function createElement(tag, className = '', attributes = {}) {
     const element = document.createElement(tag);
