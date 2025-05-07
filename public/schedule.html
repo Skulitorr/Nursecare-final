@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="is">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>NurseCare AI - Staff Scheduling</title>
+  <title>Vaktaplan - NurseCare AI</title>
   <link rel="stylesheet" href="styles/main.css">
   <link rel="stylesheet" href="styles/schedule.css">
   <!-- Font Awesome for icons -->
@@ -22,7 +22,7 @@
       </div>
     </div>
     <div class="header-actions">
-      <button class="theme-toggle" id="theme-toggle" title="Toggle dark/light mode">
+      <button class="theme-toggle" id="theme-toggle" title="Skipta um þema">
         <i class="fas fa-moon"></i>
       </button>
       <div class="notifications" id="notifications-dropdown">
@@ -51,49 +51,49 @@
           <li class="nav-item">
             <a href="dashboard.html">
               <i class="fas fa-tachometer-alt"></i>
-              <span>Dashboard</span>
+              <span>Yfirlitsvalmynd</span>
             </a>
           </li>
           <li class="nav-item">
             <a href="patients.html">
               <i class="fas fa-user-injured"></i>
-              <span>Patients</span>
+              <span>Sjúklingar</span>
             </a>
           </li>
           <li class="nav-item">
             <a href="staff.html">
               <i class="fas fa-user-nurse"></i>
-              <span>Staff</span>
+              <span>Starfsfólk</span>
             </a>
           </li>
           <li class="nav-item active">
             <a href="schedule.html">
               <i class="fas fa-calendar-alt"></i>
-              <span>Schedule</span>
+              <span>Vaktaplan</span>
             </a>
           </li>
           <li class="nav-item">
             <a href="inventory.html">
               <i class="fas fa-boxes"></i>
-              <span>Inventory</span>
+              <span>Birgðir</span>
             </a>
           </li>
           <li class="nav-item">
             <a href="reports.html">
               <i class="fas fa-chart-bar"></i>
-              <span>Reports</span>
+              <span>Skýrslur</span>
             </a>
           </li>
           <li class="nav-item">
             <a href="settings.html">
               <i class="fas fa-cog"></i>
-              <span>Settings</span>
+              <span>Stillingar</span>
             </a>
           </li>
           <li class="nav-item">
             <a href="chatbot.html">
               <i class="fas fa-robot"></i>
-              <span>AI Assistant</span>
+              <span>Gervigreindar aðstoð</span>
             </a>
           </li>
         </ul>
@@ -103,13 +103,13 @@
     <!-- Main Content -->
     <main class="main-content">
       <div class="page-header">
-        <h2><i class="fas fa-calendar-alt"></i> Staff Scheduling</h2>
+        <h2><i class="fas fa-calendar-alt"></i> Vaktaplan</h2>
         <div class="page-info">
           <div class="current-date">
             <i class="fas fa-calendar"></i> <span id="current-date"></span>
           </div>
           <div class="last-updated">
-            <i class="fas fa-sync-alt"></i> Last updated: <span id="last-updated-time">Just now</span>
+            <i class="fas fa-sync-alt"></i> Síðast uppfært: <span id="last-updated-time">Rétt í þessu</span>
           </div>
         </div>
       </div>
@@ -118,46 +118,46 @@
       <div class="schedule-actions">
         <div class="date-controls">
           <button class="btn btn-outline" id="prev-week">
-            <i class="fas fa-chevron-left"></i> Previous Week
+            <i class="fas fa-chevron-left"></i> Fyrri vika
           </button>
-          <div class="current-week" id="current-week">May 6 - May 12, 2025</div>
+          <div class="current-week" id="current-week">7. maí - 13. maí, 2025</div>
           <button class="btn btn-outline" id="next-week">
-            Next Week <i class="fas fa-chevron-right"></i>
+            Næsta vika <i class="fas fa-chevron-right"></i>
           </button>
         </div>
         <div class="action-buttons">
           <button class="btn btn-primary" id="optimize-schedule">
-            <i class="fas fa-magic"></i> Ask AI to Optimize Shifts
+            <i class="fas fa-magic"></i> Biðja gervigreind um að betrumbæta vaktir
           </button>
           <button class="btn btn-outline" id="export-schedule">
-            <i class="fas fa-download"></i> Export
+            <i class="fas fa-download"></i> Flytja út
           </button>
         </div>
       </div>
 
       <!-- Shift Legend -->
       <div class="schedule-legend">
-        <h3>Shift Legend</h3>
+        <h3>Skýringar á vöktum</h3>
         <div class="legend-items">
           <div class="legend-item morning" data-shift-type="morning">
             <div class="legend-color"></div>
-            <div class="legend-label">Morning (08-16)</div>
+            <div class="legend-label">Morgunvakt (08–16)</div>
           </div>
           <div class="legend-item evening" data-shift-type="evening">
             <div class="legend-color"></div>
-            <div class="legend-label">Evening (13-21)</div>
+            <div class="legend-label">Dagvakt (13–21)</div>
           </div>
           <div class="legend-item night" data-shift-type="night">
             <div class="legend-color"></div>
-            <div class="legend-label">Night (21-08)</div>
+            <div class="legend-label">Næturvakt (21–08)</div>
           </div>
           <div class="legend-item holiday" data-shift-type="hl">
             <div class="legend-color"></div>
-            <div class="legend-label">Holiday (HL)</div>
+            <div class="legend-label">Helgidagur (HL)</div>
           </div>
           <div class="legend-item sick" data-shift-type="veikur">
             <div class="legend-color"></div>
-            <div class="legend-label">Sick (Veikur)</div>
+            <div class="legend-label">Veikindi (Veikur)</div>
           </div>
         </div>
       </div>
@@ -166,12 +166,12 @@
       <div class="schedule-panel">
         <div class="card">
           <div class="card-header">
-            <h3><i class="fas fa-calendar-week"></i> Weekly Schedule</h3>
+            <h3><i class="fas fa-calendar-week"></i> Vikuleg vaktaskrá</h3>
             <div class="card-actions">
-              <button class="card-action" id="refresh-schedule" title="Refresh schedule">
+              <button class="card-action" id="refresh-schedule" title="Uppfæra vaktaskrá">
                 <i class="fas fa-sync"></i>
               </button>
-              <button class="card-action" id="print-schedule" title="Print schedule">
+              <button class="card-action" id="print-schedule" title="Prenta vaktaskrá">
                 <i class="fas fa-print"></i>
               </button>
             </div>
@@ -193,7 +193,7 @@
     <div class="ai-widget-container" id="ai-widget-container">
       <div class="ai-widget-header">
         <div class="ai-widget-title">
-          <i class="fas fa-robot"></i> NurseCare Assistant
+          <i class="fas fa-robot"></i> NurseCare Gervigreind
         </div>
         <div class="ai-widget-actions">
           <button class="ai-widget-action" id="ai-widget-minimize">
@@ -205,7 +205,7 @@
         <!-- AI chat messages will appear here -->
       </div>
       <div class="ai-widget-footer">
-        <textarea class="ai-widget-input" id="ai-widget-input" placeholder="Ask me about scheduling..."></textarea>
+        <textarea class="ai-widget-input" id="ai-widget-input" placeholder="Spyrðu mig um vaktaskráningu..."></textarea>
         <button class="ai-widget-send" id="ai-widget-send">
           <i class="fas fa-paper-plane"></i>
         </button>
