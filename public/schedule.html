@@ -1,557 +1,221 @@
 <!DOCTYPE html>
-<html lang="is">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>NurseCare AI - Vaktaplan</title>
-  
+  <title>NurseCare AI - Staff Scheduling</title>
+  <link rel="stylesheet" href="styles/main.css">
+  <link rel="stylesheet" href="styles/schedule.css">
   <!-- Font Awesome for icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  
-  <!-- Google Fonts - Inter -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  
-  <!-- Application styles -->
-  <link rel="stylesheet" href="styles/styles.css">
-  <link rel="stylesheet" href="styles/schedule.css">
-  
-  <style>
-    /* Critical schedule-specific styles that should be inline to ensure they load */
-    .schedule-grid {
-      display: grid;
-      grid-template-columns: auto repeat(7, 1fr);
-      width: 100%;
-      border-collapse: collapse;
-      border: 1px solid var(--gray-200);
-      border-radius: var(--card-radius);
-      overflow: hidden;
-    }
-
-    .header-row {
-      display: contents;
-    }
-
-    .header-cell {
-      background-color: var(--gray-100);
-      padding: 1rem;
-      text-align: center;
-      font-weight: 600;
-      border-bottom: 1px solid var(--gray-200);
-      position: sticky;
-      top: 0;
-      z-index: 10;
-    }
-
-    .shift-row {
-      display: contents;
-    }
-
-    .shift-label {
-      background-color: var(--gray-100);
-      padding: 1rem;
-      font-weight: 600;
-      border-right: 1px solid var(--gray-200);
-      border-bottom: 1px solid var(--gray-200);
-      position: sticky;
-      left: 0;
-      z-index: 9;
-      display: flex;
-      align-items: center;
-      min-width: 150px;
-    }
-
-    .schedule-cell {
-      padding: 0.75rem;
-      border-right: 1px solid var(--gray-200);
-      border-bottom: 1px solid var(--gray-200);
-      transition: background-color 0.2s;
-      position: relative;
-      min-height: 100px;
-    }
-
-    /* Cell highlight animation for changes */
-    @keyframes highlight-cell {
-      0% { background-color: rgba(16, 185, 129, 0.3); }
-      70% { background-color: rgba(16, 185, 129, 0.1); }
-      100% { background-color: transparent; }
-    }
-
-    .cell-highlight {
-      animation: highlight-cell 2s ease-out;
-    }
-    
-    /* AI Widget Toggle Button */
-    .ai-toggle-btn {
-      position: fixed;
-      bottom: 2rem;
-      right: 2rem;
-      width: 3.5rem;
-      height: 3.5rem;
-      border-radius: 50%;
-      background-color: var(--primary);
-      color: white;
-      border: none;
-      box-shadow: var(--shadow-lg);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.5rem;
-      cursor: pointer;
-      z-index: 90;
-      transition: all 0.3s ease;
-    }
-    
-    .ai-toggle-btn:hover {
-      transform: scale(1.1);
-    }
-    
-    /* AI Chat Widget */
-    .ai-chat {
-      position: fixed;
-      bottom: 2rem;
-      right: 2rem;
-      width: 360px;
-      height: 500px;
-      background-color: white;
-      border-radius: var(--card-radius);
-      box-shadow: var(--shadow-lg);
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-      z-index: 100;
-      border: 1px solid var(--gray-200);
-      transition: all 0.3s ease;
-      transform: translateY(150%);
-      opacity: 0;
-    }
-    
-    .ai-chat.open {
-      transform: translateY(0);
-      opacity: 1;
-    }
-    
-    /* Toast Container */
-    .toast-container {
-      position: fixed;
-      top: 2rem;
-      right: 2rem;
-      z-index: 1000;
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
-      pointer-events: none;
-    }
-    
-    .toast {
-      background-color: white;
-      border-radius: var(--card-radius);
-      box-shadow: var(--shadow-lg);
-      padding: 1rem 1.5rem;
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-      min-width: 300px;
-      max-width: 450px;
-      border-left: 4px solid var(--primary);
-      animation: slide-in 0.3s ease;
-      pointer-events: auto;
-    }
-    
-    @keyframes slide-in {
-      from { transform: translateX(100%); opacity: 0; }
-      to { transform: translateX(0); opacity: 1; }
-    }
-    
-    /* Confirmation buttons */
-    .confirmation-buttons {
-      display: flex;
-      gap: 0.5rem;
-      margin-top: 0.75rem;
-    }
-    
-    .confirm-btn, .reject-btn {
-      padding: 0.5rem 1rem;
-      border-radius: var(--button-radius);
-      font-size: 0.875rem;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      transition: all 0.2s;
-      border: none;
-    }
-    
-    .confirm-btn {
-      background-color: var(--success);
-      color: white;
-    }
-    
-    .reject-btn {
-      background-color: var(--gray-200);
-      color: var(--gray-800);
-    }
-
-    /* Fix for Vercel deployment */
-    .app-container {
-      display: flex;
-      min-height: 100vh;
-    }
-
-    .sidebar {
-      position: fixed;
-      top: 0;
-      left: 0;
-      height: 100vh;
-      width: var(--sidebar-width-collapsed);
-      background-color: white;
-      border-right: 1px solid var(--gray-200);
-      z-index: 200;
-      transition: width 0.3s ease;
-      display: flex;
-      flex-direction: column;
-      box-shadow: var(--shadow-sm);
-    }
-
-    .main-content {
-      flex: 1;
-      margin-left: var(--sidebar-width-collapsed);
-      margin-top: var(--header-height);
-      padding: var(--spacing-lg);
-      transition: margin-left 0.3s ease;
-    }
-
-    .sidebar.expanded ~ .main-content {
-      margin-left: var(--sidebar-width-expanded);
-    }
-  </style>
-  
-  <!-- Authentication check -->
-  <script>
-    // Check if user is authenticated
-    if (!localStorage.getItem('authToken')) {
-      window.location.href = 'login.html';
-    }
-  </script>
 </head>
 <body>
-  <div class="app-container">
-    <!-- Sidebar -->
-    <aside class="sidebar">
-      <button id="toggle-sidebar" class="toggle-btn" aria-label="Toggle sidebar">
+  <!-- Header Navigation -->
+  <header class="header">
+    <div class="header-left">
+      <button class="menu-toggle" id="menu-toggle">
         <i class="fas fa-bars"></i>
       </button>
-      <nav class="sidebar-nav" aria-label="Main navigation">
+      <div class="logo">
+        <img src="assets/icons/logo.svg" alt="NurseCare AI Logo">
+        <h1>NurseCare AI</h1>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button class="theme-toggle" id="theme-toggle" title="Toggle dark/light mode">
+        <i class="fas fa-moon"></i>
+      </button>
+      <div class="notifications" id="notifications-dropdown">
+        <button class="notifications-btn" id="notifications-btn">
+          <i class="fas fa-bell"></i>
+          <span class="badge">3</span>
+        </button>
+      </div>
+      <div class="profile" id="profile-dropdown">
+        <button class="profile-btn" id="profile-btn">
+          <img src="assets/icons/avatar.svg" alt="User Profile">
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <div class="app-container">
+    <!-- Sidebar Navigation -->
+    <nav class="sidebar" id="sidebar">
+      <button class="toggle-btn" id="sidebar-toggle">
+        <i class="fas fa-chevron-right"></i>
+      </button>
+      <div class="sidebar-nav">
         <ul>
           <li class="nav-item">
-            <a href="index.html">
+            <a href="dashboard.html">
               <i class="fas fa-tachometer-alt"></i>
-              <span>Mælaborð</span>
-            </a>
-          </li>
-          <li class="nav-item active">
-            <a href="schedule.html" aria-current="page">
-              <i class="fas fa-calendar-alt"></i>
-              <span>Vaktaplan</span>
-            </a>
-          </li>
-          <li class="nav-item">
-            <a href="staff.html">
-              <i class="fas fa-user-nurse"></i>
-              <span>Starfsfólk</span>
+              <span>Dashboard</span>
             </a>
           </li>
           <li class="nav-item">
             <a href="patients.html">
               <i class="fas fa-user-injured"></i>
-              <span>Sjúklingar</span>
+              <span>Patients</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="staff.html">
+              <i class="fas fa-user-nurse"></i>
+              <span>Staff</span>
+            </a>
+          </li>
+          <li class="nav-item active">
+            <a href="schedule.html">
+              <i class="fas fa-calendar-alt"></i>
+              <span>Schedule</span>
             </a>
           </li>
           <li class="nav-item">
             <a href="inventory.html">
-              <i class="fas fa-box"></i>
-              <span>Birgðir</span>
+              <i class="fas fa-boxes"></i>
+              <span>Inventory</span>
             </a>
           </li>
           <li class="nav-item">
-            <a href="medications.html">
-              <i class="fas fa-pills"></i>
-              <span>Lyf</span>
+            <a href="reports.html">
+              <i class="fas fa-chart-bar"></i>
+              <span>Reports</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="settings.html">
+              <i class="fas fa-cog"></i>
+              <span>Settings</span>
             </a>
           </li>
           <li class="nav-item">
             <a href="chatbot.html">
-              <i class="fas fa-comments"></i>
-              <span>Spjallforrit</span>
+              <i class="fas fa-robot"></i>
+              <span>AI Assistant</span>
             </a>
           </li>
         </ul>
-      </nav>
-    </aside>
-    
-    <!-- Header -->
-    <header class="header">
-      <div class="logo">
-        <img src="assets/icons/logo.svg" alt="NurseCare AI Logo" onerror="this.src='https://placehold.co/40x40?text=NC'">
-        <h1>NurseCare AI</h1>
       </div>
-      <div class="header-actions">
-        <button id="theme-toggle" class="theme-toggle" aria-label="Toggle dark mode">
-          <i class="fas fa-moon"></i>
-          <span>Dark Mode</span>
-        </button>
-        <div class="notifications">
-          <button id="notifications-btn" class="notifications-btn" aria-label="Notifications">
-            <i class="fas fa-bell"></i>
-            <span class="badge">3</span>
-          </button>
-          <div id="notifications-menu" class="dropdown-menu" aria-hidden="true">
-            <div class="dropdown-header">
-              <h3>Tilkynningar</h3>
-              <button class="clear-all">Hreinsa allt</button>
-            </div>
-            <div class="dropdown-body">
-              <div class="notification-item unread">
-                <div class="notification-icon"><i class="fas fa-user-nurse"></i></div>
-                <div class="notification-content">
-                  <p>Anna Jónsdóttir hefur skráð sig veika í dag.</p>
-                  <span class="notification-time">10:23</span>
-                </div>
-              </div>
-              <div class="notification-item unread">
-                <div class="notification-icon"><i class="fas fa-pills"></i></div>
-                <div class="notification-content">
-                  <p>Lyfjagjöf fyrir Björn Ólafsson er á eftir áætlun.</p>
-                  <span class="notification-time">09:45</span>
-                </div>
-              </div>
-              <div class="notification-item">
-                <div class="notification-icon"><i class="fas fa-exclamation-triangle"></i></div>
-                <div class="notification-content">
-                  <p>Lágt birgðastig: Hanskar (15%)</p>
-                  <span class="notification-time">Í gær</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="profile">
-          <button id="profile-btn" class="profile-btn" aria-label="User profile">
-            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=anna" alt="Profile Avatar for Anna">
-          </button>
-          <div id="profile-menu" class="dropdown-menu" aria-hidden="true">
-            <div class="dropdown-header">
-              <h3>Guðrún Sigurðardóttir</h3>
-              <span>Deildarstjóri</span>
-            </div>
-            <div class="dropdown-body">
-              <a href="#" class="dropdown-item">
-                <i class="fas fa-user"></i>
-                <span>Mínar síður</span>
-              </a>
-              <a href="#" class="dropdown-item">
-                <i class="fas fa-cog"></i>
-                <span>Stillingar</span>
-              </a>
-              <a href="#" class="dropdown-item" id="logoutBtn">
-                <i class="fas fa-sign-out-alt"></i>
-                <span>Útskrá</span>
-              </a>
-            </div>
-          </div>
-        </div>
-      </div>
-    </header>
-    
+    </nav>
+
     <!-- Main Content -->
     <main class="main-content">
-      <section class="page-header">
-        <h2><i class="fas fa-calendar-alt"></i> Vaktaplan</h2>
+      <div class="page-header">
+        <h2><i class="fas fa-calendar-alt"></i> Staff Scheduling</h2>
         <div class="page-info">
-          <span id="current-date" class="current-date">
-            <i class="fas fa-calendar-alt"></i>
-            Miðvikudagur, 21. apríl 2025
-          </span>
-        </div>
-      </section>
-      
-      <div class="dashboard-grid">
-        <!-- Staff panel -->
-        <div class="card">
-          <header class="card-header">
-            <h3><i class="fas fa-users"></i> Starfsfólk á vakt</h3>
-            <div class="card-actions">
-              <button class="card-action" id="refresh-stats-btn" aria-label="Uppfæra" data-tooltip="Uppfæra">
-                <i class="fas fa-sync-alt"></i>
-              </button>
-            </div>
-          </header>
-          <div class="card-body">
-            <div class="schedule-filters">
-              <div class="filter-group">
-                <label for="staff-filter">Starfsfólk:</label>
-                <select id="staff-filter" class="form-control">
-                  <option value="all">Allir</option>
-                  <!-- Options will be populated from JavaScript -->
-                </select>
-              </div>
-              <div class="filter-group">
-                <label for="department-filter">Deild:</label>
-                <select id="department-filter" class="form-control">
-                  <option value="all">Allar deildir</option>
-                  <option value="Medical">Hjúkrun</option>
-                  <option value="Surgical">Skurðdeild</option>
-                  <option value="Rehabilitation">Endurhæfing</option>
-                </select>
-              </div>
-            </div>
-            
-            <div class="stats-container">
-              <div class="stat-row">
-                <div class="stat-label">Heildarfjöldi vakta:</div>
-                <div class="stat-value" id="total-shifts">0</div>
-              </div>
-              <div class="stat-row">
-                <div class="stat-label">Starfsfólk á vakt:</div>
-                <div class="stat-value" id="staff-on-shift">0/0</div>
-              </div>
-              <div class="stat-row">
-                <div class="stat-label">Mönnun:</div>
-                <div class="stat-value" id="staffing-percentage">0%</div>
-              </div>
-            </div>
-            
-            <div class="staff-list-container">
-              <h4>Starfsfólk</h4>
-              <div id="staff-list" class="staff-list">
-                <!-- Staff items will be populated from JavaScript -->
-              </div>
-            </div>
+          <div class="current-date">
+            <i class="fas fa-calendar"></i> <span id="current-date"></span>
+          </div>
+          <div class="last-updated">
+            <i class="fas fa-sync-alt"></i> Last updated: <span id="last-updated-time">Just now</span>
           </div>
         </div>
-        
-        <!-- Schedule panel -->
-        <div class="card schedule-panel">
-          <header class="card-header">
-            <h3><i class="fas fa-calendar-alt"></i> Vaktaáætlun vikunnar</h3>
+      </div>
+
+      <!-- Schedule Actions -->
+      <div class="schedule-actions">
+        <div class="date-controls">
+          <button class="btn btn-outline" id="prev-week">
+            <i class="fas fa-chevron-left"></i> Previous Week
+          </button>
+          <div class="current-week" id="current-week">May 6 - May 12, 2025</div>
+          <button class="btn btn-outline" id="next-week">
+            Next Week <i class="fas fa-chevron-right"></i>
+          </button>
+        </div>
+        <div class="action-buttons">
+          <button class="btn btn-primary" id="optimize-schedule">
+            <i class="fas fa-magic"></i> Ask AI to Optimize Shifts
+          </button>
+          <button class="btn btn-outline" id="export-schedule">
+            <i class="fas fa-download"></i> Export
+          </button>
+        </div>
+      </div>
+
+      <!-- Shift Legend -->
+      <div class="schedule-legend">
+        <h3>Shift Legend</h3>
+        <div class="legend-items">
+          <div class="legend-item morning" data-shift-type="morning">
+            <div class="legend-color"></div>
+            <div class="legend-label">Morning (08-16)</div>
+          </div>
+          <div class="legend-item evening" data-shift-type="evening">
+            <div class="legend-color"></div>
+            <div class="legend-label">Evening (13-21)</div>
+          </div>
+          <div class="legend-item night" data-shift-type="night">
+            <div class="legend-color"></div>
+            <div class="legend-label">Night (21-08)</div>
+          </div>
+          <div class="legend-item holiday" data-shift-type="hl">
+            <div class="legend-color"></div>
+            <div class="legend-label">Holiday (HL)</div>
+          </div>
+          <div class="legend-item sick" data-shift-type="veikur">
+            <div class="legend-color"></div>
+            <div class="legend-label">Sick (Veikur)</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Schedule Container -->
+      <div class="schedule-panel">
+        <div class="card">
+          <div class="card-header">
+            <h3><i class="fas fa-calendar-week"></i> Weekly Schedule</h3>
             <div class="card-actions">
-              <button class="card-action" id="recurring-shift-btn" aria-label="Endurteknar vaktir" data-tooltip="Endurteknar vaktir">
+              <button class="card-action" id="refresh-schedule" title="Refresh schedule">
                 <i class="fas fa-sync"></i>
               </button>
-              <button class="card-action" id="print-schedule-btn" aria-label="Prenta" data-tooltip="Prenta">
+              <button class="card-action" id="print-schedule" title="Print schedule">
                 <i class="fas fa-print"></i>
               </button>
-              <button class="card-action" id="clear-schedule-btn" aria-label="Hreinsa" data-tooltip="Hreinsa">
-                <i class="fas fa-trash"></i>
-              </button>
-              <button class="card-action" id="toggle-view-btn" aria-label="Skipta um útlit" data-tooltip="Skipta um útlit">
-                <i class="fas fa-table"></i>
-              </button>
-            </div>
-          </header>
-          <div class="card-body">
-            <!-- Shift legend -->
-            <div class="shift-legend">
-              <h4>Vaktir</h4>
-              <div class="shift-types">
-                <div class="shift-type morning">
-                  <div class="shift-color"></div>
-                  <div class="shift-name">Morgunvakt (07:00-15:00)</div>
-                </div>
-                <div class="shift-type evening">
-                  <div class="shift-color"></div>
-                  <div class="shift-name">Kvöldvakt (15:00-23:00)</div>
-                </div>
-                <div class="shift-type night">
-                  <div class="shift-color"></div>
-                  <div class="shift-name">Næturvakt (23:00-07:00)</div>
-                </div>
-              </div>
-            </div>
-            
-            <div id="schedule-grid" class="schedule-grid">
-              <!-- Schedule grid will be populated from JavaScript -->
             </div>
           </div>
-        </div>
-        
-        <!-- AI suggestions panel -->
-        <div class="card">
-          <header class="card-header">
-            <h3><i class="fas fa-robot"></i> Gervigreind ráðleggingar</h3>
-            <div class="card-actions">
-              <button class="card-action" id="refresh-suggestions-btn" aria-label="Uppfæra" data-tooltip="Uppfæra">
-                <i class="fas fa-sync-alt"></i>
-              </button>
-            </div>
-          </header>
           <div class="card-body">
-            <div id="ai-suggestions-content" class="ai-suggestions">
-              <div class="ai-greeting">
-                <div class="ai-avatar">
-                  <i class="fas fa-robot"></i>
-                </div>
-                <div class="ai-message">
-                  <p>Velkomin(n) í NurseCare hjúkrunarheimilið! Ég get aðstoðað þig við að skipuleggja vaktir, finna staðgengla fyrir veikt starfsfólk og besta mönnun.</p>
-                  <p>Prófaðu að spyrja t.d. "Jón er veikur á miðvikudagsmorgun, hver getur tekið hans vakt?"</p>
-                </div>
-              </div>
-              <div id="ai-recommendations" class="ai-recommendations">
-                <!-- AI recommendations will be populated from JavaScript -->
-              </div>
-            </div>
+            <!-- Schedule will be rendered here -->
+            <div id="schedule-container"></div>
           </div>
         </div>
       </div>
     </main>
-    
-    <!-- AI Chat Widget -->
-    <div id="ai-widget-container" class="ai-chat">
+  </div>
+
+  <!-- AI Chat Widget -->
+  <div class="ai-widget" id="ai-widget">
+    <button class="ai-widget-button" id="ai-widget-toggle">
+      <i class="fas fa-robot"></i>
+    </button>
+    <div class="ai-widget-container" id="ai-widget-container">
       <div class="ai-widget-header">
         <div class="ai-widget-title">
-          <i class="fas fa-robot"></i>
-          <span>NurseCare Aðstoðarmaður</span>
+          <i class="fas fa-robot"></i> NurseCare Assistant
         </div>
         <div class="ai-widget-actions">
-          <button id="ai-minimize-btn" class="ai-widget-action" aria-label="Minimize chat">
+          <button class="ai-widget-action" id="ai-widget-minimize">
             <i class="fas fa-minus"></i>
-          </button>
-          <button id="ai-clear-btn" class="ai-widget-action" aria-label="Clear chat">
-            <i class="fas fa-trash"></i>
           </button>
         </div>
       </div>
-      <div id="ai-widget-messages" class="ai-widget-body">
-        <!-- Messages will be populated by JavaScript -->
+      <div class="ai-widget-body" id="ai-widget-body">
+        <!-- AI chat messages will appear here -->
       </div>
       <div class="ai-widget-footer">
-        <textarea 
-          id="ai-widget-input" 
-          class="ai-widget-input" 
-          placeholder="Spyrja gervigreind um vaktir..." 
-          rows="1"
-        ></textarea>
-        <button id="ai-widget-send" class="ai-widget-send" disabled>
+        <textarea class="ai-widget-input" id="ai-widget-input" placeholder="Ask me about scheduling..."></textarea>
+        <button class="ai-widget-send" id="ai-widget-send">
           <i class="fas fa-paper-plane"></i>
         </button>
       </div>
     </div>
-    
-    <!-- AI Widget Toggle Button -->
-    <button id="ai-widget-toggle" class="ai-toggle-btn">
-      <i class="fas fa-robot"></i>
-    </button>
-    
-    <!-- Toast Container -->
-    <div id="toast-container" class="toast-container">
-      <!-- Toasts will be added here dynamically -->
-    </div>
   </div>
 
   <!-- Load JavaScript modules -->
-  <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
-  <script src="scripts/roles.js" type="module"></script>
-  <script src="scripts/common.js" type="module"></script>
-  <script src="scripts/schedule.js" type="module"></script>
+  <script src="scripts/main.js" type="module"></script>
   <script src="scripts/ai-widget.js" type="module"></script>
+  <script src="scripts/schedule.js" type="module"></script>
 </body>
 </html>
