@@ -7,10 +7,31 @@
     { "source": "/dashboard", "destination": "/dashboard.html" },
     { "source": "/staff", "destination": "/staff.html" },
     { "source": "/patients", "destination": "/patients.html" },
+    { "source": "/schedule", "destination": "/schedule.html" },
     { "source": "/inventory", "destination": "/inventory.html" },
     { "source": "/reports", "destination": "/reports.html" },
     { "source": "/settings", "destination": "/settings.html" },
     { "source": "/unauthorized", "destination": "/unauthorized.html" },
     { "source": "/404", "destination": "/404.html" }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=0, must-revalidate"
+        }
+      ]
+    },
+    {
+      "source": "/assets/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    }
   ]
 }
