@@ -754,8 +754,8 @@ function addChatMessage(sender, message) {
     
     chatMessages.appendChild(messageElement);
     
-    // Scroll to bottom
-    chatMessages.scrollTop = chatMessages.scrollHeight;
+    // Scroll to bottom to show new message
+    scrollToBottom();
 }
 
 // Add typing indicator
@@ -844,6 +844,58 @@ function formatAIResponse(response) {
         .replace(/th/g, 'þ')
         .replace(/ae/g, 'æ')
         .replace(/oe/g, 'ö');
+}
+
+/**
+ * Scroll the chat container to the bottom
+ */
+function scrollToBottom() {
+    const chatMessages = document.getElementById('chat-messages');
+    if (chatMessages) {
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+}
+
+/**
+ * Format timestamp for display in chat messages
+ * @param {Date} timestamp - The timestamp to format
+ * @returns {string} The formatted time string
+ */
+function formatTime(timestamp) {
+    if (!(timestamp instanceof Date)) {
+        timestamp = new Date(timestamp);
+    }
+    
+    return timestamp.toLocaleTimeString('is-IS', { 
+        hour: '2-digit', 
+        minute: '2-digit'
+    });
+}
+
+/**
+ * Save chat message to history
+ * @param {string} sender - The sender of the message
+ * @param {string} message - The message content
+ * @param {Date} timestamp - The message timestamp
+ */
+function saveChatMessage(sender, message, timestamp) {
+    // Get existing chat history from localStorage or initialize empty array
+    const chatHistory = JSON.parse(localStorage.getItem('chatHistory') || '[]');
+    
+    // Add new message
+    chatHistory.push({
+        sender,
+        message,
+        timestamp: timestamp.toISOString()
+    });
+    
+    // Keep only the most recent 50 messages
+    while (chatHistory.length > 50) {
+        chatHistory.shift();
+    }
+    
+    // Save back to localStorage
+    localStorage.setItem('chatHistory', JSON.stringify(chatHistory));
 }
 
 // Show toast notification
