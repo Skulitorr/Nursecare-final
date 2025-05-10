@@ -6,38 +6,88 @@
     <meta name="description" content="NurseCare AI - Vaktaplan fyrir hjúkrunarheimili">
     <title>Vaktaplan - NurseCare AI</title>
     
-    <!-- Inline critical CSS to ensure page is never unstyled -->
+    <!-- Critical CSS inlined completely to ensure styling works regardless of external file loading -->
     <style>
+        /* Essential Variables and Base Styling */
         :root {
-            /* Essential variables */
             --primary: #3a86ff;
-            --text-default: #484848;
+            --primary-light: #6ea8ff;
+            --primary-dark: #2a75f3;
+            --secondary: #6c757d;
+            --secondary-light: #8a929a;
+            --secondary-dark: #5a6268;
+            --success: #28a745;
+            --danger: #dc3545;
+            --warning: #ffc107;
+            --info: #17a2b8;
+            --ai-purple: #7209b7;
             --text-dark: #333333;
+            --text-default: #484848;
             --text-light: #ffffff;
-            --card-bg: #ffffff;
+            --text-muted: #666666;
             --body-bg: #f8f9fa;
+            --card-bg: #ffffff;
             --border-color: #e0e0e0;
+            --border-color-light: #f0f0f0;
+            --border-radius: 8px;
+            --border-radius-sm: 4px;
+            --border-width: 1px;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.12);
+            --header-bg: #f8f9fa;
         }
         
-        body {
+        /* Reset & Base Styles */
+        * {
+            box-sizing: border-box;
             margin: 0;
             padding: 0;
+        }
+        
+        html, body {
             font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            color: var(--text-default);
             background-color: var(--body-bg);
+            color: var(--text-default);
             line-height: 1.5;
         }
         
+        h1, h2, h3, h4, h5, h6 {
+            color: var(--text-dark);
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+        
+        p {
+            margin-bottom: 1rem;
+        }
+        
+        a {
+            color: var(--primary);
+            text-decoration: none;
+        }
+        
+        a:hover {
+            color: var(--primary-dark);
+        }
+        
+        /* Layout */
         .container {
             max-width: 1200px;
             margin: 0 auto;
             padding: 0 1rem;
         }
         
+        .main-content {
+            padding-bottom: 3rem;
+        }
+        
+        /* Header Styles */
         .site-header {
             background-color: var(--card-bg);
-            border-bottom: 1px solid var(--border-color);
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border-bottom: var(--border-width) solid var(--border-color);
+            position: sticky;
+            top: 0;
+            z-index: 20;
+            box-shadow: var(--shadow-sm);
         }
         
         .header-container {
@@ -45,14 +95,70 @@
             align-items: center;
             justify-content: space-between;
             padding: 0.5rem 1rem;
+            max-width: 1400px;
+            margin: 0 auto;
         }
         
+        .logo-container {
+            display: flex;
+            align-items: center;
+        }
+        
+        .logo {
+            height: 40px;
+            width: auto;
+        }
+        
+        /* Navigation */
+        .main-nav ul {
+            display: flex;
+            gap: 1rem;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .main-nav a {
+            display: block;
+            padding: 0.5rem;
+            color: var(--text-default);
+            font-weight: 500;
+        }
+        
+        .main-nav a:hover {
+            color: var (--primary);
+        }
+        
+        .main-nav a.active {
+            color: var(--primary);
+            font-weight: 600;
+            position: relative;
+        }
+        
+        .main-nav a.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0.5rem;
+            right: 0.5rem;
+            height: 2px;
+            background-color: var(--primary);
+            border-radius: 999px;
+        }
+        
+        /* Button Styles */
         .btn {
             padding: 0.5rem 1rem;
-            border-radius: 4px;
+            border-radius: var(--border-radius);
             border: none;
             font-weight: 500;
             cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+            line-height: 1.5;
+            white-space: nowrap;
         }
         
         .btn-primary {
@@ -60,10 +166,61 @@
             color: var(--text-light);
         }
         
+        .btn-primary:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-sm);
+        }
+        
         .btn-outline {
             background-color: transparent;
             color: var(--text-default);
-            border: 1px solid var(--border-color);
+            border: var(--border-width) solid var(--border-color);
+        }
+        
+        .btn-outline:hover {
+            background-color: var(--body-bg);
+            color: var(--primary);
+        }
+        
+        .btn-sm {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.75rem;
+        }
+        
+        /* User Controls */
+        .user-controls {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            padding: 0.25rem 0.5rem;
+            border-radius: var(--border-radius);
+        }
+        
+        .user-profile img {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        
+        /* Schedule Table */
+        .schedule-wrapper {
+            background-color: var(--card-bg);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-sm);
+            overflow: hidden;
+            margin-bottom: 2rem;
+            border: var(--border-width) solid var(--border-color);
+            max-height: 600px;
+            position: relative;
         }
         
         .schedule-table {
@@ -72,41 +229,211 @@
             border-spacing: 0;
         }
         
-        .schedule-table th, .schedule-table td {
-            padding: 0.75rem;
-            border-bottom: 1px solid var(--border-color);
+        .schedule-table th,
+        .schedule-table td {
+            padding: 0.5rem;
+            border-bottom: var(--border-width) solid var(--border-color);
+            text-align: center;
         }
         
-        /* Emergency fallback styles */
-        .emergency-fallback {
-            background: #fff5f5;
+        .schedule-table th:first-child,
+        .schedule-table td:first-child {
+            text-align: left;
+            padding-left: 1rem;
+        }
+        
+        /* Breadcrumbs */
+        .breadcrumbs {
+            padding: 0.5rem 0;
+            background-color: var(--card-bg);
+            border-bottom: var(--border-width) solid var(--border-color-light);
+        }
+        
+        .breadcrumb-list {
+            display: flex;
+            align-items: center;
+            list-style: none;
+            font-size: 0.875rem;
+        }
+        
+        .breadcrumb-list li {
+            display: flex;
+            align-items: center;
+        }
+        
+        .breadcrumb-list li:not(:last-child)::after {
+            content: '/';
+            margin: 0 0.5rem;
+            color: var(--text-muted);
+        }
+        
+        /* Page Header */
+        .page-header {
+            background-color: var(--card-bg);
+            padding: 1.5rem 0;
+            margin-bottom: 1.5rem;
+            border-bottom: var(--border-width) solid var(--border-color);
+        }
+        
+        .page-header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        /* Quick Stats */
+        .quick-stats {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            background-color: var(--card-bg);
+            border-radius: var(--border-radius);
+            padding: 0.5rem 1rem;
+            border: var(--border-width) solid var(--border-color);
+        }
+        
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: var(--border-radius-sm);
+        }
+        
+        /* Schedule Controls */
+        .schedule-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+            background-color: var(--card-bg);
+            border-radius: var(--border-radius);
+            padding: 1rem;
+            border: var(--border-width) solid var(--border-color);
+        }
+        
+        /* Filter UI */
+        .schedule-filters {
+            margin-bottom: 1.5rem;
+            background-color: var(--card-bg);
+            border-radius: var(--border-radius);
+            border: var(--border-width) solid var(--border-color);
+        }
+        
+        .filter-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem 1rem;
+            background-color: var(--header-bg);
+            border-bottom: var(--border-width) solid var(--border-color);
+        }
+        
+        .filter-body {
+            padding: 1rem;
+        }
+        
+        .filter-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .filter-group {
+            flex: 1;
+            min-width: 180px;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 0.5rem;
+            border: var(--border-width) solid var(--border-color);
+            border-radius: var(--border-radius-sm);
+            font-family: inherit;
+            background-color: var(--card-bg);
+            color: var(--text-default);
+        }
+        
+        /* Error Message Styles */
+        .error-message {
+            background: #fff8f8;
             border: 2px solid #ff6b6b;
-            padding: 15px;
-            margin: 20px;
-            border-radius: 5px;
             color: #d32f2f;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        
+        .loading-indicator {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            font-weight: bold;
+            color: var(--primary);
+        }
+        
+        /* Debug Panel */
+        .debug-panel {
+            position: fixed;
+            bottom: 0;
+            right: 0;
+            width: 300px;
+            max-height: 200px;
+            background: rgba(0, 0, 0, 0.8);
+            color: #fff;
+            padding: 10px;
+            font-family: monospace;
+            font-size: 12px;
+            overflow: auto;
+            z-index: 9999;
+            display: none;
+        }
+        
+        /* Utility Classes */
+        .text-danger {
+            color: var(--danger);
+        }
+        
+        .text-success {
+            color: var(--success);
+        }
+        
+        .text-center {
+            text-align: center;
         }
     </style>
-    
-    <!-- External Styles -->
-    <link rel="stylesheet" href="styles/main.css">
-    <link rel="stylesheet" href="styles/schedule.css">
-    
-    <!-- Font Awesome for icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <!-- Google Fonts - Inter -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
-    <!-- Favicons - Updated to use SVG instead of ICO -->
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Still include original CSS files as enhancement, not requirement -->
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="stylesheet" href="styles/schedule.css">
+    
+    <!-- Favicons - Updated to use SVG -->
     <link rel="icon" href="assets/icons/favicon.svg" type="image/svg+xml">
-    <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
 </head>
 <body>
+    <!-- Error Monitor -->
+    <div id="error-message" class="error-message" style="display:none;"></div>
+    
+    <!-- Debug Panel -->
+    <div id="debug-panel" class="debug-panel"></div>
+    
     <header class="site-header">
         <div class="header-container">
             <div class="logo-container">
-                <img src="assets/icons/logo.svg" alt="NurseCare AI Logo" class="logo">
+                <img src="assets/icons/logo.svg" alt="NurseCare AI Logo" class="logo" onerror="this.src='data:image/svg+xml;charset=utf-8,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 100 40\'%3E%3Ctext x=\'10\' y=\'25\' font-family=\'Arial\' font-size=\'20\' fill=\'%233a86ff\'%3ENurseCare AI%3C/text%3E%3C/svg%3E'">
             </div>
             <nav class="main-nav">
                 <ul>
@@ -116,135 +443,16 @@
                     <li><a href="schedule.html" class="active">Vaktaplan</a></li>
                     <li><a href="inventory.html">Birgðir</a></li>
                     <li><a href="reports.html">Skýrslur</a></li>
-                    <li class="dropdown">
-                        <a href="#" class="dropdown-toggle">Meira <i class="fas fa-chevron-down"></i></a>
-                        <ul class="dropdown-menu">
-                            <li><a href="settings.html">Stillingar</a></li>
-                            <li><a href="help.html">Hjálp</a></li>
-                            <li><a href="feedback.html">Endurgjöf</a></li>
-                        </ul>
-                    </li>
                 </ul>
             </nav>
             <div class="user-controls">
-                <button class="search-btn" id="global-search-toggle">
-                    <i class="fas fa-search"></i>
-                </button>
-                <button class="notification-btn" id="notification-toggle">
-                    <i class="fas fa-bell"></i>
-                    <span class="notification-count">3</span>
-                </button>
-                <button class="theme-toggle" id="theme-toggle">
-                    <i class="fas fa-moon"></i>
-                </button>
-                <div class="user-profile dropdown">
-                    <div class="profile-toggle">
-                        <img src="assets/avatars/nurse-avatar.svg" alt="User Avatar">
-                        <span class="user-name">Anna S.</span>
-                        <i class="fas fa-chevron-down"></i>
-                    </div>
-                    <div class="profile-dropdown">
-                        <div class="profile-header">
-                            <img src="assets/avatars/nurse-avatar.svg" alt="User Avatar" class="large-avatar">
-                            <div class="profile-info">
-                                <h4>Anna Sigurðardóttir</h4>
-                                <p>Vaktstjóri</p>
-                                <span class="online-status">Í vakt</span>
-                            </div>
-                        </div>
-                        <ul class="profile-menu">
-                            <li><a href="profile.html"><i class="fas fa-user"></i> Mitt svæði</a></li>
-                            <li><a href="messages.html"><i class="fas fa-envelope"></i> Skilaboð</a></li>
-                            <li><a href="preferences.html"><i class="fas fa-cog"></i> Stillingar</a></li>
-                            <li class="divider"></li>
-                            <li><a href="login.html" class="logout-btn"><i class="fas fa-sign-out-alt"></i> Útskráning</a></li>
-                        </ul>
-                    </div>
+                <div class="user-profile">
+                    <img src="assets/avatars/nurse-avatar.svg" alt="User Avatar" onerror="this.src='data:image/svg+xml;charset=utf-8,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 40 40\'%3E%3Ccircle cx=\'20\' cy=\'20\' r=\'20\' fill=\'%233a86ff\'/%3E%3Ctext x=\'20\' y=\'25\' font-family=\'Arial\' font-size=\'14\' fill=\'white\' text-anchor=\'middle\'%3EAS%3C/text%3E%3C/svg%3E'">
+                    <span class="user-name">Anna S.</span>
                 </div>
             </div>
         </div>
     </header>
-    
-    <!-- Global Search -->
-    <div class="global-search" id="global-search">
-        <div class="search-container">
-            <div class="search-header">
-                <h3>Leita</h3>
-                <button class="close-search" id="close-search"><i class="fas fa-times"></i></button>
-            </div>
-            <div class="search-input-container">
-                <i class="fas fa-search search-icon"></i>
-                <input type="text" id="search-input" placeholder="Leita að starfsfólki, deildum, vöktum..." autofocus>
-                <button class="clear-search" id="clear-search"><i class="fas fa-times-circle"></i></button>
-            </div>
-            <div class="search-options">
-                <button class="search-option active" data-type="all">Allt</button>
-                <button class="search-option" data-type="staff">Starfsfólk</button>
-                <button class="search-option" data-type="departments">Deildir</button>
-                <button class="search-option" data-type="shifts">Vaktir</button>
-            </div>
-            <div class="search-results" id="search-results">
-                <div class="search-placeholder">
-                    <i class="fas fa-search"></i>
-                    <p>Sláðu inn leitarorð til að hefja leit</p>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Notification Panel -->
-    <div class="notification-panel" id="notification-panel">
-        <div class="notification-header">
-            <h3>Tilkynningar</h3>
-            <div class="notification-actions">
-                <button class="mark-all-read" id="mark-all-read">Merkja allt sem lesið</button>
-                <button class="close-notifications" id="close-notifications"><i class="fas fa-times"></i></button>
-            </div>
-        </div>
-        <div class="notification-tabs">
-            <button class="notification-tab active" data-tab="all">Allar <span class="badge">3</span></button>
-            <button class="notification-tab" data-tab="unread">Ólesnar <span class="badge">2</span></button>
-            <button class="notification-tab" data-tab="alerts">Viðvaranir <span class="badge">1</span></button>
-        </div>
-        <div class="notification-list">
-            <div class="notification-item unread alert">
-                <div class="notification-icon"><i class="fas fa-exclamation-triangle"></i></div>
-                <div class="notification-content">
-                    <h4>Mönnunarvandamál</h4>
-                    <p>Næturvaktin á fimmtudag er undirmönnuð.</p>
-                    <span class="notification-time">Fyrir 15 mínútum</span>
-                </div>
-                <div class="notification-actions">
-                    <button class="notification-action"><i class="fas fa-ellipsis-v"></i></button>
-                </div>
-            </div>
-            <div class="notification-item unread">
-                <div class="notification-icon"><i class="fas fa-user-plus"></i></div>
-                <div class="notification-content">
-                    <h4>Nýr starfsmaður bætt við</h4>
-                    <p>Kristín Jónsdóttir (RN) hefur verið bætt við starfsmannalista.</p>
-                    <span class="notification-time">Fyrir 2 klukkustundum</span>
-                </div>
-                <div class="notification-actions">
-                    <button class="notification-action"><i class="fas fa-ellipsis-v"></i></button>
-                </div>
-            </div>
-            <div class="notification-item">
-                <div class="notification-icon"><i class="fas fa-exchange-alt"></i></div>
-                <div class="notification-content">
-                    <h4>Vaktaskipti samþykkt</h4>
-                    <p>Jón Gunnarsson hefur skipt vöktum við Guðrúnu Pálsdóttur á föstudag.</p>
-                    <span class="notification-time">Fyrir 1 degi</span>
-                </div>
-                <div class="notification-actions">
-                    <button class="notification-action"><i class="fas fa-ellipsis-v"></i></button>
-                </div>
-            </div>
-        </div>
-        <div class="notification-footer">
-            <a href="notifications.html" class="view-all">Sjá allar tilkynningar</a>
-        </div>
-    </div>
     
     <main class="main-content">
         <!-- Breadcrumbs -->
@@ -291,841 +499,227 @@
                     <i class="fas fa-users"></i>
                     <span>Starfsfólk í vakt: 5/7</span>
                 </div>
-                <div class="stat-item urgent">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    <span>Næturvakt þarfnast athygli</span>
-                </div>
             </div>
             
             <!-- Schedule Controls -->
             <div class="schedule-controls">
-                <div class="date-controls">
+                <div>
                     <button class="btn btn-outline" id="prev-week">
                         <i class="fas fa-chevron-left"></i> Fyrri vika
                     </button>
-                    <div class="date-selector">
-                        <div class="current-week" id="current-week">6. maí - 12. maí 2025</div>
-                        <div class="date-picker-toggle" id="date-picker-toggle">
-                            <i class="fas fa-calendar-alt"></i>
-                        </div>
-                    </div>
+                    <span id="current-week">6. maí - 12. maí 2025</span>
                     <button class="btn btn-outline" id="next-week">
                         Næsta vika <i class="fas fa-chevron-right"></i>
                     </button>
                 </div>
-                
-                <div class="schedule-actions">
-                    <div class="btn-group">
-                        <button class="btn btn-outline" id="today-btn">
-                            <i class="fas fa-calendar-day"></i> Í dag
-                        </button>
-                        <button class="btn btn-outline dropdown-toggle" id="view-toggle">
-                            <span>Vikuyfirlit</span> <i class="fas fa-chevron-down"></i>
-                        </button>
-                        <div class="dropdown-menu view-options">
-                            <a href="#" data-view="week" class="active">Vikuyfirlit</a>
-                            <a href="#" data-view="day">Dagyfirlit</a>
-                            <a href="#" data-view="month">Mánaðaryfirlit</a>
-                            <a href="#" data-view="list">Listasýn</a>
-                        </div>
-                    </div>
-                    
-                    <div class="btn-group">
-                        <button class="btn btn-outline" id="print-schedule">
-                            <i class="fas fa-print"></i> Prenta
-                        </button>
-                        <button class="btn btn-outline dropdown-toggle" id="export-dropdown">
-                            <i class="fas fa-file-export"></i> Flytja út <i class="fas fa-chevron-down"></i>
-                        </button>
-                        <div class="dropdown-menu export-options">
-                            <a href="#" data-format="csv">CSV skrá</a>
-                            <a href="#" data-format="excel">Excel skrá</a>
-                            <a href="#" data-format="pdf">PDF skjal</a>
-                            <a href="#" data-format="ical">iCalendar (.ics)</a>
-                        </div>
-                    </div>
-                    
-                    <button id="ai-optimize-btn" class="btn btn-primary pulse-animation">
-                        <i class="fas fa-brain"></i> Betrumbæta með gervigreind
-                    </button>
-                </div>
-            </div>
-            
-            <!-- Schedule Filters -->
-            <div class="schedule-filters">
-                <div class="filter-header">
-                    <h3><i class="fas fa-filter"></i> Síur og leit</h3>
-                    <button class="toggle-filters" id="toggle-filters">
-                        <span class="toggle-text">Sýna minna</span>
-                        <i class="fas fa-chevron-up"></i>
-                    </button>
-                </div>
-                
-                <div class="filter-body">
-                    <div class="filter-row">
-                        <div class="filter-group">
-                            <label for="department-filter">Deild:</label>
-                            <select id="department-filter" class="form-control">
-                                <option value="all">Allar deildir</option>
-                                <option value="medical">Læknisfræðileg</option>
-                                <option value="surgical">Skurðlækningar</option>
-                                <option value="rehabilitation">Endurhæfing</option>
-                                <option value="geriatric">Öldrunardeild</option>
-                                <option value="pediatric">Barnahjúkrun</option>
-                            </select>
-                        </div>
-                        <div class="filter-group">
-                            <label for="staff-filter">Starfsfólk:</label>
-                            <select id="staff-filter" class="form-control">
-                                <option value="all">Allt starfsfólk</option>
-                                <option value="nurses">Hjúkrunarfræðingar</option>
-                                <option value="doctors">Læknar</option>
-                                <option value="assistants">Aðstoðarfólk</option>
-                                <option value="therapists">Sjúkraþjálfarar</option>
-                                <option value="staff-custom">Sérsniðið val...</option>
-                            </select>
-                        </div>
-                        <div class="filter-group">
-                            <label for="shift-filter">Vaktatýpa:</label>
-                            <select id="shift-filter" class="form-control">
-                                <option value="all">Allar vaktir</option>
-                                <option value="08-16">Morgunvakt (08-16)</option>
-                                <option value="13-21">Dagvakt (13-21)</option>
-                                <option value="21-08">Næturvakt (21-08)</option>
-                                <option value="hl">Frídagar</option>
-                                <option value="sick">Veikindi</option>
-                            </select>
-                        </div>
-                    </div>
-                    
-                    <div class="filter-row">
-                        <div class="filter-group">
-                            <label for="qualification-filter">Hæfniskröfur:</label>
-                            <select id="qualification-filter" class="form-control">
-                                <option value="all">Allar hæfniskröfur</option>
-                                <option value="medication">Lyfjagjöf</option>
-                                <option value="advanced-care">Sérhæfð umönnun</option>
-                                <option value="emergency">Bráðahjálp</option>
-                                <option value="leadership">Stjórnun</option>
-                            </select>
-                        </div>
-                        <div class="filter-group">
-                            <label for="status-filter">Staða:</label>
-                            <select id="status-filter" class="form-control">
-                                <option value="all">Allar stöður</option>
-                                <option value="scheduled">Skipulagt</option>
-                                <option value="conflict">Árekstrar</option>
-                                <option value="unfilled">Óskipað</option>
-                                <option value="pending">Í bið</option>
-                            </select>
-                        </div>
-                        <div class="filter-group search-group">
-                            <label for="schedule-search">Leit:</label>
-                            <div class="search-input">
-                                <input type="text" id="schedule-search" class="form-control" placeholder="Leita í vaktaplani...">
-                                <button class="search-clear" id="clear-schedule-search"><i class="fas fa-times"></i></button>
-                                <button class="search-button" id="submit-schedule-search"><i class="fas fa-search"></i></button>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="filter-actions">
-                        <button class="btn btn-sm btn-outline" id="reset-filters">
-                            <i class="fas fa-undo"></i> Endurstilla síur
-                        </button>
-                        <button class="btn btn-sm btn-primary" id="apply-filters">
-                            <i class="fas fa-check"></i> Beita síum
-                        </button>
-                        <button class="btn btn-sm btn-outline" id="save-filter-preset">
-                            <i class="fas fa-save"></i> Vista síu
-                        </button>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Active Filters -->
-            <div class="active-filters" id="active-filters">
-                <div class="active-filter-label">Virkar síur:</div>
-                <div class="active-filter-tags">
-                    <div class="filter-tag">
-                        Deild: Læknisfræðileg <i class="fas fa-times"></i>
-                    </div>
-                    <div class="filter-tag">
-                        Starfsfólk: Hjúkrunarfræðingar <i class="fas fa-times"></i>
-                    </div>
-                </div>
-                <button class="clear-all-filters">Hreinsa allar síur</button>
-            </div>
-            
-            <!-- Schedule Legend -->
-            <div class="schedule-legend">
-                <h3>Skýringar á vöktum</h3>
-                <div class="legend-items">
-                    <div class="legend-item morning">
-                        <div class="legend-color"></div>
-                        <div class="legend-label">Morgunvakt (08–16)</div>
-                    </div>
-                    <div class="legend-item evening">
-                        <div class="legend-color"></div>
-                        <div class="legend-label">Dagvakt (13–21)</div>
-                    </div>
-                    <div class="legend-item night">
-                        <div class="legend-color"></div>
-                        <div class="legend-label">Næturvakt (21–08)</div>
-                    </div>
-                    <div class="legend-item holiday">
-                        <div class="legend-color"></div>
-                        <div class="legend-label">Frídagur (HL)</div>
-                    </div>
-                    <div class="legend-item sick">
-                        <div class="legend-color"></div>
-                        <div class="legend-label">Veikindi (Veikur)</div>
-                    </div>
-                    <div class="legend-item training">
-                        <div class="legend-color"></div>
-                        <div class="legend-label">Þjálfun (TR)</div>
-                    </div>
-                    <div class="legend-item meeting">
-                        <div class="legend-color"></div>
-                        <div class="legend-label">Fundur (MT)</div>
-                    </div>
-                </div>
-                <div class="legend-indicator">
-                    <div class="indicator conflict">
-                        <div class="indicator-icon"><i class="fas fa-exclamation-triangle"></i></div>
-                        <div class="indicator-label">Árekstrar</div>
-                    </div>
-                    <div class="indicator shortage">
-                        <div class="indicator-icon"><i class="fas fa-user-slash"></i></div>
-                        <div class="indicator-label">Undirmönnun</div>
-                    </div>
-                    <div class="indicator overtime">
-                        <div class="indicator-icon"><i class="fas fa-clock"></i></div>
-                        <div class="indicator-label">Yfirvinna</div>
-                    </div>
-                    <div class="indicator ai-suggestion">
-                        <div class="indicator-icon"><i class="fas fa-robot"></i></div>
-                        <div class="indicator-label">AI Tillaga</div>
-                    </div>
-                </div>
+                <button id="ai-optimize-btn" class="btn btn-primary">
+                    <i class="fas fa-brain"></i> Betrumbæta með gervigreind
+                </button>
             </div>
             
             <!-- Schedule Wrapper -->
             <div class="schedule-wrapper">
-                <div class="schedule-toolbar">
-                    <div class="toolbar-section">
-                        <button class="toolbar-button" id="collapse-all-btn" title="Fela allar deildir">
-                            <i class="fas fa-compress-alt"></i>
-                        </button>
-                        <button class="toolbar-button" id="expand-all-btn" title="Sýna allar deildir">
-                            <i class="fas fa-expand-alt"></i>
-                        </button>
-                    </div>
-                    <div class="toolbar-section">
-                        <button class="toolbar-button" id="zoom-out-btn" title="Minnka">
-                            <i class="fas fa-search-minus"></i>
-                        </button>
-                        <button class="toolbar-button" id="zoom-reset-btn" title="Endurstilla stærð">
-                            <i class="fas fa-sync-alt"></i>
-                        </button>
-                        <button class="toolbar-button" id="zoom-in-btn" title="Stækka">
-                            <i class="fas fa-search-plus"></i>
-                        </button>
-                    </div>
-                    <div class="toolbar-section">
-                        <button class="toolbar-button" id="fullscreen-btn" title="Fullur skjár">
-                            <i class="fas fa-expand"></i>
-                        </button>
-                    </div>
-                </div>
                 <div id="schedule-container">
-                    <!-- Schedule table will be rendered here by JavaScript -->
-                </div>
-            </div>
-            
-            <!-- Staff Availability -->
-            <div class="staff-availability">
-                <div class="section-header">
-                    <h3><i class="fas fa-users"></i> Tiltækileiki starfsfólks</h3>
-                    <div class="section-actions">
-                        <button class="btn btn-sm btn-outline" id="request-staff-btn">
-                            <i class="fas fa-plus"></i> Biðja um starfsmann
-                        </button>
-                        <button class="refresh-btn" id="refresh-availability">
-                            <i class="fas fa-sync-alt"></i>
-                        </button>
-                    </div>
-                </div>
-                <div class="staff-availability-list">
-                    <div class="staff-search">
-                        <input type="text" class="form-control" placeholder="Leita að starfsmanni..." id="staff-search">
-                        <i class="fas fa-search"></i>
-                    </div>
-                    <div class="staff-list">
-                        <div class="staff-item available">
-                            <div class="staff-avatar">HJ</div>
-                            <div class="staff-info">
-                                <div class="staff-name">Helga Jónsdóttir</div>
-                                <div class="staff-role">Hjúkrunarfræðingur (RN)</div>
-                            </div>
-                            <div class="staff-status">
-                                <span class="status-badge available">Tiltæk</span>
-                                <span class="status-time">Í dag 13:00-21:00</span>
-                            </div>
-                            <div class="staff-actions">
-                                <button class="btn btn-sm btn-outline">Úthluta</button>
-                            </div>
-                        </div>
-                        <div class="staff-item busy">
-                            <div class="staff-avatar">JG</div>
-                            <div class="staff-info">
-                                <div class="staff-name">Jón Gunnarsson</div>
-                                <div class="staff-role">Hjúkrunarfræðingur (RN)</div>
-                            </div>
-                            <div class="staff-status">
-                                <span class="status-badge busy">Í vakt</span>
-                                <span class="status-time">Til 16:00</span>
-                            </div>
-                            <div class="staff-actions">
-                                <button class="btn btn-sm btn-outline" disabled>Úthluta</button>
-                            </div>
-                        </div>
-                        <div class="staff-item unavailable">
-                            <div class="staff-avatar">SM</div>
-                            <div class="staff-info">
-                                <div class="staff-name">Sigrún Magnúsdóttir</div>
-                                <div class="staff-role">Læknir (MD)</div>
-                            </div>
-                            <div class="staff-status">
-                                <span class="status-badge unavailable">Í fríi</span>
-                                <span class="status-time">Til 9. maí</span>
-                            </div>
-                            <div class="staff-actions">
-                                <button class="btn btn-sm btn-outline" disabled>Úthluta</button>
-                            </div>
-                        </div>
-                        <div class="staff-item available">
-                            <div class="staff-avatar">EB</div>
-                            <div class="staff-info">
-                                <div class="staff-name">Eva Björnsdóttir</div>
-                                <div class="staff-role">Sjúkraþjálfari (PT)</div>
-                            </div>
-                            <div class="staff-status">
-                                <span class="status-badge available">Tiltæk</span>
-                                <span class="status-time">Í dag & á morgun</span>
-                            </div>
-                            <div class="staff-actions">
-                                <button class="btn btn-sm btn-outline">Úthluta</button>
-                            </div>
-                        </div>
-                        <div class="staff-item away">
-                            <div class="staff-avatar">MT</div>
-                            <div class="staff-info">
-                                <div class="staff-name">María Þórðardóttir</div>
-                                <div class="staff-role">Hjúkrunarfræðingur (RN)</div>
-                            </div>
-                            <div class="staff-status">
-                                <span class="status-badge away">Veik</span>
-                                <span class="status-time">Til 8. maí</span>
-                            </div>
-                            <div class="staff-actions">
-                                <button class="btn btn-sm btn-outline" disabled>Úthluta</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Schedule Statistics -->
-            <div class="schedule-stats-container">
-                <div class="section-header">
-                    <h3><i class="fas fa-chart-bar"></i> Tölfræði vaktaplans</h3>
-                    <div class="section-actions">
-                        <button class="btn btn-sm btn-outline" id="detailed-stats-btn">
-                            <i class="fas fa-external-link-alt"></i> Ítarlegar upplýsingar
-                        </button>
-                    </div>
-                </div>
-                <div class="schedule-stats">
-                    <div class="stat-card">
-                        <div class="stat-icon"><i class="fas fa-user-nurse"></i></div>
-                        <div class="stat-value">21</div>
-                        <div class="stat-label">Heildarfjöldi vakta</div>
-                        <div class="stat-trend positive">
-                            <i class="fas fa-arrow-up"></i> 5% frá síðustu viku
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon"><i class="fas fa-check-circle"></i></div>
-                        <div class="stat-value">18/21</div>
-                        <div class="stat-label">Úthlutaðar vaktir</div>
-                        <div class="stat-progress">
-                            <div class="progress-bar" style="width: 86%"></div>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon"><i class="fas fa-percent"></i></div>
-                        <div class="stat-value">86%</div>
-                        <div class="stat-label">Mönnunarhlutfall</div>
-                        <div class="stat-trend positive">
-                            <i class="fas fa-arrow-up"></i> 3% frá síðustu viku
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon"><i class="fas fa-exclamation-triangle"></i></div>
-                        <div class="stat-value">2</div>
-                        <div class="stat-label">Árekstrar</div>
-                        <div class="stat-trend negative">
-                            <i class="fas fa-arrow-down"></i> 1 frá síðustu viku
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon"><i class="fas fa-clock"></i></div>
-                        <div class="stat-value">18.5</div>
-                        <div class="stat-label">Meðaltími vinnuvikunnar</div>
-                        <div class="stat-detail">Á hvern starfsmann</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon"><i class="fas fa-balance-scale"></i></div>
-                        <div class="stat-value">92%</</div>
-                        <div class="stat-label">Jafnvægi vakta</div>
-                        <div class="stat-trend positive">
-                            <i class="fas fa-arrow-up"></i> 4% frá síðasta mánuði
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon"><i class="fas fa-star"></i></div>
-                        <div class="stat-value">94%</div>
-                        <div class="stat-label">Óskir uppfylltar</div>
-                        <div class="stat-detail">25 af 27 óskum</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon"><i class="fas fa-cogs"></i></div>
-                        <div class="stat-value">5</div>
-                        <div class="stat-label">AI aðgerðir teknar</div>
-                        <div class="stat-trend positive">
-                            <i class="fas fa-arrow-up"></i> 2 frá síðustu viku
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- AI Recommendations -->
-            <div class="ai-recommendations">
-                <div class="section-header">
-                    <h3><i class="fas fa-robot"></i> Tillögur frá gervigreind</h3>
-                    <div class="section-actions">
-                        <div class="ai-confidence">
-                            <span class="confidence-label">Öryggi:</span>
-                            <div class="confidence-meter high">
-                                <div class="confidence-level" style="width: 92%"></div>
-                            </div>
-                            <span class="confidence-value">92%</span>
-                        </div>
-                        <button class="btn btn-sm btn-outline" id="apply-all-suggestions">
-                            <i class="fas fa-magic"></i> Beita öllum tillögum
-                        </button>
-                        <button class="refresh-btn" id="refresh-recommendations">
-                            <i class="fas fa-sync-alt"></i>
-                        </button>
-                    </div>
-                </div>
-                <div class="recommendations-container">
-                    <div class="ai-suggestion">
-                        <div class="suggestion-priority high">
-                            <i class="fas fa-arrow-circle-up"></i>
-                        </div>
-                        <div class="ai-suggestion-header">
-                            <div class="ai-suggestion-icon">
-                                <i class="fas fa-lightbulb"></i>
-                            </div>
-                            <div class="ai-suggestion-title">Bestun á vaktaskipulagi</div>
-                            <div class="ai-suggestion-meta">
-                                <span class="suggestion-confidence">92% öryggi</span>
-                                <span class="suggestion-time">Fyrir 15 mín</span>
-                            </div>
-                        </div>
-                        <div class="ai-suggestion-content">
-                            <p>Sigrún Magnúsdóttir hefur unnið 5 næturvaktir í röð. Íhugið að gefa henni frí á föstudagskvöldið fyrir betri endurheimt og til að draga úr hættu á þreytu. Ég get fundið annan starfsmann til að taka vaktina.</p>
-                            <div class="suggestion-details">
-                                <div class="suggestion-detail">
-                                    <span class="detail-label">Núverandi staða:</span>
-                                    <span class="detail-value">5 næturvaktir í röð (Mán-Fös)</span>
-                                </div>
-                                <div class="suggestion-detail">
-                                    <span class="detail-label">Tillaga:</span>
-                                    <span class="detail-value">Gefa frí á föstudagskvöld, úthluta Guðrúnu Pálsdóttur í staðinn</span>
-                                </div>
-                                <div class="suggestion-detail">
-                                    <span class="detail-label">Ávinningur:</span>
-                                    <span class="detail-value">↓ 35% hætta á þreytu, ↑ 25% framleiðni</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="ai-suggestion-actions">
-                            <button class="btn btn-sm btn-primary">Samþykkja</button>
-                            <button class="btn btn-sm btn-outline">Hafna</button>
-                            <button class="btn btn-sm btn-icon btn-outline"><i class="fas fa-eye"></i></button>
-                            <button class="btn btn-sm btn-icon btn-outline"><i class="fas fa-ellipsis-v"></i></button>
-                        </div>
-                    </div>
-                    
-                    <div class="ai-suggestion">
-                        <div class="suggestion-priority critical">
-                            <i class="fas fa-exclamation-circle"></i>
-                        </div>
-                        <div class="ai-suggestion-header">
-                            <div class="ai-suggestion-icon alert">
-                                <i class="fas fa-exclamation-triangle"></i>
-                            </div>
-                            <div class="ai-suggestion-title">Mönnunarvandamál</div>
-                            <div class="ai-suggestion-meta">
-                                <span class="suggestion-confidence">95% öryggi</span>
-                                <span class="suggestion-time">Fyrir 30 mín</span>
-                            </div>
-                        </div>
-                        <div class="ai-suggestion-content">
-                            <p>Fimmtudagsnótt er undirmönnuð. Þú þarft að minnsta kosti einn hjúkrunarfræðing til viðbótar til að uppfylla lágmarkskröfur. Samkvæmt greiningu minni á fyrri vaktaplönum og tiltækileika starfsfólks, legg ég til þrjá mögulega hjúkrunarfræðinga sem gætu tekið þessa vakt.</p>
-                            <div class="suggestion-details">
-                                <div class="suggestion-alternatives">
-                                    <div class="alternative-item">
-                                        <div class="alternative-staff">Jón Gunnarsson (RN)</div>
-                                        <div class="alternative-match">94% samræmi</div>
-                                        <button class="btn btn-xs btn-outline">Velja</button>
-                                    </div>
-                                    <div class="alternative-item">
-                                        <div class="alternative-staff">Helga Jónsdóttir (RN)</div>
-                                        <div class="alternative-match">87% samræmi</div>
-                                        <button class="btn btn-xs btn-outline">Velja</button>
-                                    </div>
-                                    <div class="alternative-item">
-                                        <div class="alternative-staff">Guðrún Pálsdóttir (RN)</div>
-                                        <div class="alternative-match">82% samræmi</div>
-                                        <button class="btn btn-xs btn-outline">Velja</button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="ai-suggestion-actions">
-                            <button class="btn btn-sm btn-primary">Finna starfsmann</button>
-                            <button class="btn btn-sm btn-outline">Hafna</button>
-                            <button class="btn btn-sm btn-icon btn-outline"><i class="fas fa-eye"></i></button>
-                            <button class="btn btn-sm btn-icon btn-outline"><i class="fas fa-ellipsis-v"></i></button>
-                        </div>
-                    </div>
-                    
-                    <div class="ai-suggestion">
-                        <div class="suggestion-priority medium">
-                            <i class="fas fa-minus-circle"></i>
-                        </div>
-                        <div class="ai-suggestion-header">
-                            <div class="ai-suggestion-icon optimization">
-                                <i class="fas fa-balance-scale"></i>
-                            </div>
-                            <div class="ai-suggestion-title">Jöfnun vinnuálags</div>
-                            <div class="ai-suggestion-meta">
-                                <span class="suggestion-confidence">89% öryggi</span>
-                                <span class="suggestion-time">Fyrir 1 klst</span>
-                            </div>
-                        </div>
-                        <div class="ai-suggestion-content">
-                            <p>Til að jafna vinnuálag milli starfsfólks legg ég til skipti á vöktum milli Eva Björnsdóttur og Maríu Þórðardóttur á miðvikudag. Þetta mun gefa meira jafnvægi í heildarvinnustundir og draga úr yfirálag.</p>
-                            <div class="suggestion-details">
-                                <div class="suggestion-impact">
-                                    <div class="impact-chart">
-                                        <div class="impact-bar before" style="height: 70%">
-                                            <span class="impact-label">Fyrir</span>
-                                        </div>
-                                        <div class="impact-bar after" style="height: 45%">
-                                            <span class="impact-label">Eftir</span>
-                                        </div>
-                                    </div>
-                                    <div class="impact-description">
-                                        <p>↓ 25% munur í vinnuálagi</p>
-                                        <p>↑ 15% betri mönnun á háannatímum</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="ai-suggestion-actions">
-                            <button class="btn btn-sm btn-primary">Samþykkja</button>
-                            <button class="btn btn-sm btn-outline">Hafna</button>
-                            <button class="btn btn-sm btn-icon btn-outline"><i class="fas fa-eye"></i></button>
-                            <button class="btn btn-sm btn-icon btn-outline"><i class="fas fa-ellipsis-v"></i></button>
-                        </div>
-                    </div>
-                </div>
-                <div class="ai-disclaimer">
-                    <i class="fas fa-info-circle"></i>
-                    <p>Tillögur gervigreindar eru byggðar á fyrri vaktaplönum, starfsmannagögnum og besta verklagi. Mannlegur yfirlestur er nauðsynlegur fyrir allar breytingar.</p>
-                </div>
-            </div>
-            
-            <!-- Schedule History & Activity Log -->
-            <div class="schedule-history">
-                <div class="section-header">
-                    <h3><i class="fas fa-history"></i> Nýlegar breytingar</h3>
-                    <div class="section-actions">
-                        <button class="btn btn-sm btn-outline" id="view-all-history">
-                            Sjá alla ferilskrá <i class="fas fa-arrow-right"></i>
-                        </button>
-                    </div>
-                </div>
-                <div class="activity-log">
-                    <div class="activity-item">
-                        <div class="activity-time">14:32</div>
-                        <div class="activity-icon"><i class="fas fa-exchange-alt"></i></div>
-                        <div class="activity-content">
-                            <div class="activity-title">Vaktaskipti samþykkt</div>
-                            <div class="activity-description">Jón Gunnarsson skipti við Guðrúnu Pálsdóttur á föstudagsvakt</div>
-                        </div>
-                        <div class="activity-user">Anna S.</div>
-                    </div>
-                    <div class="activity-item ai-action">
-                        <div class="activity-time">13:45</div>
-                        <div class="activity-icon"><i class="fas fa-robot"></i></div>
-                        <div class="activity-content">
-                            <div class="activity-title">AI tillaga samþykkt</div>
-                            <div class="activity-description">Jafnað álag milli Eva B. og Maríu Þ. á miðvikudag</div>
-                        </div>
-                        <div class="activity-user">Gervigreind</div>
-                    </div>
-                    <div class="activity-item">
-                        <div class="activity-time">12:10</div>
-                        <div class="activity-icon"><i class="fas fa-user-plus"></i></div>
-                        <div class="activity-content">
-                            <div class="activity-title">Nýr starfsmaður bætt við</div>
-                            <div class="activity-description">Kristín Jónsdóttir (RN) bætt við starfsmannalista</div>
-                        </div>
-                        <div class="activity-user">Jóhann K.</div>
-                    </div>
-                    <div class="activity-item">
-                        <div class="activity-time">09:22</div>
-                        <div class="activity-icon"><i class="fas fa-calendar-alt"></i></div>
-                        <div class="activity-content">
-                            <div class="activity-title">Vaktaplan uppfært</div>
-                            <div class="activity-description">Vaktaplan fyrir vikuna 6. - 12. maí uppfært</div>
-                        </div>
-                        <div class="activity-user">Kerfið</div>
+                    <div class="loading-indicator">
+                        <i class="fas fa-spinner fa-spin"></i> Hleð vaktaáætlun...
                     </div>
                 </div>
             </div>
         </div>
     </main>
     
-    <!-- Create Shift Modal -->
-    <div class="modal" id="create-shift-modal">
-        <div class="modal-overlay"></div>
-        <div class="modal-container">
-            <div class="modal-header">
-                <h3><i class="fas fa-plus-circle"></i> Bæta við nýrri vakt</h3>
-                <button class="close-modal" id="close-create-shift-modal"><i class="fas fa-times"></i></button>
-            </div>
-            <div class="modal-body">
-                <form id="create-shift-form">
-                    <div class="form-group">
-                        <label for="shift-staff-select">Starfsmaður:</label>
-                        <select id="shift-staff-select" class="form-control" required>
-                            <option value="">Veldu starfsmann</option>
-                            <option value="hj">Helga Jónsdóttir (RN)</option>
-                            <option value="jg">Jón Gunnarsson (RN)</option>
-                            <option value="sm">Sigrún Magnúsdóttir (MD)</option>
-                            <option value="eb">Eva Björnsdóttir (PT)</option>
-                            <option value="mt">María Þórðardóttir (RN)</option>
-                            <option value="gp">Guðrún Pálsdóttir (RN)</option>
-                            <option value="oj">Ólafur Jóhannesson (MD)</option>
-                        </select>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="shift-date">Dagsetning:</label>
-                            <input type="date" id="shift-date" class="form-control" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="shift-type">Vakt:</label>
-                            <select id="shift-type" class="form-control" required>
-                                <option value="">Veldu vakt</option>
-                                <option value="08-16">Morgunvakt (08:00-16:00)</option>
-                                <option value="13-21">Dagvakt (13:00-21:00)</option>
-                                <option value="21-08">Næturvakt (21:00-08:00)</option>
-                                <option value="hl">Frídagur (HL)</option>
-                                <option value="custom">Sérsniðin vakt...</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="form-row custom-shift-times" style="display: none;">
-                        <div class="form-group">
-                            <label for="shift-start">Upphafstími:</label>
-                            <input type="time" id="shift-start" class="form-control">
-                        </div>
-                        <div class="form-group">
-                            <label for="shift-end">Lokatími:</label>
-                            <input type="time" id="shift-end" class="form-control">
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label for="shift-department">Deild:</label>
-                        <select id="shift-department" class="form-control" required>
-                            <option value="">Veldu deild</option>
-                            <option value="medical">Læknisfræðileg</option>
-                            <option value="surgical">Skurðlækningar</option>
-                            <option value="rehabilitation">Endurhæfing</option>
-                            <option value="geriatric">Öldrunardeild</option>
-                            <option value="pediatric">Barnahjúkrun</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="shift-notes">Athugasemdir:</label>
-                        <textarea id="shift-notes" class="form-control" rows="3" placeholder="Athugasemdir um vaktina..."></textarea>
-                    </div>
-                    <div class="form-check">
-                        <input type="checkbox" id="recurring-shift" class="form-check-input">
-                        <label for="recurring-shift" class="form-check-label">Endurtekin vakt</label>
-                    </div>
-                    <div class="recurring-options" style="display: none;">
-                        <div class="form-group">
-                            <label for="recurring-pattern">Endurtekningamynstur:</label>
-                            <select id="recurring-pattern" class="form-control">
-                                <option value="weekly">Vikulega</option>
-                                <option value="biweekly">Aðra hverja viku</option>
-                                <option value="monthly">Mánaðarlega</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="recurring-end">Endir eftir:</label>
-                            <input type="number" id="recurring-count" class="form-control" value="4" min="1" max="52">
-                            <span>skipti</span>
-                        </div>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <div class="ai-suggestion-inline">
-                    <div class="ai-suggestion-icon">
-                        <i class="fas fa-robot"></i>
-                    </div>
-                    <div class="ai-suggestion-text">
-                        AI tillaga: Þessi vakt gæti valdið yfirvinnu fyrir Jón. Íhugaðu Helgu í staðinn.
-                    </div>
-                </div>
-                <div class="modal-actions">
-                    <button class="btn btn-outline" id="cancel-create-shift">Hætta við</button>
-                    <button class="btn btn-primary" id="save-create-shift">Vista vakt</button>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- AI Optimization Modal -->
-    <div class="modal" id="ai-optimization-modal">
-        <div class="modal-overlay"></div>
-        <div class="modal-container ai-modal">
-            <div class="modal-header">
-                <h3><i class="fas fa-brain"></i> Gervigreind vinnur að bestun</h3>
-                <button class="close-modal" id="close-ai-modal"><i class="fas fa-times"></i></button>
-            </div>
-            <div class="modal-body">
-                <div class="ai-processing-animation">
-                    <div class="ai-brain-icon">
-                        <i class="fas fa-brain"></i>
-                    </div>
-                    <div class="ai-processing-waves">
-                        <div class="wave wave1"></div>
-                        <div class="wave wave2"></div>
-                        <div class="wave wave3"></div>
-                    </div>
-                </div>
-                <div class="ai-processing-status">
-                    <h4>Vinnslustöðumat</h4>
-                    <div class="progress-container">
-                        <div class="progress-bar" id="ai-progress-bar"></div>
-                        <div class="progress-text" id="ai-progress-text">45%</div>
-                    </div>
-                    <div class="processing-steps">
-                        <div class="processing-step completed">
-                            <div class="step-icon"><i class="fas fa-check-circle"></i></div>
-                            <div class="step-text">Sækir núverandi vaktaáætlun</div>
-                        </div>
-                        <div class="processing-step completed">
-                            <div class="step-icon"><i class="fas fa-check-circle"></i></div>
-                            <div class="step-text">Greinir vaktamynstur og kröfur</div>
-                        </div>
-                        <div class="processing-step active">
-                            <div class="step-icon"><i class="fas fa-spinner fa-spin"></i></div>
-                            <div class="step-text">Framkvæmir bestunargrunnar</div>
-                        </div>
-                        <div class="processing-step">
-                            <div class="step-icon"><i class="fas fa-circle"></i></div>
-                            <div class="step-text">Mátar möguleg vaktaskipti</div>
-                        </div>
-                        <div class="processing-step">
-                            <div class="step-icon"><i class="fas fa-circle"></i></div>
-                            <div class="step-text">Útbýr endanlegar tillögur</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <div class="ai-info">
-                    <i class="fas fa-info-circle"></i>
-                    <p>Gervigreindin tekur tillit til vinnustundareglna, hæfniskrafna og starfsmannaóska.</p>
-                </div>
-                <button class="btn btn-outline" id="cancel-ai-optimization">Hætta við</button>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Help Modal -->
-    <div class="modal" id="help-modal">
-        <div class="modal-overlay"></div>
-        <div class="modal-container help-modal">
-            <div class="modal-header">
-                <h3><i class="fas fa-question-circle"></i> Hjálp með vaktaplan</h3>
-                <button class="close-modal" id="close-help-modal"><i class="fas fa-times"></i></button>
-            </div>
-            <div class="modal-body">
-                <div class="help-tabs">
-                    <button class="help-tab active" data-tab="general">Almennt</button>
-                    <button class="help-tab" data-tab="schedule">Vaktaplan</button>
-                    <button class="help-tab" data-tab="ai">Gervigreind</button>
-                    <button class="help-tab" data-tab="faq">Spurningar</button>
-                </div>
-                <div class="help-content" id="help-content">
-                    <div class="tab-content active" data-tab="general">
-                        <h4>Almenn hjálp</h4>
-                        <p>Vaktaplanið sýnir sjö daga áætlun fyrir allt starfsfólk. Þú getur:</p>
-                        <ul>
-                            <li>Flutt þig á milli vikna með örvatökkunum</li>
-                            <li>Síað eftir deild, starfsfólki eða tegund vakta</li>
-                            <li>Bætt við nýjum vöktum með '+' hnappnum</li>
-                            <li>Dragið og sleppið vaktir milli daga (drag and drop)</li>
-                            <li>Prentað eða flutt út áætlunina</li>
-                        </ul>
-                        <p>Ef þú þarft frekari aðstoð, hafðu samband við kerfisumsjón.</p>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-primary" id="close-help">Ég skil</button>
-            </div>
-        </div>
-    </div>
-    
-    <!-- AI Widget -->
-    <div class="ai-widget" id="ai-widget">
-        <button class="ai-widget-toggle" id="ai-widget-toggle">
-            <i class="fas fa-robot"></i>
-        </button>
-        <div class="ai-widget-container" id="ai-widget-container">
-            <!-- AI widget content will be loaded here by ai-widget.js -->
-        </div>
-    </div>
-    
     <!-- Toast Container for Notifications -->
     <div id="toast-container" class="toast-container"></div>
     
-    <!-- Scripts -->
-    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
-    <script src="scripts/schedule.js"></script>
+    <!-- Simple Error-Catching Script -->
+    <script>
+        // Global error handler
+        window.onerror = function(msg, url, lineNo, columnNo, error) {
+            console.error('Schedule Error:', { msg, url, lineNo, columnNo, error });
+            showError('JavaScript Error: ' + msg);
+            return false;
+        };
+        
+        // Function to show errors to user
+        function showError(message) {
+            const errorDiv = document.getElementById('error-message');
+            if (errorDiv) {
+                errorDiv.textContent = message;
+                errorDiv.style.display = 'block';
+            }
+            
+            // Also log to debug panel
+            appendDebug('ERROR: ' + message);
+        }
+        
+        // Debug logger
+        function appendDebug(message) {
+            const debugPanel = document.getElementById('debug-panel');
+            if (debugPanel) {
+                const line = document.createElement('div');
+                line.textContent = new Date().toLocaleTimeString() + ': ' + message;
+                debugPanel.appendChild(line);
+                debugPanel.style.display = 'block';
+                debugPanel.scrollTop = debugPanel.scrollHeight;
+            }
+        }
+        
+        // Check for script loading
+        appendDebug('Page initialized');
+        
+        // Add keyboard shortcut to toggle debug panel
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.shiftKey && e.key === 'D') {
+                const debugPanel = document.getElementById('debug-panel');
+                debugPanel.style.display = debugPanel.style.display === 'none' ? 'block' : 'none';
+            }
+        });
+        
+        // Mock schedule data for initial display
+        document.addEventListener('DOMContentLoaded', function() {
+            appendDebug('DOM fully loaded');
+            
+            // Basic initialization
+            try {
+                // Generate a simple table directly in the container
+                const container = document.getElementById('schedule-container');
+                if (!container) {
+                    showError('Schedule container not found');
+                    return;
+                }
+                
+                appendDebug('Creating basic schedule table');
+                
+                // Create a simple schedule table
+                const table = document.createElement('table');
+                table.className = 'schedule-table';
+                
+                // Add table header
+                const thead = document.createElement('thead');
+                const headerRow = document.createElement('tr');
+                
+                // Add staff column header
+                const staffHeader = document.createElement('th');
+                staffHeader.textContent = 'Starfsfólk';
+                headerRow.appendChild(staffHeader);
+                
+                // Add day headers
+                const dayNames = ['Mán', 'Þri', 'Mið', 'Fim', 'Fös', 'Lau', 'Sun'];
+                dayNames.forEach(day => {
+                    const th = document.createElement('th');
+                    th.textContent = day;
+                    headerRow.appendChild(th);
+                });
+                
+                thead.appendChild(headerRow);
+                table.appendChild(thead);
+                
+                // Add table body with some sample data
+                const tbody = document.createElement('tbody');
+                
+                // Sample staff and shifts
+                const staffData = [
+                    { name: 'Helga Jónsdóttir', shifts: ['08–16', '08–16', '08–16', 'HL', '08–16', null, null] },
+                    { name: 'Jón Gunnarsson', shifts: [null, '13–21', '13–21', '13–21', '13–21', '13–21', null] },
+                    { name: 'Sigrún Magnúsdóttir', shifts: ['21–08', null, null, '21–08', '21–08', 'HL', '21–08'] },
+                    { name: 'Eva Björnsdóttir', shifts: [null, 'Veikur', 'Veikur', null, '08–16', '08–16', null] }
+                ];
+                
+                // Create rows for each staff member
+                staffData.forEach(staff => {
+                    const row = document.createElement('tr');
+                    
+                    // Add staff name cell
+                    const nameCell = document.createElement('td');
+                    nameCell.textContent = staff.name;
+                    row.appendChild(nameCell);
+                    
+                    // Add shift cells
+                    staff.shifts.forEach(shift => {
+                        const td = document.createElement('td');
+                        if (shift) {
+                            td.textContent = shift;
+                            // Add basic coloring
+                            if (shift === '08–16') td.style.backgroundColor = '#4CAF50';
+                            if (shift === '13–21') td.style.backgroundColor = '#2196F3';
+                            if (shift === '21–08') td.style.backgroundColor = '#9C27B0';
+                            if (shift === 'HL') td.style.backgroundColor = '#FFC107';
+                            if (shift === 'Veikur') td.style.backgroundColor = '#F44336';
+                            
+                            // Text color
+                            if (shift === 'HL') {
+                                td.style.color = '#333';
+                            } else {
+                                td.style.color = '#fff';
+                            }
+                        }
+                        row.appendChild(td);
+                    });
+                    
+                    tbody.appendChild(row);
+                });
+                
+                table.appendChild(tbody);
+                
+                // Clear container and add table
+                container.innerHTML = '';
+                container.appendChild(table);
+                
+                // Set up button click handlers
+                setupButtonHandlers();
+                
+                appendDebug('Schedule table created successfully');
+            } catch (err) {
+                showError('Error initializing schedule: ' + err.message);
+                console.error(err);
+            }
+        });
+        
+        // Simple button handlers
+        function setupButtonHandlers() {
+            // Previous week button
+            const prevWeekBtn = document.getElementById('prev-week');
+            if (prevWeekBtn) {
+                prevWeekBtn.addEventListener('click', function() {
+                    alert('Fyrri vika valið');
+                });
+            }
+            
+            // Next week button
+            const nextWeekBtn = document.getElementById('next-week');
+            if (nextWeekBtn) {
+                nextWeekBtn.addEventListener('click', function() {
+                    alert('Næsta vika valið');
+                });
+            }
+            
+            // AI optimize button
+            const aiOptimizeBtn = document.getElementById('ai-optimize-btn');
+            if (aiOptimizeBtn) {
+                aiOptimizeBtn.addEventListener('click', function() {
+                    alert('Gervigreind mun betrumbæta vaktaplan');
+                });
+            }
+            
+            // Create shift button
+            const createShiftBtn = document.getElementById('create-shift-btn');
+            if (createShiftBtn) {
+                createShiftBtn.addEventListener('click', function() {
+                    alert('Bæta við nýrri vakt');
+                });
+            }
+            
+            // Help button
+            const helpBtn = document.getElementById('help-btn');
+            if (helpBtn) {
+                helpBtn.addEventListener('click', function() {
+                    alert('Hjálp með vaktaplan');
+                });
+            }
+        }
+    </script>
+    
+    <!-- Try to load the external script as an enhancement -->
+    <script src="scripts/schedule.js" onerror="appendDebug('Failed to load schedule.js')"></script>
 </body>
 </html>
