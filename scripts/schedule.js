@@ -4,7 +4,7 @@
  */
 
 // ===== CONSTANTS =====
-export const SHIFT_TYPES = {
+const SHIFT_TYPES = {
     MORNING: { id: 'morning', label: 'Morgunvakt', time: '07:00-15:00', icon: 'sun', color: '#2196F3' }, // Blue
     EVENING: { id: 'evening', label: 'Kvöldvakt', time: '15:00-23:00', icon: 'moon', color: '#FFC107' }, // Yellow
     NIGHT: { id: 'night', label: 'Næturvakt', time: '23:00-07:00', icon: 'star', color: '#9C27B0' } // Purple
@@ -2689,776 +2689,198 @@ function showEditStaffModal(staffId) {
     });
 }
 
-// Schedule management module
-import { showToast, formatDate, formatTime } from './utils.js';
-import { getCurrentUser, hasActionAccess } from './auth.js';
-
-// Schedule status types
-export const SCHEDULE_STATUS = {
-    PENDING: 'pending',
-    APPROVED: 'approved',
-    REJECTED: 'rejected',
-    CONFLICT: 'conflict'
-};
-
 /**
- * Initialize schedule management
+ * Show toast notification
+ * @param {string} message - Message to show
+ * @param {string} type - Type of toast (success, error, warning, info)
  */
-export function initializeSchedule() {
-    setupCalendar();
-    setupFilters();
-    setupEventListeners();
-    loadScheduleData();
-}
-
-/**
- * Setup calendar view
- */
-function setupCalendar() {
-    const calendar = document.getElementById('schedule-calendar');
-    if (!calendar) return;
-
-    // Clear existing content
-    calendar.innerHTML = '';
-    
-    // Create calendar header
-    const header = createCalendarHeader();
-    calendar.appendChild(header);
-    
-    // Create calendar grid
-    const grid = createCalendarGrid();
-    calendar.appendChild(grid);
-    
-    // Initialize drag-and-drop if user has permission
-    if (hasActionAccess(getCurrentUser()?.role, 'edit_schedule')) {
-        initializeDragAndDrop();
-    }
-}
-
-/**
- * Create calendar header with navigation
- * @returns {HTMLElement} Calendar header element
- */
-function createCalendarHeader() {
-    const header = document.createElement('div');
-    header.className = 'calendar-header';
-    
-    const today = new Date();
-    
-    header.innerHTML = `
-        <div class="calendar-nav">
-            <button class="nav-btn prev-month">
-                <i class="fas fa-chevron-left"></i>
-            </button>
-            <h2 class="current-month">${formatDate(today, false)}</h2>
-            <button class="nav-btn next-month">
-                <i class="fas fa-chevron-right"></i>
-            </button>
-        </div>
-        <div class="calendar-actions">
-            <button class="action-btn" id="today-btn">
-                <i class="fas fa-calendar-day"></i> Í dag
-            </button>
-            <button class="action-btn" id="add-shift-btn">
-                <i class="fas fa-plus"></i> Bæta við vakt
-            </button>
-            <div class="view-toggle">
-                <button class="toggle-btn active" data-view="month">
-                    <i class="fas fa-calendar-alt"></i> Mánuður
-                </button>
-                <button class="toggle-btn" data-view="week">
-                    <i class="fas fa-calendar-week"></i> Vika
-                </button>
-                <button class="toggle-btn" data-view="day">
-                    <i class="fas fa-calendar-day"></i> Dagur
-                </button>
-            </div>
-        </div>
-    `;
-    
-    return header;
-}
-
-/**
- * Create calendar grid
- * @returns {HTMLElement} Calendar grid element
- */
-function createCalendarGrid() {
-    const grid = document.createElement('div');
-    grid.className = 'calendar-grid';
-    
-    // Add weekday headers
-    const weekdays = ['Sun', 'Mán', 'Þri', 'Mið', 'Fim', 'Fös', 'Lau'];
-    weekdays.forEach(day => {
-        const dayHeader = document.createElement('div');
-        dayHeader.className = 'calendar-header-cell';
-        dayHeader.textContent = day;
-        grid.appendChild(dayHeader);
-    });
-    
-    // Add calendar cells for the month
-    const today = new Date();
-    const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
-    const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
-    
-    // Add padding cells for days before first of month
-    for (let i = 0; i < firstDay.getDay(); i++) {
-        const paddingCell = document.createElement('div');
-        paddingCell.className = 'calendar-cell padding';
-        grid.appendChild(paddingCell);
-    }
-    
-    // Add cells for each day of the month
-    for (let date = 1; date <= lastDay.getDate(); date++) {
-        const cell = createCalendarCell(date);
-        grid.appendChild(cell);
-    }
-    
-    return grid;
-}
-
-/**
- * Create a calendar cell for a specific date
- * @param {number} date - Date of the month
- * @returns {HTMLElement} Calendar cell element
- */
-function createCalendarCell(date) {
-    const cell = document.createElement('div');
-    cell.className = 'calendar-cell';
-    cell.setAttribute('data-date', date);
-    
-    const today = new Date();
-    if (date === today.getDate()) {
-        cell.classList.add('today');
-    }
-    
-    cell.innerHTML = `
-        <div class="cell-header">
-            <span class="date-number">${date}</span>
-            ${hasActionAccess(getCurrentUser()?.role, 'edit_schedule') ? `
-                <button class="add-shift-btn" title="Bæta við vakt">
-                    <i class="fas fa-plus"></i>
-                </button>
-            ` : ''}
-        </div>
-        <div class="cell-content">
-            <div class="shift-container" data-date="${date}"></div>
-        </div>
-    `;
-    
-    return cell;
-}
-
-/**
- * Initialize drag and drop functionality
- */
-function initializeDragAndDrop() {
-    const shiftContainers = document.querySelectorAll('.shift-container');
-    
-    shiftContainers.forEach(container => {
-        // Make container a drop target
-        container.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            container.classList.add('dragover');
-        });
+function showToast(message, type = "info") {
+    // Check if toast container exists, create if not
+    let toastContainer = document.getElementById('toast-container');
+    if (!toastContainer) {
+        toastContainer = document.createElement('div');
+        toastContainer.id = 'toast-container';
+        document.body.appendChild(toastContainer);
         
-        container.addEventListener('dragleave', () => {
-            container.classList.remove('dragover');
-        });
-        
-        container.addEventListener('drop', (e) => {
-            e.preventDefault();
-            container.classList.remove('dragover');
+        // Add styles
+        const style = document.createElement('style');
+        style.textContent = `
+            #toast-container {
+                position: fixed;
+                bottom: 20px;
+                right: 20px;
+                z-index: 9999;
+            }
             
-            const shiftId = e.dataTransfer.getData('text/plain');
-            const targetDate = container.getAttribute('data-date');
+            .toast {
+                padding: 12px 16px;
+                background-color: white;
+                margin-bottom: 10px;
+                border-radius: 4px;
+                box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+                display: flex;
+                align-items: center;
+                animation: slide-in 0.3s ease-out;
+                max-width: 300px;
+            }
             
-            moveShift(shiftId, targetDate);
-        });
-    });
-}
-
-/**
- * Move a shift to a new date
- * @param {string} shiftId - ID of shift to move
- * @param {string} targetDate - Target date
- */
-function moveShift(shiftId, targetDate) {
-    // Implementation would go here
-    console.log('Move shift', shiftId, 'to', targetDate);
-    showToast('Vakt færð', 'success');
-}
-
-/**
- * Setup schedule filters
- */
-function setupFilters() {
-    const filterContainer = document.querySelector('.schedule-filters');
-    if (!filterContainer) return;
+            @keyframes slide-in {
+                from { transform: translateX(100%); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+            
+            .toast.success {
+                border-left: 4px solid #4CAF50;
+            }
+            
+            .toast.error {
+                border-left: 4px solid #F44336;
+            }
+            
+            .toast.warning {
+                border-left: 4px solid #FFC107;
+            }
+            
+            .toast.info {
+                border-left: 4px solid #2196F3;
+            }
+            
+            .toast-icon {
+                margin-right: 12px;
+            }
+            
+            .toast-message {
+                font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+                flex-grow: 1;
+            }
+            
+            .toast-close {
+                background: none;
+                border: none;
+                cursor: pointer;
+                font-size: 16px;
+                color: #aaa;
+            }
+        `;
+        document.head.appendChild(style);
+    }
     
-    filterContainer.innerHTML = `
-        <div class="filter-group">
-            <label>Deild:</label>
-            <select id="department-filter">
-                <option value="all">Allar deildir</option>
-                <option value="dept1">Deild 1</option>
-                <option value="dept2">Deild 2</option>
-                <option value="dept3">Deild 3</option>
-            </select>
+    // Create toast element
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    
+    // Set icon based on type
+    let icon = 'info-circle';
+    if (type === 'success') icon = 'check-circle';
+    if (type === 'error') icon = 'times-circle';
+    if (type === 'warning') icon = 'exclamation-triangle';
+    
+    toast.innerHTML = `
+        <div class="toast-icon">
+            <i class="fas fa-${icon}"></i>
         </div>
-        <div class="filter-group">
-            <label>Starfsmaður:</label>
-            <select id="staff-filter">
-                <option value="all">Allir starfsmenn</option>
-                <option value="nurse">Hjúkrunarfræðingar</option>
-                <option value="assistant">Aðstoðarfólk</option>
-                <option value="staff">Almennir starfsmenn</option>
-            </select>
-        </div>
-        <div class="filter-group">
-            <label>Vaktategund:</label>
-            <select id="shift-type-filter">
-                <option value="all">Allar vaktir</option>
-                <option value="morning">Morgunvaktir</option>
-                <option value="evening">Kvöldvaktir</option>
-                <option value="night">Næturvaktir</option>
-            </select>
-        </div>
+        <div class="toast-message">${message}</div>
+        <button class="toast-close">&times;</button>
     `;
     
-    // Add filter event listeners
-    const filters = filterContainer.querySelectorAll('select');
-    filters.forEach(filter => {
-        filter.addEventListener('change', applyFilters);
+    // Add to container
+    toastContainer.appendChild(toast);
+    
+    // Add event listener to close button
+    toast.querySelector('.toast-close').addEventListener('click', () => {
+        toast.remove();
     });
+    
+    // Auto-remove after 5 seconds
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transition = 'opacity 0.3s ease-out';
+        setTimeout(() => toast.remove(), 300);
+    }, 5000);
 }
 
 /**
- * Setup event listeners
+ * Apply theme settings from localStorage or system preferences
+ */
+function applyThemeSettings() {
+    // Check for dark mode preference
+    const isDarkMode = localStorage.getItem('darkMode') === 'true' || 
+        (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches &&
+        localStorage.getItem('darkMode') !== 'false');
+    
+    if (isDarkMode) {
+        document.body.classList.add('dark-theme');
+    } else {
+        document.body.classList.remove('dark-theme');
+    }
+}
+
+/**
+ * Set up event listeners for schedule actions
  */
 function setupEventListeners() {
-    // Navigation buttons
-    const prevMonthBtn = document.querySelector('.prev-month');
-    const nextMonthBtn = document.querySelector('.next-month');
-    const todayBtn = document.getElementById('today-btn');
-    
-    if (prevMonthBtn) {
-        prevMonthBtn.addEventListener('click', () => navigateMonth('prev'));
-    }
-    
-    if (nextMonthBtn) {
-        nextMonthBtn.addEventListener('click', () => navigateMonth('next'));
-    }
-    
-    if (todayBtn) {
-        todayBtn.addEventListener('click', goToToday);
-    }
-    
-    // View toggle buttons
-    const viewButtons = document.querySelectorAll('.view-toggle .toggle-btn');
-    viewButtons.forEach(btn => {
-        btn.addEventListener('click', () => {
-            const view = btn.getAttribute('data-view');
-            changeView(view);
-            
-            // Update active button
-            viewButtons.forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-        });
-    });
-    
-    // Add shift buttons
-    const addShiftBtns = document.querySelectorAll('.add-shift-btn');
-    addShiftBtns.forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            const cell = e.target.closest('.calendar-cell');
-            const date = cell.getAttribute('data-date');
-            showAddShiftModal(date);
-        });
-    });
-}
-
-/**
- * Navigate to previous/next month
- * @param {'prev'|'next'} direction - Navigation direction
- */
-function navigateMonth(direction) {
-    const currentMonth = document.querySelector('.current-month');
-    const date = new Date(currentMonth.textContent);
-    
-    if (direction === 'prev') {
-        date.setMonth(date.getMonth() - 1);
-    } else {
-        date.setMonth(date.getMonth() + 1);
-    }
-    
-    currentMonth.textContent = formatDate(date, false);
-    refreshCalendar();
-}
-
-/**
- * Go to today's date
- */
-function goToToday() {
-    const currentMonth = document.querySelector('.current-month');
-    currentMonth.textContent = formatDate(new Date(), false);
-    refreshCalendar();
-}
-
-/**
- * Change calendar view
- * @param {'month'|'week'|'day'} view - View type
- */
-function changeView(view) {
-    const calendar = document.getElementById('schedule-calendar');
-    if (!calendar) return;
-    
-    calendar.className = `calendar-container ${view}-view`;
-    refreshCalendar();
-}
-
-/**
- * Apply schedule filters
- */
-function applyFilters() {
+    // Find department filter
     const departmentFilter = document.getElementById('department-filter');
-    const staffFilter = document.getElementById('staff-filter');
-    const shiftTypeFilter = document.getElementById('shift-type-filter');
-    
-    const department = departmentFilter?.value || 'all';
-    const staffType = staffFilter?.value || 'all';
-    const shiftType = shiftTypeFilter?.value || 'all';
-    
-    const shifts = document.querySelectorAll('.shift-item');
-    shifts.forEach(shift => {
-        const matchesDepartment = department === 'all' || shift.getAttribute('data-department') === department;
-        const matchesStaff = staffType === 'all' || shift.getAttribute('data-staff-type') === staffType;
-        const matchesShiftType = shiftType === 'all' || shift.getAttribute('data-shift-type') === shiftType;
-        
-        shift.style.display = matchesDepartment && matchesStaff && matchesShiftType ? 'flex' : 'none';
-    });
-}
-
-/**
- * Refresh calendar display
- */
-function refreshCalendar() {
-    setupCalendar();
-    loadScheduleData();
-}
-
-/**
- * Load schedule data
- */
-function loadScheduleData() {
-    // Implementation would load data from backend
-    // For now, we'll use mock data
-    const mockShifts = [
-        {
-            id: '1',
-            date: '2025-04-23',
-            type: SHIFT_TYPES.MORNING.id,
-            staffName: 'Anna Jónsdóttir',
-            staffType: 'nurse',
-            department: 'dept1'
-        },
-        {
-            id: '2',
-            date: '2025-04-23',
-            type: SHIFT_TYPES.EVENING.id,
-            staffName: 'Jón Þórsson',
-            staffType: 'assistant',
-            department: 'dept1'
-        },
-        {
-            id: '3',
-            date: '2025-04-24',
-            type: SHIFT_TYPES.NIGHT.id,
-            staffName: 'Sara Björnsdóttir',
-            staffType: 'nurse',
-            department: 'dept2'
-        }
-    ];
-    
-    displayShifts(mockShifts);
-}
-
-/**
- * Display shifts on calendar
- * @param {Array} shifts - Array of shift objects
- */
-function displayShifts(shifts) {
-    shifts.forEach(shift => {
-        const shiftDate = new Date(shift.date);
-        const container = document.querySelector(
-            `.shift-container[data-date="${shiftDate.getDate()}"]`
-        );
-        
-        if (container) {
-            const shiftEl = document.createElement('div');
-            shiftEl.className = 'shift-item';
-            shiftEl.setAttribute('data-id', shift.id);
-            shiftEl.setAttribute('data-department', shift.department);
-            shiftEl.setAttribute('data-staff-type', shift.staffType);
-            shiftEl.setAttribute('data-shift-type', shift.type);
-            
-            const shiftType = SHIFT_TYPES[shift.type.toUpperCase()];
-            
-            shiftEl.innerHTML = `
-                <div class="shift-header" style="background-color: ${shiftType.color}">
-                    <span class="shift-time">${shiftType.startTime} - ${shiftType.endTime}</span>
-                    ${hasActionAccess(getCurrentUser()?.role, 'edit_schedule') ? `
-                        <button class="edit-shift-btn" title="Breyta vakt">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                    ` : ''}
-                </div>
-                <div class="shift-info">
-                    <span class="staff-name">${shift.staffName}</span>
-                </div>
-            `;
-            
-            if (hasActionAccess(getCurrentUser()?.role, 'edit_schedule')) {
-                shiftEl.draggable = true;
-                shiftEl.addEventListener('dragstart', (e) => {
-                    e.dataTransfer.setData('text/plain', shift.id);
-                    shiftEl.classList.add('dragging');
-                });
-                
-                shiftEl.addEventListener('dragend', () => {
-                    shiftEl.classList.remove('dragging');
-                });
-            }
-            
-            container.appendChild(shiftEl);
-        }
-    });
-}
-
-/**
- * Show add shift modal
- * @param {string} date - Selected date
- */
-function showAddShiftModal(date) {
-    // Implementation would go here
-    console.log('Show add shift modal for date:', date);
-}
-
-// Schedule management module
-import { showToast } from './utils.js';
-import { getCurrentUser, hasActionAccess } from './auth.js';
-
-// Schedule constants
-const DEPARTMENTS = {
-    ALZHEIMERS: 'alzheimers',
-    GENERAL: 'general',
-    REHAB: 'rehab'
-};
-
-// Private schedule cache
-let scheduleCache = new Map();
-let requestsCache = new Map();
-
-/**
- * Create a new schedule from template
- * @param {string} template - Optional template name to use
- * @returns {Promise<Object>} Created schedule
- */
-export async function createSchedule(template = 'default') {
-    try {
-        // Create base schedule structure
-        const schedule = {
-            id: generateScheduleId(),
-            createdAt: new Date(),
-            createdBy: getCurrentUser()?.id,
-            template,
-            weeks: [],
-            status: 'draft'
-        };
-
-        // Generate 4 weeks of shifts
-        for (let week = 0; week < 4; week++) {
-            const weekShifts = [];
-            const startDate = new Date();
-            startDate.setDate(startDate.getDate() + (week * 7));
-
-            for (let day = 0; day < 7; day++) {
-                const date = new Date(startDate);
-                date.setDate(date.getDate() + day);
-
-                // Create shifts for each time slot
-                Object.values(SHIFT_TYPES).forEach(shift => {
-                    weekShifts.push({
-                        id: generateShiftId(),
-                        date: formatDate(date),
-                        shift: shift.id,
-                        department: DEPARTMENTS.GENERAL,
-                        assignedStaff: [],
-                        requiredStaff: shift.requiredStaff,
-                        notes: ''
-                    });
-                });
-            }
-            schedule.weeks.push(weekShifts);
-        }
-
-        // Cache the schedule
-        scheduleCache.set(schedule.id, schedule);
-        
-        return schedule;
-    } catch (error) {
-        console.error('Error creating schedule:', error);
-        throw new Error('Failed to create schedule');
-    }
-}
-
-/**
- * Assign staff member to a shift
- * @param {string} staffId - Staff member ID
- * @param {string} date - Shift date (YYYY-MM-DD)
- * @param {string} shiftId - Shift ID
- * @returns {Promise<Object>} Updated shift
- */
-export async function assignShift(staffId, date, shiftId) {
-    try {
-        // Validate user has permission
-        if (!hasActionAccess(getCurrentUser()?.role, 'manage_schedule')) {
-            throw new Error('Unauthorized to manage schedule');
-        }
-
-        // Find matching shift
-        const shift = findShift(date, shiftId);
-        if (!shift) {
-            throw new Error('Shift not found');
-        }
-
-        // Check for conflicts
-        if (await hasScheduleConflict(staffId, date, shiftId)) {
-            throw new Error('Staff member already assigned to another shift at this time');
-        }
-
-        // Add staff to shift
-        if (!shift.assignedStaff.includes(staffId)) {
-            shift.assignedStaff.push(staffId);
-        }
-
-        // Update cache
-        updateShiftInCache(shift);
-
-        // Show success notification
-        showToast('Vakt', 'Starfsmaður skráður á vakt', 'success');
-        
-        return shift;
-    } catch (error) {
-        console.error('Error assigning shift:', error);
-        showToast('Villa', error.message, 'error');
-        throw error;
-    }
-}
-
-/**
- * Approve a shift change request
- * @param {string} requestId - Request ID
- * @returns {Promise<Object>} Updated request
- */
-export async function approveShiftChange(requestId) {
-    try {
-        // Validate user has permission
-        if (!hasActionAccess(getCurrentUser()?.role, 'approve_schedule')) {
-            throw new Error('Unauthorized to approve schedule changes');
-        }
-
-        // Get request details
-        const request = requestsCache.get(requestId);
-        if (!request) {
-            throw new Error('Request not found');
-        }
-
-        // Update request status
-        request.status = 'approved';
-        request.approvedBy = getCurrentUser()?.id;
-        request.approvedAt = new Date();
-
-        // Apply the changes
-        if (request.type === 'swap') {
-            await swapShifts(
-                request.fromStaffId,
-                request.toStaffId,
-                request.fromShiftId,
-                request.toShiftId
-            );
-        } else {
-            await assignShift(request.staffId, request.date, request.shiftId);
-        }
-
-        // Update cache
-        requestsCache.set(requestId, request);
-
-        // Show success notification
-        showToast('Samþykkt', 'Vaktaskipti samþykkt', 'success');
-        
-        return request;
-    } catch (error) {
-        console.error('Error approving shift change:', error);
-        showToast('Villa', error.message, 'error');
-        throw error;
-    }
-}
-
-/**
- * Get schedule for a specific user
- * @param {string} userId - User ID
- * @returns {Promise<Array>} User's scheduled shifts
- */
-export async function getUserSchedule(userId) {
-    try {
-        const userShifts = [];
-
-        // Search through cached schedules
-        for (const schedule of scheduleCache.values()) {
-            schedule.weeks.forEach(week => {
-                week.forEach(shift => {
-                    if (shift.assignedStaff.includes(userId)) {
-                        userShifts.push(shift);
-                    }
-                });
-            });
-        }
-
-        return userShifts;
-    } catch (error) {
-        console.error('Error getting user schedule:', error);
-        throw new Error('Failed to get user schedule');
-    }
-}
-
-/**
- * Get unassigned shift slots
- * @returns {Promise<Array>} Unassigned shifts
- */
-export async function getUnassignedSlots() {
-    try {
-        const unassignedShifts = [];
-
-        // Search through cached schedules
-        for (const schedule of scheduleCache.values()) {
-            if (schedule.status !== 'active') continue;
-
-            schedule.weeks.forEach(week => {
-                week.forEach(shift => {
-                    if (shift.assignedStaff.length < shift.requiredStaff) {
-                        unassignedShifts.push({
-                            ...shift,
-                            openSlots: shift.requiredStaff - shift.assignedStaff.length
-                        });
-                    }
-                });
-            });
-        }
-
-        return unassignedShifts;
-    } catch (error) {
-        console.error('Error getting unassigned slots:', error);
-        throw new Error('Failed to get unassigned slots');
-    }
-}
-
-// Helper functions
-function generateScheduleId() {
-    return 'sch_' + Date.now() + Math.random().toString(36).substr(2, 9);
-}
-
-function generateShiftId() {
-    return 'sft_' + Date.now() + Math.random().toString(36).substr(2, 9);
-}
-
-function formatDate(date) {
-    return date.toISOString().split('T')[0];
-}
-
-function findShift(date, shiftId) {
-    for (const schedule of scheduleCache.values()) {
-        for (const week of schedule.weeks) {
-            const shift = week.find(s => 
-                s.date === date && 
-                s.id === shiftId
-            );
-            if (shift) return shift;
-        }
-    }
-    return null;
-}
-
-async function hasScheduleConflict(staffId, date, shiftId) {
-    const shift = findShift(date, shiftId);
-    if (!shift) return false;
-
-    // Get all shifts for the staff member on this date
-    const existingShifts = [];
-    for (const schedule of scheduleCache.values()) {
-        schedule.weeks.forEach(week => {
-            week.forEach(s => {
-                if (s.date === date && 
-                    s.id !== shiftId && 
-                    s.assignedStaff.includes(staffId)) {
-                    existingShifts.push(s);
-                }
-            });
+    if (departmentFilter) {
+        departmentFilter.addEventListener('change', (e) => {
+            currentDepartmentFilter = e.target.value;
+            filterStaffByDepartment();
         });
     }
+    
+    // Find clear button
+    const clearButton = document.getElementById('clear-schedule');
+    if (clearButton) {
+        clearButton.addEventListener('click', confirmClearSchedule);
+    }
+    
+    // Find AI optimize button
+    const optimizeButton = document.getElementById('ai-optimize-btn');
+    if (optimizeButton) {
+        optimizeButton.addEventListener('click', generateAISuggestions);
+    }
 
-    // Check for time overlap
-    const shiftInfo = SHIFTS[shift.shift];
-    return existingShifts.some(existing => {
-        const existingInfo = SHIFTS[existing.shift];
-        return (
-            (shiftInfo.startTime >= existingInfo.startTime && 
-             shiftInfo.startTime < existingInfo.endTime) ||
-            (shiftInfo.endTime > existingInfo.startTime && 
-             shiftInfo.endTime <= existingInfo.endTime)
-        );
+    // Add listener for theme toggle
+    const themeToggle = document.getElementById('theme-toggle');
+    if (themeToggle) {
+        themeToggle.addEventListener('click', () => {
+            const isDarkMode = document.body.classList.contains('dark-theme');
+            localStorage.setItem('darkMode', !isDarkMode);
+            applyThemeSettings();
+        });
+    }
+}
+
+/**
+ * Filter staff by department
+ */
+function filterStaffByDepartment() {
+    const staffItems = document.querySelectorAll('.staff-item');
+    staffItems.forEach(item => {
+        const department = item.getAttribute('data-department');
+        if (currentDepartmentFilter === 'all' || department === currentDepartmentFilter) {
+            item.style.display = 'flex';
+        } else {
+            item.style.display = 'none';
+        }
     });
 }
 
-async function swapShifts(fromStaffId, toStaffId, fromShiftId, toShiftId) {
-    const fromShift = findShiftById(fromShiftId);
-    const toShift = findShiftById(toShiftId);
-
-    if (!fromShift || !toShift) {
-        throw new Error('One or both shifts not found');
+// Format date function for display
+function formatDate(date, includeYear = true) {
+    const options = { 
+        month: 'long', 
+        day: 'numeric'
+    };
+    
+    if (includeYear) {
+        options.year = 'numeric';
     }
-
-    // Remove staff from original shifts
-    fromShift.assignedStaff = fromShift.assignedStaff.filter(id => id !== fromStaffId);
-    toShift.assignedStaff = toShift.assignedStaff.filter(id => id !== toStaffId);
-
-    // Assign to new shifts
-    fromShift.assignedStaff.push(toStaffId);
-    toShift.assignedStaff.push(fromStaffId);
-
-    // Update cache
-    updateShiftInCache(fromShift);
-    updateShiftInCache(toShift);
+    
+    return date.toLocaleDateString('is-IS', options);
 }
 
-function findShiftById(shiftId) {
-    for (const schedule of scheduleCache.values()) {
-        for (const week of schedule.weeks) {
-            const shift = week.find(s => s.id === shiftId);
-            if (shift) return shift;
-        }
-    }
-    return null;
-}
-
-function updateShiftInCache(shift) {
-    for (const schedule of scheduleCache.values()) {
-        for (const week of schedule.weeks) {
-            const index = week.findIndex(s => s.id === shift.id);
-            if (index !== -1) {
-                week[index] = shift;
-                return;
-            }
-        }
-    }
+// Format time function for display
+function formatTime(time) {
+    return time;
 }
