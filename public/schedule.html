@@ -6,7 +6,89 @@
     <meta name="description" content="NurseCare AI - Vaktaplan fyrir hjúkrunarheimili">
     <title>Vaktaplan - NurseCare AI</title>
     
-    <!-- Styles -->
+    <!-- Inline critical CSS to ensure page is never unstyled -->
+    <style>
+        :root {
+            /* Essential variables */
+            --primary: #3a86ff;
+            --text-default: #484848;
+            --text-dark: #333333;
+            --text-light: #ffffff;
+            --card-bg: #ffffff;
+            --body-bg: #f8f9fa;
+            --border-color: #e0e0e0;
+        }
+        
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            color: var(--text-default);
+            background-color: var(--body-bg);
+            line-height: 1.5;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+        
+        .site-header {
+            background-color: var(--card-bg);
+            border-bottom: 1px solid var(--border-color);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .header-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.5rem 1rem;
+        }
+        
+        .btn {
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            border: none;
+            font-weight: 500;
+            cursor: pointer;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary);
+            color: var(--text-light);
+        }
+        
+        .btn-outline {
+            background-color: transparent;
+            color: var(--text-default);
+            border: 1px solid var(--border-color);
+        }
+        
+        .schedule-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+        
+        .schedule-table th, .schedule-table td {
+            padding: 0.75rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        /* Emergency fallback styles */
+        .emergency-fallback {
+            background: #fff5f5;
+            border: 2px solid #ff6b6b;
+            padding: 15px;
+            margin: 20px;
+            border-radius: 5px;
+            color: #d32f2f;
+        }
+    </style>
+    
+    <!-- External Styles -->
     <link rel="stylesheet" href="styles/main.css">
     <link rel="stylesheet" href="styles/schedule.css">
     
@@ -16,8 +98,8 @@
     <!-- Google Fonts - Inter -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
-    <!-- Favicons -->
-    <link rel="icon" href="assets/icons/favicon.ico">
+    <!-- Favicons - Updated to use SVG instead of ICO -->
+    <link rel="icon" href="assets/icons/favicon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
 </head>
 <body>
